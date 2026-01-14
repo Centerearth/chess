@@ -13,13 +13,38 @@ public class BishopMovesCalculator implements PieceMovesCalculator {
         for (int i = 1, j = 1; i <= 7 && j <= 7; i++, j++) {
             int newRow = row + i;
             int newCol = col - j;
-            if (!helperAdd(newRow, newCol, board, myPosition, validMoves)) {
+            if (helperAdd(newRow, newCol, board, myPosition, validMoves)) {
+                break;
+            }
+        }
+
+        for (int i = 1, j = 1; i <= 7 && j <= 7; i++, j++) {
+            int newRow = row + i;
+            int newCol = col + j;
+            if (helperAdd(newRow, newCol, board, myPosition, validMoves)) {
+                break;
+            }
+        }
+
+        for (int i = 1, j = 1; i <= 7 && j <= 7; i++, j++) {
+            int newRow = row - i;
+            int newCol = col - j;
+            if (helperAdd(newRow, newCol, board, myPosition, validMoves)) {
+                break;
+            }
+        }
+
+        for (int i = 1, j = 1; i <= 7 && j <= 7; i++, j++) {
+            int newRow = row - i;
+            int newCol = col + j;
+            if (helperAdd(newRow, newCol, board, myPosition, validMoves)) {
                 break;
             }
         }
         return validMoves;
     }
 
+    // Note that this mutates validMoves as well as returns a bool
     public boolean helperAdd(int newRow, int newCol, ChessBoard board, ChessPosition myPosition, ArrayList<ChessMove> validMoves) {
         if ((1 <= newRow) && (8 >= newRow) && (1 <= newCol) && (8 >= newCol)) {
             ChessPosition adjacentPosition = new ChessPosition(newRow, newCol);
@@ -28,14 +53,14 @@ public class BishopMovesCalculator implements PieceMovesCalculator {
 
             if (adjacentPiece != null && adjacentPiece.getTeamColor() != currentColor) {
                 validMoves.add(new ChessMove(myPosition, adjacentPosition, null));
-                return false;
+                return true;
             } else if (adjacentPiece != null && adjacentPiece.getTeamColor() == currentColor) {
-                return false;
+                return true;
             } else {
                 validMoves.add(new ChessMove(myPosition, adjacentPosition, null));
-                return true;
+                return false;
             }
         }
-        return false;
+        return true;
     }
 }

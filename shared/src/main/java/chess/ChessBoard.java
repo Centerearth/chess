@@ -45,7 +45,7 @@ public class ChessBoard {
      * (How the game of chess normally starts)
      */
     public void resetBoard() {
-        ChessPiece[][] board = new ChessPiece[8][8];
+        this.board = new ChessPiece[8][8];
         //adding pawns
         for (int col = 1; col <= 8; col++) {
             addPiece(new ChessPosition(2, col), new ChessPiece(WHITE, PAWN));
@@ -72,7 +72,22 @@ public class ChessBoard {
         //adding kings
         addPiece(new ChessPosition(1, 5), new ChessPiece(WHITE, KING));
         addPiece(new ChessPosition(8, 5), new ChessPiece(BLACK, KING));
+        this.display();
+    }
 
+    public void display() {
+        for (int i = 8; i >= 1; i--) {
+            for (int j = 8; j >= 1; j--) {
+                ChessPiece currentPiece = this.getPiece(new ChessPosition(i, j));
+                if (currentPiece != null) {
+                    System.out.print("| " + this.getPiece(new ChessPosition(i, j)).toString() + " ");
+                } else {
+                    System.out.print("|  ");
+                }
+            }
+            System.out.print("|");
+            System.out.println();
+        }
     }
 
     @Override

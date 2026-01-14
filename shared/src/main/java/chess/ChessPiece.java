@@ -67,7 +67,10 @@ public class ChessPiece {
                 yield bishopMovesCalculator.pieceMoves(board, myPosition);
             }
             case KNIGHT -> null;
-            case ROOK -> null;
+            case ROOK -> {
+                RookMovesCalculator rookMovesCalculator = new RookMovesCalculator();
+                yield rookMovesCalculator.pieceMoves(board, myPosition);
+            }
             case PAWN -> null;
         };
     }

@@ -3,6 +3,8 @@ package chess;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import static chess.HelpCalculator.helpCalculator;
+
 public class RookMovesCalculator implements PieceMovesCalculator {
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
 
@@ -12,51 +14,31 @@ public class RookMovesCalculator implements PieceMovesCalculator {
 
         for (int i = 1; i <= 7; i++) {
             int newRow = row + i;
-            if (helperAdd(newRow, col, board, myPosition, validMoves)) {
+            if (helpCalculator(newRow, col, board, myPosition, validMoves)) {
                 break;
             }
         }
 
         for (int i = 1; i <= 7; i++) {
             int newCol = col + i;
-            if (helperAdd(row, newCol, board, myPosition, validMoves)) {
+            if (helpCalculator(row, newCol, board, myPosition, validMoves)) {
                 break;
             }
         }
 
         for (int i = 1; i <= 7; i++) {
             int newRow = row - i;
-            if (helperAdd(newRow, col, board, myPosition, validMoves)) {
+            if (helpCalculator(newRow, col, board, myPosition, validMoves)) {
                 break;
             }
         }
 
         for (int i = 1; i <= 7; i++) {
             int newCol = col - i;
-            if (helperAdd(row, newCol, board, myPosition, validMoves)) {
+            if (helpCalculator(row, newCol, board, myPosition, validMoves)) {
                 break;
             }
         }
         return validMoves;
-    }
-
-    // Note that this mutates validMoves as well as returns a bool
-    public boolean helperAdd(int newRow, int newCol, ChessBoard board, ChessPosition myPosition, ArrayList<ChessMove> validMoves) {
-        if ((1 <= newRow) && (8 >= newRow) && (1 <= newCol) && (8 >= newCol)) {
-            ChessPosition adjacentPosition = new ChessPosition(newRow, newCol);
-            ChessPiece adjacentPiece = board.getPiece(adjacentPosition);
-            ChessGame.TeamColor currentColor = board.getPiece(myPosition).getTeamColor();
-
-            if (adjacentPiece != null && adjacentPiece.getTeamColor() != currentColor) {
-                validMoves.add(new ChessMove(myPosition, adjacentPosition, null));
-                return true;
-            } else if (adjacentPiece != null && adjacentPiece.getTeamColor() == currentColor) {
-                return true;
-            } else {
-                validMoves.add(new ChessMove(myPosition, adjacentPosition, null));
-                return false;
-            }
-        }
-        return true;
     }
 }

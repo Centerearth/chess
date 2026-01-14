@@ -69,7 +69,10 @@ public class ChessPiece {
                 BishopMovesCalculator calculator = new BishopMovesCalculator();
                 yield calculator.pieceMoves(board, myPosition);
             }
-            case KNIGHT -> null;
+            case KNIGHT -> {
+                KnightMovesCalculator calculator = new KnightMovesCalculator();
+                yield calculator.pieceMoves(board, myPosition);
+            }
             case ROOK -> {
                 RookMovesCalculator calculator = new RookMovesCalculator();
                 yield calculator.pieceMoves(board, myPosition);

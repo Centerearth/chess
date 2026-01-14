@@ -16,7 +16,11 @@ public class KingMovesCalculator implements PieceMovesCalculator {
                 int newCol = col + j;
                 if (!(0 == i && 0 == j)) {
                     if ((1 <= newRow) && (8 >= newRow) && (1 <= newCol) && (8 >= newCol)) {
-                        validMoves.add(new ChessMove(myPosition, new ChessPosition(newRow,newCol), null));
+                        ChessPosition adjacentPosition = new ChessPosition(newRow, newCol );
+                        ChessPiece adjacentPiece = board.getPiece(adjacentPosition);
+                        if (adjacentPiece == null || adjacentPiece.getTeamColor() != board.getPiece(myPosition).getTeamColor()) {
+                            validMoves.add(new ChessMove(myPosition, adjacentPosition, null));
+                        }
                     }
                 }
             }

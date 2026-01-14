@@ -1,5 +1,11 @@
 package chess;
 
+import java.util.Arrays;
+import java.util.Objects;
+
+import static chess.ChessGame.TeamColor.*;
+import static chess.ChessPiece.PieceType.*;
+
 /**
  * A chessboard that can hold and rearrange chess pieces.
  * <p>
@@ -10,7 +16,6 @@ public class ChessBoard {
 
     ChessPiece[][] board = new ChessPiece[8][8];
     public ChessBoard() {
-        
     }
 
     /**
@@ -40,6 +45,47 @@ public class ChessBoard {
      * (How the game of chess normally starts)
      */
     public void resetBoard() {
-        throw new RuntimeException("Not implemented");
+        ChessPiece[][] board = new ChessPiece[8][8];
+        //adding pawns
+        for (int col = 1; col <= 8; col++) {
+            addPiece(new ChessPosition(2, col), new ChessPiece(WHITE, PAWN));
+            addPiece(new ChessPosition(7, col), new ChessPiece(BLACK, PAWN));
+        }
+        //adding rooks
+        addPiece(new ChessPosition(1, 1), new ChessPiece(WHITE, ROOK));
+        addPiece(new ChessPosition(1, 8), new ChessPiece(WHITE, ROOK));
+        addPiece(new ChessPosition(8, 1), new ChessPiece(BLACK, ROOK));
+        addPiece(new ChessPosition(8, 8), new ChessPiece(BLACK, ROOK));
+        //adding bishops
+        addPiece(new ChessPosition(1, 2), new ChessPiece(WHITE, BISHOP));
+        addPiece(new ChessPosition(1, 7), new ChessPiece(WHITE, BISHOP));
+        addPiece(new ChessPosition(8, 2), new ChessPiece(BLACK, BISHOP));
+        addPiece(new ChessPosition(8, 7), new ChessPiece(BLACK, BISHOP));
+        //adding knights
+        addPiece(new ChessPosition(1, 3), new ChessPiece(WHITE, KNIGHT));
+        addPiece(new ChessPosition(1, 6), new ChessPiece(WHITE, KNIGHT));
+        addPiece(new ChessPosition(8, 3), new ChessPiece(BLACK, KNIGHT));
+        addPiece(new ChessPosition(8, 6), new ChessPiece(BLACK, KNIGHT));
+        //adding queens
+        addPiece(new ChessPosition(1, 4), new ChessPiece(WHITE, QUEEN));
+        addPiece(new ChessPosition(8, 4), new ChessPiece(BLACK, QUEEN));
+        //adding kings
+        addPiece(new ChessPosition(1, 5), new ChessPiece(WHITE, KING));
+        addPiece(new ChessPosition(8, 5), new ChessPiece(BLACK, KING));
+
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        ChessBoard that = (ChessBoard) o;
+        return Objects.deepEquals(board, that.board);
+    }
+
+    @Override
+    public int hashCode() {
+        return Arrays.deepHashCode(board);
     }
 }

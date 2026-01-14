@@ -57,21 +57,16 @@ public class ChessPiece {
         ChessPiece piece = board.getPiece(myPosition);
         PieceType typeOfPiece = piece.getPieceType();
 
-        ArrayList<ChessMove> validMoves = (ArrayList<ChessMove>) switch (typeOfPiece) {
-            case KING:
-                KingMovesCalculator kingMovesCalculator= new KingMovesCalculator();
+        return switch (typeOfPiece) {
+            case KING -> {
+                KingMovesCalculator kingMovesCalculator = new KingMovesCalculator();
                 yield kingMovesCalculator.pieceMoves(board, myPosition);
-            case QUEEN:
-                yield null;
-            case BISHOP:
-                yield null;
-            case KNIGHT:
-                yield null;
-            case ROOK:
-                yield null;
-            case PAWN:
-                yield null;
+            }
+            case QUEEN -> null;
+            case BISHOP -> null;
+            case KNIGHT -> null;
+            case ROOK -> null;
+            case PAWN -> null;
         };
-        return validMoves;
     }
 }

@@ -2,13 +2,25 @@ package chess;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 public class KingMovesCalculator implements PieceMovesCalculator {
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
+
         ArrayList<ChessMove> validMoves = new ArrayList<>();
-        validMoves.add(new ChessMove(new ChessPosition(1,1), new ChessPosition(1,2), null));
+        int row = myPosition.getRow();
+        int col = myPosition.getColumn();
+
+        for (int i = -1; i <= 1; i++) {
+            for (int j = -1; j <= 1; j++) {
+                int newRow = row + i;
+                int newCol = col + j;
+                if (!(0 == i && 0 == j)) {
+                    if ((1 <= newRow) && (8 >= newRow) && (1 <= newCol) && (8 >= newCol)) {
+                        validMoves.add(new ChessMove(myPosition, new ChessPosition(newRow,newCol), null));
+                    }
+                }
+            }
+        }
         return validMoves;
-        // return List.of(new ChessMove(new ChessPosition(1,1), new ChessPosition(1,2), null));
     }
 }

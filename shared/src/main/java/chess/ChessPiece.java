@@ -1,5 +1,6 @@
 package chess;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -54,6 +55,16 @@ public class ChessPiece {
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
         ChessPiece piece = board.getPiece(myPosition);
+        PieceType typeOfPiece = piece.getPieceType();
+
+        ArrayList<ChessMove> validMoves = switch (typeOfPiece) {
+            case KING -> null;
+            case QUEEN -> null;
+            case BISHOP -> null;
+            case KNIGHT -> null;
+            case ROOK -> null;
+            case PAWN -> null;
+        };
         return List.of();
     }
 }

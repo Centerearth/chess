@@ -58,18 +58,21 @@ public class ChessPiece {
 
         return switch (typeOfPiece) {
             case KING -> {
-                KingMovesCalculator kingMovesCalculator = new KingMovesCalculator();
-                yield kingMovesCalculator.pieceMoves(board, myPosition);
+                KingMovesCalculator calculator = new KingMovesCalculator();
+                yield calculator.pieceMoves(board, myPosition);
             }
-            case QUEEN -> null;
+            case QUEEN -> {
+                QueenMovesCalculator calculator = new QueenMovesCalculator();
+                yield calculator.pieceMoves(board, myPosition);
+            }
             case BISHOP -> {
-                BishopMovesCalculator bishopMovesCalculator = new BishopMovesCalculator();
-                yield bishopMovesCalculator.pieceMoves(board, myPosition);
+                BishopMovesCalculator calculator = new BishopMovesCalculator();
+                yield calculator.pieceMoves(board, myPosition);
             }
             case KNIGHT -> null;
             case ROOK -> {
-                RookMovesCalculator rookMovesCalculator = new RookMovesCalculator();
-                yield rookMovesCalculator.pieceMoves(board, myPosition);
+                RookMovesCalculator calculator = new RookMovesCalculator();
+                yield calculator.pieceMoves(board, myPosition);
             }
             case PAWN -> null;
         };

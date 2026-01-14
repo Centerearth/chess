@@ -74,7 +74,10 @@ public class ChessPiece {
                 RookMovesCalculator calculator = new RookMovesCalculator();
                 yield calculator.pieceMoves(board, myPosition);
             }
-            case PAWN -> null;
+            case PAWN -> {
+                PawnMovesCalculator calculator = new PawnMovesCalculator();
+                yield calculator.pieceMoves(board, myPosition);
+            }
         };
     }
 

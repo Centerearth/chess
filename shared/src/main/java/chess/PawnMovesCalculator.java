@@ -19,7 +19,13 @@ public class PawnMovesCalculator implements PieceMovesCalculator {
         return validMoves;
     }
 
-    public void pawnMoves(ChessGame.TeamColor currentColor, ArrayList<ChessMove> validMoves, ChessBoard board, ChessPosition myPosition, int secondRow, int secondToLastRow, int factor) {
+    public void pawnMoves(ChessGame.TeamColor currentColor,
+                          ArrayList<ChessMove> validMoves,
+                          ChessBoard board,
+                          ChessPosition myPosition,
+                          int secondRow,
+                          int secondToLastRow,
+                          int factor) {
 
         int row = myPosition.getRow();
         int col = myPosition.getColumn();

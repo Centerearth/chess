@@ -14,17 +14,18 @@ public class KingMovesCalculator implements PieceMovesCalculator {
             for (int j = -1; j <= 1; j++) {
                 int newRow = row + i;
                 int newCol = col + j;
-                if (!(0 == i && 0 == j)) {
-                    if ((1 <= newRow) && (8 >= newRow) && (1 <= newCol) && (8 >= newCol)) {
-                        ChessPosition adjacentPosition = new ChessPosition(newRow, newCol );
-                        ChessPiece adjacentPiece = board.getPiece(adjacentPosition);
-                        if (adjacentPiece == null || adjacentPiece.getTeamColor() != board.getPiece(myPosition).getTeamColor()) {
-                            validMoves.add(new ChessMove(myPosition, adjacentPosition, null));
-                        }
+                if (this.inBoundsAndValid(i, j, newRow, newCol)) {
+                    ChessPosition adjacentPosition = new ChessPosition(newRow, newCol );
+                    ChessPiece adjacentPiece = board.getPiece(adjacentPosition);
+                    if (adjacentPiece == null || adjacentPiece.getTeamColor() != board.getPiece(myPosition).getTeamColor()) {
+                        validMoves.add(new ChessMove(myPosition, adjacentPosition, null));
                     }
                 }
             }
         }
         return validMoves;
+    }
+    public boolean inBoundsAndValid (int i, int j, int newRow, int newCol) {
+        return (!(0 == i && 0 == j) && ((1 <= newRow) && (8 >= newRow) && (1 <= newCol) && (8 >= newCol)));
     }
 }

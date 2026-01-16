@@ -17,11 +17,7 @@ public class PawnMovesCalculator implements PieceMovesCalculator {
             ChessPosition nextSquare = new ChessPosition(row+1, col);
             if (board.getPiece(nextSquare) == null) {
                 if (row == 7) {
-                    for (PieceType piece : PieceType.values()) {
-                        if (piece != PieceType.KING && piece != PieceType.PAWN) {
-                            validMoves.add(new ChessMove(myPosition, nextSquare, piece));
-                        }
-                    }
+                    this.promotion(validMoves, myPosition, nextSquare);
                 } else {
                     validMoves.add(new ChessMove(myPosition, nextSquare, null));
                     if (row == 2) {
@@ -37,11 +33,7 @@ public class PawnMovesCalculator implements PieceMovesCalculator {
                 ChessPiece diagonalPiece = board.getPiece(firstDiagonal);
                 if (diagonalPiece != null && diagonalPiece.getTeamColor() != currentColor) {
                     if (row == 7) {
-                        for (PieceType piece : PieceType.values()) {
-                            if (piece != PieceType.KING && piece != PieceType.PAWN) {
-                                validMoves.add(new ChessMove(myPosition, firstDiagonal, piece));
-                            }
-                        }
+                        this.promotion(validMoves, myPosition, firstDiagonal);
                     } else {
                         validMoves.add(new ChessMove(myPosition, firstDiagonal, null));
                     }
@@ -52,11 +44,7 @@ public class PawnMovesCalculator implements PieceMovesCalculator {
                 ChessPiece diagonalPiece = board.getPiece(secondDiagonal);
                 if (diagonalPiece != null && diagonalPiece.getTeamColor() != currentColor) {
                     if (row == 7) {
-                        for (PieceType piece : PieceType.values()) {
-                            if (piece != PieceType.KING && piece != PieceType.PAWN) {
-                                validMoves.add(new ChessMove(myPosition, secondDiagonal, piece));
-                            }
-                        }
+                        this.promotion(validMoves, myPosition, secondDiagonal);
                     } else {
                         validMoves.add(new ChessMove(myPosition, secondDiagonal, null));
                     }
@@ -66,11 +54,7 @@ public class PawnMovesCalculator implements PieceMovesCalculator {
             ChessPosition nextSquare = new ChessPosition(row-1, col);
             if (board.getPiece(nextSquare) == null) {
                 if (row == 2) {
-                    for (PieceType piece : PieceType.values()) {
-                        if (piece != PieceType.KING && piece != PieceType.PAWN) {
-                            validMoves.add(new ChessMove(myPosition, nextSquare, piece));
-                        }
-                    }
+                    this.promotion(validMoves, myPosition, nextSquare);
                 } else {
                     validMoves.add(new ChessMove(myPosition, nextSquare, null));
                     if (row == 7) {
@@ -86,11 +70,7 @@ public class PawnMovesCalculator implements PieceMovesCalculator {
                 ChessPiece diagonalPiece = board.getPiece(firstDiagonal);
                 if (diagonalPiece != null && diagonalPiece.getTeamColor() != currentColor) {
                     if (row == 2) {
-                        for (PieceType piece : PieceType.values()) {
-                            if (piece != PieceType.KING && piece != PieceType.PAWN) {
-                                validMoves.add(new ChessMove(myPosition, firstDiagonal, piece));
-                            }
-                        }
+                        this.promotion(validMoves, myPosition, firstDiagonal);
                     } else {
                         validMoves.add(new ChessMove(myPosition, firstDiagonal, null));
                     }
@@ -101,11 +81,7 @@ public class PawnMovesCalculator implements PieceMovesCalculator {
                 ChessPiece diagonalPiece = board.getPiece(secondDiagonal);
                 if (diagonalPiece != null && diagonalPiece.getTeamColor() != currentColor) {
                     if (row == 2) {
-                        for (PieceType piece : PieceType.values()) {
-                            if (piece != PieceType.KING && piece != PieceType.PAWN) {
-                                validMoves.add(new ChessMove(myPosition, secondDiagonal, piece));
-                            }
-                        }
+                        this.promotion(validMoves, myPosition, secondDiagonal);
                     } else {
                         validMoves.add(new ChessMove(myPosition, secondDiagonal, null));
                     }
@@ -113,5 +89,13 @@ public class PawnMovesCalculator implements PieceMovesCalculator {
             }
         }
         return validMoves;
+    }
+
+    public void promotion(ArrayList<ChessMove> validMoves, ChessPosition myPosition, ChessPosition nextSquare) {
+        for (PieceType piece : PieceType.values()) {
+            if (piece != PieceType.KING && piece != PieceType.PAWN) {
+                validMoves.add(new ChessMove(myPosition, nextSquare, piece));
+            }
+        }
     }
 }

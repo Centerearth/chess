@@ -70,6 +70,11 @@ public class ChessGame {
         ChessPosition endPosition = move.getEndPosition();
         ChessPiece.PieceType promotionPiece = move.getPromotionPiece();
         ChessPiece piece = board.getPiece(startPosition);
+        TeamColor color = piece.getTeamColor();
+
+        if (color != getTeamTurn()) {
+            throw new InvalidMoveException("It is not your turn");
+        }
 
         Collection<ChessMove> validMoves = this.validMoves(startPosition);
         if (validMoves.contains(move)) {
@@ -77,9 +82,13 @@ public class ChessGame {
             if (promotionPiece == null) {
                 board.addPiece(endPosition, piece);
             } else {
-                TeamColor color = piece.getTeamColor();
                 ChessPiece promotedPiece = new ChessPiece(color, promotionPiece);
                 board.addPiece(endPosition, promotedPiece);
+            }
+            if (color == TeamColor.WHITE) {
+                this.setTeamTurn(TeamColor.BLACK);
+            } else {
+                this.setTeamTurn(TeamColor.WHITE);
             }
         } else {
             throw new InvalidMoveException("This is an invalid move");

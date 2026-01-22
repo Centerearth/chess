@@ -78,8 +78,8 @@ public class ChessGame {
                 board.addPiece(endPosition, piece);
             } else {
                 TeamColor color = piece.getTeamColor();
-                ChessPiece promotionedPiece = new ChessPiece(color, promotionPiece);
-                board.addPiece(endPosition, promotionedPiece);
+                ChessPiece promotedPiece = new ChessPiece(color, promotionPiece);
+                board.addPiece(endPosition, promotedPiece);
             }
         } else {
             throw new InvalidMoveException("This is an invalid move");
@@ -95,7 +95,22 @@ public class ChessGame {
      */
     public boolean isInCheck(TeamColor teamColor) {
         ChessPosition kingPosition = findKingPosition(teamColor);
-
+        for (int i = 1; i <= 8; i++ ) {
+            for (int j = 1; j <= 8; j++) {
+                ChessPosition position = new ChessPosition(i, j);
+                ChessPiece piece = board.getPiece(position);
+                if (piece != null && piece.getTeamColor() != teamColor) {
+                    // Might need to change this next line with validMoves, not sure if that would create a loop
+                    Collection<ChessMove> validMoves = piece.pieceMoves(board, position);
+                    for (ChessMove move: validMoves) {
+                        if (move.getEndPosition() == kingPosition) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     public ChessPosition findKingPosition(TeamColor teamColor) {

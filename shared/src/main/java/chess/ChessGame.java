@@ -70,6 +70,10 @@ public class ChessGame {
         ChessPosition endPosition = move.getEndPosition();
         ChessPiece.PieceType promotionPiece = move.getPromotionPiece();
         ChessPiece piece = board.getPiece(startPosition);
+
+        if (piece == null) {
+            throw new InvalidMoveException("There is no piece there");
+        }
         TeamColor color = piece.getTeamColor();
 
         if (color != getTeamTurn()) {
@@ -112,7 +116,8 @@ public class ChessGame {
                     // Might need to change this next line with validMoves, not sure if that would create a loop
                     Collection<ChessMove> validMoves = piece.pieceMoves(board, position);
                     for (ChessMove move: validMoves) {
-                        if (move.getEndPosition() == kingPosition) {
+                        if (move.getEndPosition().equals(kingPosition)) {
+                            System.out.println("I am in this block");
                             return true;
                         }
                     }
@@ -127,8 +132,10 @@ public class ChessGame {
             for (int j = 1; j <= 8; j++) {
                 ChessPosition kingPosition = new ChessPosition(i, j);
                 ChessPiece king = board.getPiece(kingPosition);
-                if (king.getPieceType() == ChessPiece.PieceType.KING && king.getTeamColor() == teamColor) {
-                    return kingPosition;
+                if (king != null) {
+                    if (king.getPieceType() == ChessPiece.PieceType.KING && king.getTeamColor() == teamColor) {
+                        return kingPosition;
+                    }
                 }
             }
         }

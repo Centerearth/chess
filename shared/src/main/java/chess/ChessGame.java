@@ -1,5 +1,7 @@
 package chess;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Objects;
 
@@ -9,7 +11,7 @@ import java.util.Objects;
  * Note: You can add to this class, but you may not alter
  * signature of the existing methods.
  */
-public class ChessGame {
+public class ChessGame implements Cloneable {
         private ChessBoard board;
         private TeamColor teams_turn;
 
@@ -54,9 +56,25 @@ public class ChessGame {
         ChessPiece startPiece = board.getPiece(startPosition);
         if (startPiece == null) {
             return null;
-        } else {
-            return startPiece.pieceMoves(board, startPosition);
         }
+
+        //return startPiece.pieceMoves(board, startPosition);
+        Collection<ChessMove> initialMoves = startPiece.pieceMoves(board, startPosition);
+        ArrayList<ChessMove> validMoves = new ArrayList<>();
+
+        for (ChessMove move : initialMoves) {
+            try {
+                ChessGame tempGame = (ChessGame) this.clone();
+                tempGame.makeMoveNoColor(move);
+                if (!tempGame.isInCheck(startPiece.getTeamColor())) {
+                    validMoves.add(move);
+                }
+            } catch (CloneNotSupportedException | InvalidMoveException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return validMoves;
+
     }
 
     /**
@@ -66,6 +84,26 @@ public class ChessGame {
      * @throws InvalidMoveException if move is invalid
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
+        ChessPiece piece = board.getPiece(move.getStartPosition());
+        if (piece != null) {
+            TeamColor color = piece.getTeamColor();
+            if (color != getTeamTurn()) {
+                throw new InvalidMoveException("It is not your turn");
+            }
+        }
+        makeMoveNoColor(move);
+
+        //IntelliJ was being whiny about this next line
+        assert piece != null;
+        if (piece.getTeamColor() == TeamColor.WHITE) {
+            this.setTeamTurn(TeamColor.BLACK);
+        } else {
+            this.setTeamTurn(TeamColor.WHITE);
+        }
+
+    }
+
+    public void makeMoveNoColor(ChessMove move) throws InvalidMoveException {
         ChessPosition startPosition = move.getStartPosition();
         ChessPosition endPosition = move.getEndPosition();
         ChessPiece.PieceType promotionPiece = move.getPromotionPiece();
@@ -76,11 +114,8 @@ public class ChessGame {
         }
         TeamColor color = piece.getTeamColor();
 
-        if (color != getTeamTurn()) {
-            throw new InvalidMoveException("It is not your turn");
-        }
-
-        Collection<ChessMove> validMoves = this.validMoves(startPosition);
+        //Need validMoves?
+        Collection<ChessMove> validMoves = piece.pieceMoves(board, startPosition);
         if (validMoves.contains(move)) {
             board.addPiece(startPosition, null);
             if (promotionPiece == null) {
@@ -89,15 +124,9 @@ public class ChessGame {
                 ChessPiece promotedPiece = new ChessPiece(color, promotionPiece);
                 board.addPiece(endPosition, promotedPiece);
             }
-            if (color == TeamColor.WHITE) {
-                this.setTeamTurn(TeamColor.BLACK);
-            } else {
-                this.setTeamTurn(TeamColor.WHITE);
-            }
         } else {
             throw new InvalidMoveException("This is an invalid move");
         }
-
     }
 
     /**
@@ -117,7 +146,6 @@ public class ChessGame {
                     Collection<ChessMove> validMoves = piece.pieceMoves(board, position);
                     for (ChessMove move: validMoves) {
                         if (move.getEndPosition().equals(kingPosition)) {
-                            System.out.println("I am in this block");
                             return true;
                         }
                     }
@@ -193,5 +221,21 @@ public class ChessGame {
     @Override
     public int hashCode() {
         return Objects.hash(getBoard(), teams_turn);
+    }
+
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        Object o = super.clone(); // why did IntelliJ say to put this in ?
+        var clone = new ChessGame();
+        clone.teams_turn = this.teams_turn;
+
+        for (int i = 1; i <= 8; i++ ) {
+            for (int j = 1; j <= 8; j++) {
+                ChessPosition position = new ChessPosition(i,j);
+                clone.board.addPiece(position, this.board.getPiece(position));
+            }
+        }
+
+        return clone;
     }
 }

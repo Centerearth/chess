@@ -82,42 +82,14 @@ public class ChessGame implements Cloneable {
      * @throws InvalidMoveException if move is invalid
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
-        ChessPosition startPosition = move.getStartPosition();
-        ChessPosition endPosition = move.getEndPosition();
-        ChessPiece.PieceType promotionPiece = move.getPromotionPiece();
-        ChessPiece piece = board.getPiece(startPosition);
-
-        if (piece == null) {
-            throw new InvalidMoveException("There is no piece there");
-        }
-
-        TeamColor color = piece.getTeamColor();
-        if (color != getTeamTurn()) {
-            throw new InvalidMoveException("It is not your turn");
-        }
-
-        Collection<ChessMove> validMoves = this.validMoves(startPosition);
-        if (validMoves.contains(move)) {
-            board.addPiece(startPosition, null);
-            if (promotionPiece == null) {
-                board.addPiece(endPosition, piece);
-            } else {
-                ChessPiece promotedPiece = new ChessPiece(color, promotionPiece);
-                board.addPiece(endPosition, promotedPiece);
-            }
-        } else {
-            throw new InvalidMoveException("This is an invalid move");
-        }
-
-        if (piece.getTeamColor() == TeamColor.WHITE) {
-            this.setTeamTurn(TeamColor.BLACK);
-        } else {
-            this.setTeamTurn(TeamColor.WHITE);
-        }
-
+        moveGeneralized(move, false);
     }
 
     public void makeMoveTesting(ChessMove move) throws InvalidMoveException {
+        moveGeneralized(move, true);
+    }
+
+    public void moveGeneralized(ChessMove move, boolean testing) throws InvalidMoveException {
         ChessPosition startPosition = move.getStartPosition();
         ChessPosition endPosition = move.getEndPosition();
         ChessPiece.PieceType promotionPiece = move.getPromotionPiece();
@@ -128,7 +100,17 @@ public class ChessGame implements Cloneable {
         }
         TeamColor color = piece.getTeamColor();
 
-        Collection<ChessMove> validMoves = piece.pieceMoves(board, startPosition);
+
+        Collection<ChessMove> validMoves;
+        if (testing) {
+            validMoves = piece.pieceMoves(board, startPosition);
+        } else {
+            if (color != getTeamTurn()) {
+                throw new InvalidMoveException("It is not your turn");
+            }
+            validMoves = this.validMoves(startPosition);
+        }
+
         if (validMoves.contains(move)) {
             board.addPiece(startPosition, null);
             if (promotionPiece == null) {
@@ -139,6 +121,14 @@ public class ChessGame implements Cloneable {
             }
         } else {
             throw new InvalidMoveException("This is an invalid move");
+        }
+
+        if (!testing) {
+            if (piece.getTeamColor() == TeamColor.WHITE) {
+                this.setTeamTurn(TeamColor.BLACK);
+            } else {
+                this.setTeamTurn(TeamColor.WHITE);
+            }
         }
     }
 

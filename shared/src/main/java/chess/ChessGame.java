@@ -57,7 +57,6 @@ public class ChessGame implements Cloneable {
             return null;
         }
 
-        //return startPiece.pieceMoves(board, startPosition);
         Collection<ChessMove> initialMoves = startPiece.pieceMoves(board, startPosition);
         ArrayList<ChessMove> validMoves = new ArrayList<>();
 
@@ -129,7 +128,6 @@ public class ChessGame implements Cloneable {
         }
         TeamColor color = piece.getTeamColor();
 
-        //Need validMoves?
         Collection<ChessMove> validMoves = piece.pieceMoves(board, startPosition);
         if (validMoves.contains(move)) {
             board.addPiece(startPosition, null);
@@ -158,7 +156,6 @@ public class ChessGame implements Cloneable {
                 ChessPosition position = new ChessPosition(i, j);
                 ChessPiece piece = board.getPiece(position);
                 if (piece != null && piece.getTeamColor() != teamColor) {
-                    // Might need to change this next line with validMoves, not sure if that would create a loop
                     Collection<ChessMove> validMoves = piece.pieceMoves(board, position);
                     for (ChessMove move: validMoves) {
                         if (move.getEndPosition().equals(kingPosition)) {

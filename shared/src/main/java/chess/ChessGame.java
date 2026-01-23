@@ -1,7 +1,6 @@
 package chess;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Objects;
 
@@ -194,7 +193,26 @@ public class ChessGame implements Cloneable {
      * @return True if the specified team is in checkmate
      */
     public boolean isInCheckmate(TeamColor teamColor) {
-        throw new RuntimeException("Not implemented");
+        if (this.isInCheck(teamColor)) {
+            return noValidMoves(teamColor);
+        }
+        return false;
+    }
+
+    public boolean noValidMoves(TeamColor teamColor) {
+        for (int i = 1; i <= 8; i++ ) {
+            for (int j = 1; j <= 8; j++) {
+                ChessPosition position = new ChessPosition(i,j);
+                ChessPiece piece = board.getPiece(position);
+                if (piece != null && piece.getTeamColor() == teamColor) {
+                    ArrayList<ChessMove> validMoves = (ArrayList<ChessMove>) this.validMoves(position);
+                    if (validMoves != null && !validMoves.isEmpty()) {
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
     }
 
     /**
@@ -205,7 +223,10 @@ public class ChessGame implements Cloneable {
      * @return True if the specified team is in stalemate, otherwise false
      */
     public boolean isInStalemate(TeamColor teamColor) {
-        throw new RuntimeException("Not implemented");
+        if (this.isInCheck(teamColor)) {
+            return false;
+        }
+        return noValidMoves(teamColor);
     }
 
     /**

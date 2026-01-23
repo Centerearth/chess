@@ -12,19 +12,19 @@ import java.util.Objects;
  */
 public class ChessGame implements Cloneable {
         private ChessBoard board;
-        private TeamColor teams_turn;
+        private TeamColor teamsTurn;
 
     public ChessGame() {
         board = new ChessBoard();
         this.board.resetBoard();
-        teams_turn = TeamColor.WHITE;
+        teamsTurn = TeamColor.WHITE;
     }
 
     /**
      * @return Which team's turn it is
      */
     public TeamColor getTeamTurn() {
-        return this.teams_turn;
+        return this.teamsTurn;
     }
 
     /**
@@ -33,7 +33,7 @@ public class ChessGame implements Cloneable {
      * @param team the team whose turn it is
      */
     public void setTeamTurn(TeamColor team) {
-        this.teams_turn = team;
+        this.teamsTurn = team;
     }
 
     /**
@@ -250,19 +250,19 @@ public class ChessGame implements Cloneable {
             return false;
         }
         ChessGame chessGame = (ChessGame) o;
-        return Objects.equals(getBoard(), chessGame.getBoard()) && teams_turn == chessGame.teams_turn;
+        return Objects.equals(getBoard(), chessGame.getBoard()) && teamsTurn == chessGame.teamsTurn;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getBoard(), teams_turn);
+        return Objects.hash(getBoard(), teamsTurn);
     }
 
     @Override
     protected Object clone() throws CloneNotSupportedException {
         Object o = super.clone(); // why did IntelliJ say to put this in ?
         var clone = new ChessGame();
-        clone.teams_turn = this.teams_turn;
+        clone.teamsTurn = this.teamsTurn;
 
         for (int i = 1; i <= 8; i++ ) {
             for (int j = 1; j <= 8; j++) {

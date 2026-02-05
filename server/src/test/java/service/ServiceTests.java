@@ -99,17 +99,16 @@ public class ServiceTests {
         userService.authDataExists(registerResult.authToken().authToken());
 
         Assertions.assertFalse(userService.authDataExists(registerResult.authToken().authToken()),
-                "Response did not have the same username as was used for login");
+                "Logout did complete successfully and the token was not deleted");
     }
 
     @Test
     @Order(8)
     @DisplayName("Logout - User is unauthorized")
     public void logoutUnauthorized() {
-        userService.register(
+        RegisterResult registerResult = userService.register(
                 new RegisterRequest("basic_username", "pswd", "abcd@yahoo.com"));
-        //submit login request with wrong password
-        assertThrows(FailedLoginException.class, () -> userService.login(
-                new LoginRequest("basic_username", "1234")));
+        //submit logout request with wrong authToken
+        assertThrows(FailedLoginException.class, () -> userService.logout(new LogoutRequest(registerResult.authToken().authToken())));
     }
 }

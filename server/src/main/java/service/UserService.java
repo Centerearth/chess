@@ -17,6 +17,10 @@ public class UserService {
         return UUID.randomUUID().toString();
     }
 
+    public boolean authDataExists(String authToken) {
+        return (authDataAccess.getAuth(authToken) != null);
+    }
+
     public RegisterResult register(RegisterRequest registerRequest) {
         if (registerRequest.username().isBlank() || registerRequest.password().isBlank()
         || registerRequest.email().isBlank()) {
@@ -52,5 +56,5 @@ public class UserService {
             return new LoginResult(loginRequest.username(), newAuthData);
         }
     }
-    //public void logout(LogoutRequest logoutRequest) {}
+    public void logout(LogoutRequest logoutRequest) {}
 }

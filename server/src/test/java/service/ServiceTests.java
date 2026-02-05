@@ -56,7 +56,7 @@ public class ServiceTests {
     @ValueSource(strings = {"basic_username", "second_username", "third_username"})
     public void loginSuccess(String username) throws FailedLoginException {
         userService.register(new RegisterRequest(username, "pswd", "abcd@yahoo.com"));
-        //submit register request
+        //submit login request
 
         LoginResult loginResult = userService.login(
                 new LoginRequest(username, "pswd"));
@@ -68,7 +68,7 @@ public class ServiceTests {
 
     @Test
     @Order(5)
-    @DisplayName("User is unauthorized")
+    @DisplayName("Login - User is unauthorized")
     public void loginUnauthorized() {
         userService.register(
                 new RegisterRequest("basic_username", "pswd", "abcd@yahoo.com"));
@@ -79,10 +79,37 @@ public class ServiceTests {
 
     @Test
     @Order(6)
-    @DisplayName("Register with bad request")
+    @DisplayName("Login with bad request")
     public void loginBadRequest() {
-        //attempt to register a user without a password
+        //attempt to log in a user without a password
         assertThrows(BadRequestException.class, () -> userService.login(
                 new LoginRequest("hello", "")));
+    }
+
+    @Order(7)
+    @DisplayName("Login normally")
+    @ParameterizedTest
+    @ValueSource(strings = {"basic_username", "second_username", "third_username"})
+    public void logoutSuccess(String username) throws FailedLoginException {
+        RegisterResult registerResult = userService.register(
+                new RegisterRequest(username, "pswd", "abcd@yahoo.com"));
+        //submit logout request
+
+        userService.logout(new LogoutRequest(registerResult.authToken().authToken()));
+        userService.authDataExists(registerResult.authToken().authToken());
+
+        Assertions.assertFalse(userService.authDataExists(registerResult.authToken().authToken()),
+                "Response did not have the same username as was used for login");
+    }
+
+    @Test
+    @Order(8)
+    @DisplayName("Logout - User is unauthorized")
+    public void logoutUnauthorized() {
+        userService.register(
+                new RegisterRequest("basic_username", "pswd", "abcd@yahoo.com"));
+        //submit login request with wrong password
+        assertThrows(FailedLoginException.class, () -> userService.login(
+                new LoginRequest("basic_username", "1234")));
     }
 }

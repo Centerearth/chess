@@ -105,7 +105,7 @@ public class ServiceTests {
     @Order(8)
     @DisplayName("Logout - User is unauthorized")
     public void logoutUnauthorized() {
-        RegisterResult registerResult = userService.register(
+        userService.register(
                 new RegisterRequest("basic_username", "pswd", "abcd@yahoo.com"));
         //submit logout request with wrong authToken
         assertThrows(FailedLoginException.class, () -> userService.logout(new LogoutRequest("fake_token")));

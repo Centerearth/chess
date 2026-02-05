@@ -4,7 +4,7 @@ import model.AuthData;
 import java.util.HashMap;
 
 public class MemoryAuthDataAccess implements AuthDataAccess {
-    private final HashMap<String, AuthData> allAuthData = new HashMap<>();
+    private static final HashMap<String, AuthData> allAuthData = new HashMap<>();
 
     public void addAuthData(AuthData newAuth) {
         allAuthData.put(newAuth.authToken(), newAuth);

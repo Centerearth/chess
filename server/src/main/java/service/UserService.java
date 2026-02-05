@@ -56,5 +56,15 @@ public class UserService {
             return new LoginResult(loginRequest.username(), newAuthData);
         }
     }
-    public void logout(LogoutRequest logoutRequest) {}
+
+    public void logout(LogoutRequest logoutRequest) throws FailedLoginException {
+        String authToken = logoutRequest.authToken();
+        if (authToken.isBlank()) {
+            throw new BadRequestException("Error: The fields cannot be left blank");
+        } else if (authDataAccess.getAuth(authToken) == null ) {
+            throw new FailedLoginException("Error: unauthorized");
+        } else {
+            authDataAccess.deleteAuth(authToken);
+        }
+    }
 }

@@ -87,7 +87,7 @@ public class ServiceTests {
     }
 
     @Order(7)
-    @DisplayName("Login normally")
+    @DisplayName("Logout normally")
     @ParameterizedTest
     @ValueSource(strings = {"basic_username", "second_username", "third_username"})
     public void logoutSuccess(String username) throws FailedLoginException {
@@ -96,7 +96,6 @@ public class ServiceTests {
         //submit logout request
 
         userService.logout(new LogoutRequest(registerResult.authToken().authToken()));
-        userService.authDataExists(registerResult.authToken().authToken());
 
         Assertions.assertFalse(userService.authDataExists(registerResult.authToken().authToken()),
                 "Logout did complete successfully and the token was not deleted");
@@ -109,6 +108,6 @@ public class ServiceTests {
         RegisterResult registerResult = userService.register(
                 new RegisterRequest("basic_username", "pswd", "abcd@yahoo.com"));
         //submit logout request with wrong authToken
-        assertThrows(FailedLoginException.class, () -> userService.logout(new LogoutRequest(registerResult.authToken().authToken())));
+        assertThrows(FailedLoginException.class, () -> userService.logout(new LogoutRequest("fake_token")));
     }
 }

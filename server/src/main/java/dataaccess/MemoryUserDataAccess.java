@@ -9,7 +9,6 @@ public class MemoryUserDataAccess implements UserDataAccess{
 
     public void addUserData(UserData newUser) {
         allUsers.put(newUser.username(), newUser);
-        System.out.println(allUsers);
     }
     public UserData getUser(String username) {
         return allUsers.getOrDefault(username, null);

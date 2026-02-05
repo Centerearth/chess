@@ -5,6 +5,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import recordandrequest.*;
 
+import javax.security.auth.login.FailedLoginException;
+
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class ServiceTests {
@@ -17,7 +19,6 @@ public class ServiceTests {
     @ValueSource(strings = {"basic_username", "second_username", "third_username"})
     public void registerSuccess(String username) {
         //submit register request
-        //is it a problem that it doesn't save usernames between tests?
 
         RegisterResult registerResult = userService.register(
                 new RegisterRequest(username, "pswd", "abcd@yahoo.com"));
@@ -45,5 +46,43 @@ public class ServiceTests {
         //attempt to register a user without a password
         assertThrows(BadRequestException.class, () -> userService.register(
                     new RegisterRequest("", "pswd", "abcd@yahoo.com")));
+    }
+
+
+
+    @Order(4)
+    @DisplayName("Login normally")
+    @ParameterizedTest
+    @ValueSource(strings = {"basic_username", "second_username", "third_username"})
+    public void loginSuccess(String username) throws FailedLoginException {
+        userService.register(new RegisterRequest(username, "pswd", "abcd@yahoo.com"));
+        //submit register request
+
+        LoginResult loginResult = userService.login(
+                new LoginRequest(username, "pswd"));
+
+        Assertions.assertEquals(username, loginResult.username(),
+                "Response did not have the same username as was used for login");
+        Assertions.assertNotNull(loginResult.authToken(), "Response did not contain an authentication string");
+    }
+
+    @Test
+    @Order(5)
+    @DisplayName("User is unauthorized")
+    public void loginUnauthorized() {
+        userService.register(
+                new RegisterRequest("basic_username", "pswd", "abcd@yahoo.com"));
+        //submit login request with wrong password
+        assertThrows(FailedLoginException.class, () -> userService.login(
+                new LoginRequest("basic_username", "1234")));
+    }
+
+    @Test
+    @Order(6)
+    @DisplayName("Register with bad request")
+    public void loginBadRequest() {
+        //attempt to register a user without a password
+        assertThrows(BadRequestException.class, () -> userService.login(
+                new LoginRequest("hello", "")));
     }
 }

@@ -1,4 +1,6 @@
 package recordandrequest;
 
-public record RegisterResult() {
+import model.AuthData;
+
+public record RegisterResult(String username, AuthData authToken) {
 }

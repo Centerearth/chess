@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class MemoryAuthDataAccess implements AuthDataAccess {
-    private HashMap<String, AuthData> allAuthData;
+    private final HashMap<String, AuthData> allAuthData = new HashMap<>();
 
     public void addAuthData(AuthData newAuth) {
         allAuthData.put(newAuth.authToken(), newAuth);

@@ -1,7 +1,6 @@
 package service;
 
-import dataaccess.*
-import dataaccess.UserDataAccess;
+import dataaccess.*;
 import model.AuthData;
 import model.UserData;
 import recordandrequest.*;
@@ -9,8 +8,8 @@ import recordandrequest.*;
 import java.util.UUID;
 
 public class UserService {
-    private MemoryUserDataAccess userDataAccess = new MemoryUserDataAccess();
-    private MemoryAuthDataAccess authDataAccess = new MemoryAuthDataAccess();
+    private final MemoryUserDataAccess userDataAccess = new MemoryUserDataAccess();
+    private final MemoryAuthDataAccess authDataAccess = new MemoryAuthDataAccess();
 
     public static String generateToken() {
         return UUID.randomUUID().toString();

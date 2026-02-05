@@ -5,10 +5,11 @@ import model.UserData;
 import java.util.HashMap;
 
 public class MemoryUserDataAccess implements UserDataAccess{
-    private HashMap<String, UserData> allUsers;
+    private final HashMap<String, UserData> allUsers = new HashMap<>();
 
     public void addUserData(UserData newUser) {
         allUsers.put(newUser.username(), newUser);
+        System.out.println(allUsers);
     }
     public UserData getUser(String username) {
         return allUsers.getOrDefault(username, null);

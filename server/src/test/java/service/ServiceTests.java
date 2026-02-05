@@ -34,10 +34,8 @@ public class ServiceTests {
         userService.register(
                 new RegisterRequest("basic_username", "pswd", "abcd@yahoo.com"));
         //submit register request trying to register existing user
-        assertThrows(AlreadyTakenException.class, () -> {
-            userService.register(
-                    new RegisterRequest("basic_username", "pswd", "abcd@yahoo.com"));
-        });
+        assertThrows(AlreadyTakenException.class, () -> userService.register(
+                new RegisterRequest("basic_username", "pswd", "abcd@yahoo.com")));
     }
 
     @Test
@@ -45,9 +43,7 @@ public class ServiceTests {
     @DisplayName("Register with bad request")
     public void registerBadRequest() {
         //attempt to register a user without a password
-        assertThrows(BadRequestException.class, () -> {
-            userService.register(
-                    new RegisterRequest("", "pswd", "abcd@yahoo.com"));
-        });
+        assertThrows(BadRequestException.class, () -> userService.register(
+                    new RegisterRequest("", "pswd", "abcd@yahoo.com")));
     }
 }

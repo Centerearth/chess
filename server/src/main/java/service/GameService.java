@@ -32,7 +32,7 @@ public class GameService {
             GameData newGameData = new GameData(generateID(), "", "",
                     createGameRequest.gameName(),
                     new ChessGame());
-            gameDataAccess.addGameData();
+            gameDataAccess.addGameData(newGameData);
             return new CreateGameResult(newGameData.gameID());
         }
     }

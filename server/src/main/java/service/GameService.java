@@ -21,6 +21,9 @@ public class GameService {
         return r.nextInt(500);
     }
 
+    public boolean gameDataExists(int gameID) {
+        return (gameDataAccess.getGame(gameID) != null);
+    }
 
     public CreateGameResult createGame(CreateGameRequest createGameRequest) throws FailedLoginException {
         String authToken = createGameRequest.authToken();

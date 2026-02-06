@@ -22,6 +22,10 @@ public class UserService {
         return (authDataAccess.getAuth(authToken) != null);
     }
 
+    public boolean userDataExists(String username) {
+        return (userDataAccess.getUser(username) != null);
+    }
+
     public RegisterResult register(RegisterRequest registerRequest) {
         if (registerRequest.username().isBlank() || registerRequest.password().isBlank()
         || registerRequest.email().isBlank()) {

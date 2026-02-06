@@ -151,5 +151,35 @@ public class ServiceTests {
                 () -> gameService.createGame(new CreateGameRequest("", "new_game")));
     }
 
+    @Test
+    @Order(12)
+    @DisplayName("Clear everything")
+    public void clearData() throws FailedLoginException {
+
+        RegisterResult registerResult1 = userService.register(
+                new RegisterRequest("first_username", "pswd", "abcd@yahoo.com"));
+        RegisterResult registerResult2 = userService.register(
+                new RegisterRequest("second_username", "pswd", "abcd@yahoo.com"));
+
+        String authToken1 = registerResult1.authToken().authToken();
+        String authToken2 = registerResult2.authToken().authToken();
+
+
+        CreateGameResult createGameResult1 = gameService.createGame(
+                new CreateGameRequest(authToken1, "first_game"));
+        CreateGameResult createGameResult2 = gameService.createGame(
+                new CreateGameRequest(authToken2, "second_game"));
+
+        userService.clearAllData();
+
+        Assertions.assertFalse(userService.authDataExists(authToken1), "authToken1 was not deleted");
+        Assertions.assertFalse(userService.authDataExists(authToken2), "authToken2 was not deleted");
+        Assertions.assertFalse(userService.userDataExists(registerResult1.username()), "user1 was not deleted");
+        Assertions.assertFalse(userService.userDataExists(registerResult2.username()), "user2 was not deleted");
+        Assertions.assertFalse(gameService.gameDataExists(createGameResult1.gameID()), "game1 was not deleted");
+        Assertions.assertFalse(gameService.gameDataExists(createGameResult2.gameID()), "game2 was not deleted");
+
+    }
+
 
 }

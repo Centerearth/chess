@@ -39,8 +39,8 @@ public class GameService {
         }
     }
 
-    public ListGameResult getAllGameData(String authToken) throws FailedLoginException {
-        if (authDataAccess.getAuth(authToken) == null) {
+    public ListGameResult getAllGameData(ListGameRequest listGameRequest) throws FailedLoginException {
+        if (authDataAccess.getAuth(listGameRequest.authToken()) == null) {
             throw new FailedLoginException("Error: unauthorized");
         } else {
             return new ListGameResult(gameDataAccess.getAllGameData());

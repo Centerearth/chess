@@ -41,7 +41,7 @@ public class UserService {
 
             userDataAccess.addUserData(newUserData);
             authDataAccess.addAuthData(newAuthData);
-            return new RegisterResult(registerRequest.username(), newAuthData);
+            return new RegisterResult(registerRequest.username(), newAuthData.authToken());
         }
 
     }
@@ -58,7 +58,7 @@ public class UserService {
         } else {
             AuthData newAuthData = new AuthData(generateToken(), loginRequest.username());
             authDataAccess.addAuthData(newAuthData);
-            return new LoginResult(loginRequest.username(), newAuthData);
+            return new LoginResult(loginRequest.username(), newAuthData.authToken());
         }
     }
 

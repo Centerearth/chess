@@ -96,9 +96,9 @@ public class ServiceTests {
                 new RegisterRequest(username, "pswd", "abcd@yahoo.com"));
         //submit logout request
 
-        userService.logout(new LogoutRequest(registerResult.authToken().authToken()));
+        userService.logout(new LogoutRequest(registerResult.authToken()));
 
-        Assertions.assertFalse(userService.authDataExists(registerResult.authToken().authToken()),
+        Assertions.assertFalse(userService.authDataExists(registerResult.authToken()),
                 "Logout did complete successfully and the token was not deleted");
     }
 
@@ -122,7 +122,7 @@ public class ServiceTests {
         RegisterResult registerResult = userService.register(
                 new RegisterRequest("first_username", "pswd", "abcd@yahoo.com"));
 
-        String authToken = registerResult.authToken().authToken();
+        String authToken = registerResult.authToken();
         CreateGameResult createGameResult = gameService.createGame(
                 new CreateGameRequest(authToken, gameID));
 
@@ -137,7 +137,7 @@ public class ServiceTests {
         RegisterResult registerResult =  userService.register(
                 new RegisterRequest("basic_username", "pswd", "abcd@yahoo.com"));
         assertThrows(BadRequestException.class, () -> gameService.createGame(
-                new CreateGameRequest(registerResult.authToken().authToken(), "")));
+                new CreateGameRequest(registerResult.authToken(), "")));
     }
 
     @Test
@@ -161,8 +161,8 @@ public class ServiceTests {
         RegisterResult registerResult2 = userService.register(
                 new RegisterRequest("second_username", "pswd", "abcd@yahoo.com"));
 
-        String authToken1 = registerResult1.authToken().authToken();
-        String authToken2 = registerResult2.authToken().authToken();
+        String authToken1 = registerResult1.authToken();
+        String authToken2 = registerResult2.authToken();
 
 
         CreateGameResult createGameResult1 = gameService.createGame(

@@ -3,10 +3,7 @@ package service;
 import chess.ChessGame;
 import dataaccess.MemoryAuthDataAccess;
 import dataaccess.MemoryGameDataAccess;
-import dataaccess.MemoryUserDataAccess;
-import model.AuthData;
 import model.GameData;
-import model.UserData;
 import recordandrequest.*;
 
 import javax.security.auth.login.FailedLoginException;

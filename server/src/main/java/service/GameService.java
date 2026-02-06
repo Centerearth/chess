@@ -7,8 +7,6 @@ import model.GameData;
 import recordandrequest.*;
 
 import javax.security.auth.login.FailedLoginException;
-import java.sql.Array;
-import java.util.ArrayList;
 import java.util.Random;
 
 public class GameService {

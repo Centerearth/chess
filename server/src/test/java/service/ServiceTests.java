@@ -221,6 +221,7 @@ public class ServiceTests {
                 () -> gameService.getAllGameData(new ListGameRequest("")));
     }
 
+    @Test
     @Order(15)
     @DisplayName("Join game normally")
     public void joinGameSuccess() throws FailedLoginException {
@@ -247,9 +248,8 @@ public class ServiceTests {
 
     @Test
     @Order(16)
-    @DisplayName("List Games - User is unauthorized")
+    @DisplayName("Join Game - User is unauthorized")
     public void joinGameUnauthorized() throws FailedLoginException {
-        userService.clearAllData();
         RegisterResult registerResult = userService.register(
                 new RegisterRequest("first_username", "pswd", "abcd@yahoo.com"));
 
@@ -261,6 +261,25 @@ public class ServiceTests {
 
         //submit list request with wrong authToken
         assertThrows(FailedLoginException.class,
+                () -> gameService.joinGame(new JoinGameRequest("", ChessGame.TeamColor.WHITE, gameID)));
+    }
+
+    @Test
+    @Order(17)
+    @DisplayName("Join Game - Place is already taken")
+    public void joinTakenGame() throws FailedLoginException {
+        RegisterResult registerResult = userService.register(
+                new RegisterRequest("first_username", "pswd", "abcd@yahoo.com"));
+
+        String authToken = registerResult.authToken();
+
+        CreateGameResult createGameResult = gameService.createGame(
+                new CreateGameRequest(authToken, "first_game"));
+        int gameID = createGameResult.gameID();
+
+        gameService.joinGame(new JoinGameRequest(authToken, ChessGame.TeamColor.WHITE, gameID));
+        //submit join request again
+        assertThrows(AlreadyTakenException.class,
                 () -> gameService.joinGame(new JoinGameRequest(authToken, ChessGame.TeamColor.WHITE, gameID)));
     }
 

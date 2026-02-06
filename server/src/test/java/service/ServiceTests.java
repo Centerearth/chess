@@ -151,5 +151,5 @@ public class ServiceTests {
                 () -> gameService.createGame(new CreateGameRequest("", "new_game")));
     }
 
-    //write a test to test persistency of the hash maps
+
 }

@@ -12,6 +12,7 @@ import java.util.UUID;
 public class UserService {
     private final MemoryUserDataAccess userDataAccess = new MemoryUserDataAccess();
     private final MemoryAuthDataAccess authDataAccess = new MemoryAuthDataAccess();
+    private final MemoryGameDataAccess gameDataAccess = new MemoryGameDataAccess();
 
     public static String generateToken() {
         return UUID.randomUUID().toString();
@@ -66,5 +67,11 @@ public class UserService {
         } else {
             authDataAccess.deleteAuth(authToken);
         }
+    }
+
+    public void clearAllData() {
+        userDataAccess.removeAllUsers();
+        authDataAccess.removeAllAuthData();
+        gameDataAccess.removeAllGameData();
     }
 }

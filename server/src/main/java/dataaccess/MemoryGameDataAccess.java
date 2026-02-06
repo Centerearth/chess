@@ -1,6 +1,7 @@
 package dataaccess;
 
 import model.GameData;
+import model.UserData;
 import recordandrequest.ListGameResult;
 
 import java.util.ArrayList;

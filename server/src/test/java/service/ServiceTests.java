@@ -1,5 +1,6 @@
 package service;
 
+import chess.ChessGame;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -202,7 +203,7 @@ public class ServiceTests {
     }
 
     @Test
-    @Order(15)
+    @Order(14)
     @DisplayName("List Games - User is unauthorized")
     public void listGameUnauthorized() throws FailedLoginException {
         RegisterResult registerResult = userService.register(
@@ -218,6 +219,49 @@ public class ServiceTests {
         //submit list request with wrong authToken
         assertThrows(FailedLoginException.class,
                 () -> gameService.getAllGameData(new ListGameRequest("")));
+    }
+
+    @Order(15)
+    @DisplayName("Join game normally")
+    public void joinGameSuccess() throws FailedLoginException {
+
+        //submit join request
+        userService.clearAllData();
+        RegisterResult registerResult1 = userService.register(
+                new RegisterRequest("first_username", "pswd", "abcd@yahoo.com"));
+        RegisterResult registerResult2 = userService.register(
+                new RegisterRequest("second_username", "pswd", "abcd@yahoo.com"));
+
+        String authToken1 = registerResult1.authToken();
+        String authToken2 = registerResult2.authToken();
+
+        CreateGameResult createGameResult = gameService.createGame(
+                new CreateGameRequest(authToken1, "first_game"));
+        int gameID = createGameResult.gameID();
+
+        gameService.joinGame(new JoinGameRequest(authToken1, ChessGame.TeamColor.WHITE, gameID));
+        gameService.joinGame(new JoinGameRequest(authToken2, ChessGame.TeamColor.BLACK, gameID));
+        Assertions.assertFalse(gameService.getGame(gameID).whiteUsername().isBlank());
+        Assertions.assertFalse(gameService.getGame(gameID).blackUsername().isBlank());
+    }
+
+    @Test
+    @Order(16)
+    @DisplayName("List Games - User is unauthorized")
+    public void joinGameUnauthorized() throws FailedLoginException {
+        userService.clearAllData();
+        RegisterResult registerResult = userService.register(
+                new RegisterRequest("first_username", "pswd", "abcd@yahoo.com"));
+
+        String authToken = registerResult.authToken();
+
+        CreateGameResult createGameResult = gameService.createGame(
+                new CreateGameRequest(authToken, "first_game"));
+        int gameID = createGameResult.gameID();
+
+        //submit list request with wrong authToken
+        assertThrows(FailedLoginException.class,
+                () -> gameService.joinGame(new JoinGameRequest(authToken, ChessGame.TeamColor.WHITE, gameID)));
     }
 
 

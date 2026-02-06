@@ -18,6 +18,11 @@ public class GameService {
         return r.nextInt(500);
     }
 
+    //for testing purposes
+    public GameData getGame(int gameID) {
+        return gameDataAccess.getGame(gameID);
+    }
+
     public boolean gameDataExists(int gameID) {
         return (gameDataAccess.getGame(gameID) != null);
     }

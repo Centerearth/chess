@@ -117,14 +117,14 @@ public class ServiceTests {
     @DisplayName("Create game normally")
     @ParameterizedTest
     @ValueSource(strings = {"first_name", "second_name", "third_name"})
-    public void createGameSuccess(String gameID) throws FailedLoginException {
+    public void createGameSuccess(String gameName) throws FailedLoginException {
         //submit create request
         RegisterResult registerResult = userService.register(
                 new RegisterRequest("first_username", "pswd", "abcd@yahoo.com"));
 
         String authToken = registerResult.authToken();
         CreateGameResult createGameResult = gameService.createGame(
-                new CreateGameRequest(authToken, gameID));
+                new CreateGameRequest(authToken, gameName));
 
         Assertions.assertNotNull(createGameResult, "Nothing was created");
     }
@@ -179,6 +179,37 @@ public class ServiceTests {
         Assertions.assertFalse(gameService.gameDataExists(createGameResult1.gameID()), "game1 was not deleted");
         Assertions.assertFalse(gameService.gameDataExists(createGameResult2.gameID()), "game2 was not deleted");
 
+    }
+
+    @Order(13)
+    @DisplayName("List games normally")
+    @ParameterizedTest
+    @ValueSource(strings = {"first_name", "second_name", "third_name"})
+    public void listGameSuccess(String gameName) throws FailedLoginException {
+        //submit list request
+        RegisterResult registerResult = userService.register(
+                new RegisterRequest("first_username", "pswd", "abcd@yahoo.com"));
+
+        String authToken = registerResult.authToken();
+
+        CreateGameResult createGameResult1 = gameService.createGame(
+                new CreateGameRequest(authToken, gameName));
+        CreateGameResult createGameResult2 = gameService.createGame(
+                new CreateGameRequest(authToken, "second_game"));
+
+
+        Assertions.assertNotNull(createGameResult, "Nothing was created");
+    }
+
+    @Test
+    @Order(15)
+    @DisplayName("List Games - User is unauthorized")
+    public void listGameUnauthorized() {
+        userService.register(
+                new RegisterRequest("basic_username", "pswd", "abcd@yahoo.com"));
+        //submit logout request with wrong authToken
+        assertThrows(FailedLoginException.class,
+                () -> gameService.createGame(new CreateGameRequest("", "new_game")));
     }
 
 

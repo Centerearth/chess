@@ -1,7 +1,9 @@
 package dataaccess;
 
 import model.GameData;
+import recordandrequest.ListGameResult;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public class MemoryGameDataAccess implements GameDataAccess{
@@ -16,5 +18,9 @@ public class MemoryGameDataAccess implements GameDataAccess{
 
     public void removeAllGameData() {
         allGameData.clear();
+    }
+
+    public ArrayList<GameData> getAllGameData() {
+        return new ArrayList<>(allGameData.values());
     }
 }

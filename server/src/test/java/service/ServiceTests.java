@@ -11,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class ServiceTests {
     private final UserService userService = new UserService();
+    private final GameService gameService = new GameService();
     //add static to declaration if wanted to be persistent
 
     @Order(1)
@@ -110,4 +111,45 @@ public class ServiceTests {
         //submit logout request with wrong authToken
         assertThrows(FailedLoginException.class, () -> userService.logout(new LogoutRequest("fake_token")));
     }
+
+
+    @Order(9)
+    @DisplayName("Create game normally")
+    @ParameterizedTest
+    @ValueSource(strings = {"first_name", "second_name", "third_name"})
+    public void createGameSuccess(String gameID) throws FailedLoginException {
+        //submit create request
+        RegisterResult registerResult = userService.register(
+                new RegisterRequest("first_username", "pswd", "abcd@yahoo.com"));
+
+        String authToken = registerResult.authToken().authToken();
+        CreateGameResult createGameResult = gameService.createGame(
+                new CreateGameRequest(authToken, gameID));
+
+        Assertions.assertNotNull(createGameResult, "Nothing was created");
+    }
+
+    @Test
+    @Order(10)
+    @DisplayName("Create game with bad request")
+    public void createGameBadRequest() {
+        //attempt to create a game without a name
+        RegisterResult registerResult =  userService.register(
+                new RegisterRequest("basic_username", "pswd", "abcd@yahoo.com"));
+        assertThrows(BadRequestException.class, () -> gameService.createGame(
+                new CreateGameRequest(registerResult.authToken().authToken(), "")));
+    }
+
+    @Test
+    @Order(11)
+    @DisplayName("Create Game - User is unauthorized")
+    public void createGameUnauthorized() {
+        userService.register(
+                new RegisterRequest("basic_username", "pswd", "abcd@yahoo.com"));
+        //submit logout request with wrong authToken
+        assertThrows(FailedLoginException.class,
+                () -> gameService.createGame(new CreateGameRequest("", "new_game")));
+    }
+
+    //write a test to test persistency of the hash maps
 }

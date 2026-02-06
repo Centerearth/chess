@@ -24,7 +24,7 @@ public class GameService {
 
     public CreateGameResult createGame(CreateGameRequest createGameRequest) throws FailedLoginException {
         String authToken = createGameRequest.authToken();
-        if (authToken.isBlank() || createGameRequest.gameName().isBlank()) {
+        if (createGameRequest.gameName().isBlank()) {
             throw new BadRequestException("Error: The fields cannot be left blank");
         } else if (authDataAccess.getAuth(authToken) == null) {
             throw new FailedLoginException("Error: unauthorized");

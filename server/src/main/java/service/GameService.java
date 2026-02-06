@@ -49,4 +49,25 @@ public class GameService {
             return new ListGameResult(gameDataAccess.getAllGameData());
         }
     }
+
+    public void joinGame(JoinGameRequest joinGameRequest) throws FailedLoginException {
+        if (authDataAccess.getAuth(joinGameRequest.authToken()) == null) {
+            throw new FailedLoginException("Error: unauthorized");
+        } else if (joinGameRequest.teamColor() == null) {
+            throw new BadRequestException("Error: Fields cannot be left blank");
+        } else if (gameDataAccess.getGame(joinGameRequest.gameID()) == null) {
+            throw new BadRequestException("Error: game does not exist");
+        } else {
+            if (joinGameRequest.teamColor() == ChessGame.TeamColor.WHITE &&
+                    !gameDataAccess.getGame(joinGameRequest.gameID()).whiteUsername().isBlank()) {
+                throw new AlreadyTakenException("Error: White is already taken");
+            }
+            if (joinGameRequest.teamColor() == ChessGame.TeamColor.BLACK &&
+                    !gameDataAccess.getGame(joinGameRequest.gameID()).blackUsername().isBlank()) {
+                throw new AlreadyTakenException("Error: Black is already taken");
+            }
+            String username = authDataAccess.getAuth(joinGameRequest.authToken()).username();
+            gameDataAccess.updateGame(joinGameRequest.teamColor(), joinGameRequest.gameID(), username);
+        }
+    }
 }

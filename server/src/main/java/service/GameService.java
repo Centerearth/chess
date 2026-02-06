@@ -7,6 +7,8 @@ import model.GameData;
 import recordandrequest.*;
 
 import javax.security.auth.login.FailedLoginException;
+import java.sql.Array;
+import java.util.ArrayList;
 import java.util.Random;
 
 public class GameService {
@@ -34,6 +36,14 @@ public class GameService {
                     new ChessGame());
             gameDataAccess.addGameData(newGameData);
             return new CreateGameResult(newGameData.gameID());
+        }
+    }
+
+    public ListGameResult getAllGameData(String authToken) throws FailedLoginException {
+        if (authDataAccess.getAuth(authToken) == null) {
+            throw new FailedLoginException("Error: unauthorized");
+        } else {
+            return new ListGameResult(gameDataAccess.getAllGameData());
         }
     }
 }

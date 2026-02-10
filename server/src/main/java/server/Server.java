@@ -9,6 +9,7 @@ import service.GameService;
 import service.UserService;
 
 import java.util.HashMap;
+import java.util.Map;
 
 public class Server {
 
@@ -24,10 +25,8 @@ public class Server {
                 .post("/user", this::createNewUser)
                 .post("/game", this::createNewGame)
                 .put("/game", this::joinGame)
-                .get("/game", this::listGames)
-                .start();
+                .get("/game", this::listGames);
 
-        // Register your endpoints and exception handlers here.
 
     }
 
@@ -36,15 +35,19 @@ public class Server {
     }
 
     private void createNewUser(Context context) {
-        HashMap<String, String> bodyObject = getBodyObject(context, HashMap.class);
-        String username = bodyObject.get("username");
-        String password = bodyObject.get("password");
-        String email = bodyObject.get("email");
-        RegisterResult registerResult = userService.register(new RegisterRequest(
-                username, password, email));
+        try {
+            HashMap<String, String> bodyObject = getBodyObject(context, HashMap.class);
+            String username = bodyObject.get("username");
+            String password = bodyObject.get("password");
+            String email = bodyObject.get("email");
+            RegisterResult registerResult = userService.register(new RegisterRequest(
+                    username, password, email));
 
-        String json = new Gson().toJson(registerResult);
-        context.json(json);
+            String json = new Gson().toJson(registerResult);
+            context.json(json);
+        } catch (Exception e) {
+            exceptionHandler(context, e);
+        }
 
     }
 
@@ -136,6 +139,13 @@ public class Server {
         return bodyObject;
     }
 
+    public void exceptionHandler(Context context, Exception e) {
+        if (e instanceof AlreadyTakenException) {
+            context.contentType("application/json");
+            context.status(403);
+            context.result(new Gson().toJson(Map.of("message", e.getMessage())));
+        }
+    }
     public int run(int desiredPort) {
         javalin.start(desiredPort);
         return javalin.port();

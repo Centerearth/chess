@@ -16,6 +16,7 @@ public class Server {
     public Server() {
         javalin = Javalin.create(config -> config.staticFiles.add("web"))
                 .delete("/db", this::clearApplication)
+                .delete("/session", this::logoutUser)
                 .post("/user", this::createNewUser)
                 .start();
 
@@ -38,6 +39,19 @@ public class Server {
         String json = new Gson().toJson(registerResult);
         context.json(json);
 
+    }
+
+    private void logoutUser(Context context) {
+        try {
+            String authToken = getAuthToken(context);
+            userService.logout(new LogoutRequest(authToken));
+        } catch (Exception e) { // change all this
+            System.out.println("Hi");
+        }
+    }
+
+    private String getAuthToken (Context context) {
+        return context.header("authorization");
     }
 
     private static <T> T getBodyObject(Context context, Class<T> classType) {

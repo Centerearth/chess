@@ -16,8 +16,8 @@ public class Server {
     public Server() {
         javalin = Javalin.create(config -> config.staticFiles.add("web"))
                 .delete("/db", this::clearApplication)
+                .post("/user", this::createNewUser)
                 .start();
-                //.post("/user", this::createNewUser)
 
         // Register your endpoints and exception handlers here.
 
@@ -27,15 +27,18 @@ public class Server {
             userService.clearAllData();
     }
 
-//    private void createNewUser(Context context) {
-//        HashMap bodyObject = getBodyObject(context, HashMap.class);
-//        RegisterResult registerResult = userService.register(new RegisterRequest(
-//                bodyObject.get("username")));
-//
-//        String json = new Gson().toJson(bodyObject);
-//        context.json(json);
-//
-//    }
+    private void createNewUser(Context context) {
+        HashMap<String, String> bodyObject = getBodyObject(context, HashMap.class);
+        String username = bodyObject.get("username");
+        String password = bodyObject.get("password");
+        String email = bodyObject.get("email");
+        RegisterResult registerResult = userService.register(new RegisterRequest(
+                username, password, email));
+
+        String json = new Gson().toJson(registerResult);
+        context.json(json);
+
+    }
 
     private static <T> T getBodyObject(Context context, Class<T> classType) {
         var bodyObject = new Gson().fromJson(context.body(), classType);

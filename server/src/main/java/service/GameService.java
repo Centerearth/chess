@@ -4,9 +4,11 @@ import chess.ChessGame;
 import dataaccess.MemoryAuthDataAccess;
 import dataaccess.MemoryGameDataAccess;
 import model.GameData;
+import model.GameMetaData;
 import recordandrequest.*;
 
 import javax.security.auth.login.FailedLoginException;
+import java.util.ArrayList;
 import java.util.Random;
 
 public class GameService {
@@ -42,11 +44,17 @@ public class GameService {
         }
     }
 
-    public ListGameResult listAllGameData(ListGameRequest listGameRequest) throws FailedLoginException {
+    public ListGameResult listAllGameMetaData(ListGameRequest listGameRequest) throws FailedLoginException {
         if (authDataAccess.getAuth(listGameRequest.authToken()) == null) {
             throw new FailedLoginException("Error: unauthorized");
         } else {
-            return new ListGameResult(gameDataAccess.getAllGameData());
+            ArrayList<GameMetaData> allGameMetaData = new ArrayList<>();
+            ArrayList<GameData> allGameData = gameDataAccess.getAllGameData();
+            for (GameData game : allGameData) {
+                allGameMetaData.add(new GameMetaData(
+                        game.gameID(), game.whiteUsername(), game.blackUsername(), game.gameName()));
+            }
+            return new ListGameResult(allGameMetaData);
         }
     }
 

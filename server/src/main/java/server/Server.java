@@ -9,7 +9,6 @@ import service.GameService;
 import service.UserService;
 
 import java.util.HashMap;
-import java.util.Objects;
 
 public class Server {
 
@@ -114,7 +113,7 @@ public class Server {
     private void listGames(Context context) {
         try {
             String authToken = getAuthToken(context);
-            ListGameResult listGameResult = gameService.getAllGameData(new ListGameRequest(authToken));
+            ListGameResult listGameResult = gameService.listAllGameMetaData(new ListGameRequest(authToken));
 
             String json = new Gson().toJson(listGameResult);
             context.json(json);

@@ -1,9 +1,9 @@
 package recordandrequest;
 
-import model.GameData;
+import model.GameMetaData;
 
 import java.util.ArrayList;
 
 
-public record ListGameResult(ArrayList<GameData> games) {
+public record ListGameResult(ArrayList<GameMetaData> games) {
 }

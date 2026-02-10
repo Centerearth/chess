@@ -41,6 +41,21 @@ public class Server {
 
     }
 
+    private void loginUser(Context context) {
+        try {
+            HashMap<String, String> bodyObject = getBodyObject(context, HashMap.class);
+            String username = bodyObject.get("username");
+            String password = bodyObject.get("password");
+            LoginResult loginResult = userService.login(new LoginRequest(
+                    username, password));
+
+            String json = new Gson().toJson(loginResult);
+            context.json(json);
+        } catch (Exception e) { // change this later
+            System.out.println("Hi2");
+        }
+    }
+
     private void logoutUser(Context context) {
         try {
             String authToken = getAuthToken(context);

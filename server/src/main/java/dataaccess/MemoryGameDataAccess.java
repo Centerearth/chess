@@ -7,25 +7,25 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class MemoryGameDataAccess implements GameDataAccess{
-    private static final HashMap<Integer, GameData> AllGAMEDATA = new HashMap<>();
+    private static final HashMap<Integer, GameData> ALLGAMEDATA = new HashMap<>();
 
     public void addGameData(GameData newGame) {
-        AllGAMEDATA.put(newGame.gameID(), newGame);
+        ALLGAMEDATA.put(newGame.gameID(), newGame);
     }
     public GameData getGame(int gameID) {
-        return AllGAMEDATA.getOrDefault(gameID, null);
+        return ALLGAMEDATA.getOrDefault(gameID, null);
     }
 
     public void removeGameData(int gameID) {
-        AllGAMEDATA.remove(gameID);
+        ALLGAMEDATA.remove(gameID);
     }
 
     public void removeAllGameData() {
-        AllGAMEDATA.clear();
+        ALLGAMEDATA.clear();
     }
 
     public ArrayList<GameData> getAllGameData() {
-        return new ArrayList<>(AllGAMEDATA.values());
+        return new ArrayList<>(ALLGAMEDATA.values());
     }
     public void updateGame(ChessGame.TeamColor teamColor, int gameID, String username) {
         GameData oldGame = getGame(gameID);

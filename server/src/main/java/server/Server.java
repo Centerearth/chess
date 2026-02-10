@@ -45,6 +45,11 @@ public class Server {
             String username = bodyObject.get("username");
             String password = bodyObject.get("password");
             String email = bodyObject.get("email");
+
+            if (username == null || password == null || email == null) {
+                throw new BadRequestException("Error: bad request");
+            }
+
             RegisterResult registerResult = userService.register(new RegisterRequest(
                     username, password, email));
 
@@ -61,6 +66,11 @@ public class Server {
             HashMap<String, String> bodyObject = getBodyObject(context, HashMap.class);
             String username = bodyObject.get("username");
             String password = bodyObject.get("password");
+
+            if (username == null || password == null) {
+                throw new BadRequestException("Error: bad request");
+            }
+
             LoginResult loginResult = userService.login(new LoginRequest(
                     username, password));
 
@@ -74,9 +84,12 @@ public class Server {
     private void logoutUser(Context context) {
         try {
             String authToken = getAuthToken(context);
+            if (authToken == null) {
+                throw new BadRequestException("Error: bad request");
+            }
             userService.logout(new LogoutRequest(authToken));
-        } catch (Exception e) { // change all this
-            System.out.println("Hi");
+        } catch (Exception e) {
+            exceptionHandler(context, e);
         }
     }
 
@@ -85,13 +98,16 @@ public class Server {
             HashMap<String, String> bodyObject = getBodyObject(context, HashMap.class);
             String gameName = bodyObject.get("gameName");
             String authToken = getAuthToken(context);
+            if (authToken == null || gameName == null) {
+                throw new BadRequestException("Error: bad request");
+            }
             CreateGameResult createGameResult = gameService.createGame(new CreateGameRequest(authToken,
                     gameName));
 
             String json = new Gson().toJson(createGameResult);
             context.json(json);
         } catch (Exception e) {
-            System.out.println("hi3");
+            exceptionHandler(context, e);
         }
 
     }
@@ -108,12 +124,14 @@ public class Server {
             }
 
             String authToken = getAuthToken(context);
+            if (authToken == null || bodyObject.get("gameID") == null || teamColor == null) {
+                throw new BadRequestException("Error: bad request");
+            }
             int gameID = (int) (double) bodyObject.get("gameID"); //why does it convert to double?
-            System.out.println(gameID);
             gameService.joinGame(new JoinGameRequest(authToken,
                     teamColor, gameID));
         } catch (Exception e) {
-            System.out.println(e);
+            exceptionHandler(context, e);
         }
 
     }
@@ -121,6 +139,9 @@ public class Server {
     private void listGames(Context context) {
         try {
             String authToken = getAuthToken(context);
+            if (authToken == null) {
+                throw new BadRequestException("Error: bad request");
+            }
             ListGameResult listGameResult = gameService.listAllGameMetaData(new ListGameRequest(authToken));
 
             String json = new Gson().toJson(listGameResult);

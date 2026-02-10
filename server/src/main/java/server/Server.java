@@ -115,6 +115,12 @@ public class Server {
     private void joinGame(Context context) {
         try {
             HashMap<String, Object> bodyObject = getBodyObject(context, HashMap.class);
+            String authToken = getAuthToken(context);
+
+            if (authToken == null || bodyObject.get("gameID") == null || bodyObject.get("playerColor") == null) {
+                throw new BadRequestException("Error: bad request");
+            }
+
             String teamColorString = bodyObject.get("playerColor").toString();
             ChessGame.TeamColor teamColor = null;
             if (teamColorString.equals("WHITE")) {
@@ -123,11 +129,8 @@ public class Server {
                 teamColor = ChessGame.TeamColor.BLACK;
             }
 
-            String authToken = getAuthToken(context);
-            if (authToken == null || bodyObject.get("gameID") == null || teamColor == null) {
-                throw new BadRequestException("Error: bad request");
-            }
             int gameID = (int) (double) bodyObject.get("gameID"); //why does it convert to double?
+
             gameService.joinGame(new JoinGameRequest(authToken,
                     teamColor, gameID));
         } catch (Exception e) {
@@ -146,8 +149,8 @@ public class Server {
 
             String json = new Gson().toJson(listGameResult);
             context.json(json);
-        } catch (Exception e) { // change all this
-            System.out.println(e);
+        } catch (Exception e) {
+            exceptionHandler(context, e);
         }
     }
 

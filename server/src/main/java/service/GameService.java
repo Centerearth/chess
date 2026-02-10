@@ -36,7 +36,7 @@ public class GameService {
         } else if (authDataAccess.getAuth(authToken) == null) {
             throw new FailedLoginException("Error: unauthorized");
         } else {
-            GameData newGameData = new GameData(generateID(), "", "",
+            GameData newGameData = new GameData(generateID(), null, null,
                     createGameRequest.gameName(),
                     new ChessGame());
             gameDataAccess.addGameData(newGameData);
@@ -67,11 +67,11 @@ public class GameService {
             throw new BadRequestException("Error: game does not exist");
         } else {
             if (joinGameRequest.teamColor() == ChessGame.TeamColor.WHITE &&
-                    !gameDataAccess.getGame(joinGameRequest.gameID()).whiteUsername().isBlank()) {
+                    gameDataAccess.getGame(joinGameRequest.gameID()).whiteUsername() != null) {
                 throw new AlreadyTakenException("Error: White is already taken");
             }
             if (joinGameRequest.teamColor() == ChessGame.TeamColor.BLACK &&
-                    !gameDataAccess.getGame(joinGameRequest.gameID()).blackUsername().isBlank()) {
+                    gameDataAccess.getGame(joinGameRequest.gameID()).blackUsername() != null) {
                 throw new AlreadyTakenException("Error: Black is already taken");
             }
             String username = authDataAccess.getAuth(joinGameRequest.authToken()).username();

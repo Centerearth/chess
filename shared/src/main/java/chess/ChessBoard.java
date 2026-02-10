@@ -74,22 +74,6 @@ public class ChessBoard {
         addPiece(new ChessPosition(8, 5), new ChessPiece(BLACK, KING));
     }
 
-//    public void display() {
-//        for (int i = 8; i >= 1; i--) {
-//            for (int j = 1; j <= 8; j++) {
-//                ChessPiece currentPiece = this.getPiece(new ChessPosition(i, j));
-//                if (currentPiece != null) {
-//                    System.out.print("| " + this.getPiece(new ChessPosition(i, j)).toString() + " ");
-//                } else {
-//                    System.out.print("|  ");
-//                }
-//            }
-//            System.out.print("|");
-//            System.out.println();
-//        }
-//        System.out.println();
-//    }
-
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) {

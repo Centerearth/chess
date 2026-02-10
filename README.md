@@ -50,3 +50,21 @@ java -jar client/target/client-jar-with-dependencies.jar
 
 ♕ 240 Chess Client: chess.ChessPiece@7852e922
 ```
+
+
+
+//    public void display() {
+//        for (int i = 8; i >= 1; i--) {
+//            for (int j = 1; j <= 8; j++) {
+//                ChessPiece currentPiece = this.getPiece(new ChessPosition(i, j));
+//                if (currentPiece != null) {
+//                    System.out.print("| " + this.getPiece(new ChessPosition(i, j)).toString() + " ");
+//                } else {
+//                    System.out.print("|  ");
+//                }
+//            }
+//            System.out.print("|");
+//            System.out.println();
+//        }
+//        System.out.println();
+//    }

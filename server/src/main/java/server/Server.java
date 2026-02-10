@@ -170,18 +170,23 @@ public class Server {
 
     public void exceptionHandler(Context context, Exception e) {
         context.contentType("application/json");
-        if (e instanceof AlreadyTakenException) {
-            context.status(403);
-            context.result(new Gson().toJson(Map.of("message", e.getMessage())));
-        } else if (e instanceof BadRequestException) {
-            context.status(400);
-            context.result(new Gson().toJson(Map.of("message", e.getMessage())));
-        } else if (e instanceof FailedLoginException) {
-            context.status(401);
-            context.result(new Gson().toJson(Map.of("message", e.getMessage())));
-        } else {
-            context.status(500);
-            context.result(new Gson().toJson(Map.of("message", e.getMessage())));
+        switch (e) {
+            case AlreadyTakenException _ -> {
+                context.status(403);
+                context.result(new Gson().toJson(Map.of("message", e.getMessage())));
+            }
+            case BadRequestException _ -> {
+                context.status(400);
+                context.result(new Gson().toJson(Map.of("message", e.getMessage())));
+            }
+            case FailedLoginException _ -> {
+                context.status(401);
+                context.result(new Gson().toJson(Map.of("message", e.getMessage())));
+            }
+            default -> {
+                context.status(500);
+                context.result(new Gson().toJson(Map.of("message", e.getMessage())));
+            }
         }
     }
     public int run(int desiredPort) {

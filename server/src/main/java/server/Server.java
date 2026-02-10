@@ -8,6 +8,7 @@ import recordandrequest.*;
 import service.GameService;
 import service.UserService;
 
+import javax.security.auth.login.FailedLoginException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -31,7 +32,11 @@ public class Server {
     }
 
     private void clearApplication(Context context) {
+        try {
             userService.clearAllData();
+        } catch (Exception e) {
+            exceptionHandler(context, e);
+        }
     }
 
     private void createNewUser(Context context) {
@@ -61,8 +66,8 @@ public class Server {
 
             String json = new Gson().toJson(loginResult);
             context.json(json);
-        } catch (Exception e) { // change this later
-            System.out.println("Hi2");
+        } catch (Exception e) {
+            exceptionHandler(context, e);
         }
     }
 
@@ -140,9 +145,18 @@ public class Server {
     }
 
     public void exceptionHandler(Context context, Exception e) {
+        context.contentType("application/json");
         if (e instanceof AlreadyTakenException) {
-            context.contentType("application/json");
             context.status(403);
+            context.result(new Gson().toJson(Map.of("message", e.getMessage())));
+        } else if (e instanceof BadRequestException) {
+            context.status(400);
+            context.result(new Gson().toJson(Map.of("message", e.getMessage())));
+        } else if (e instanceof FailedLoginException) {
+            context.status(401);
+            context.result(new Gson().toJson(Map.of("message", e.getMessage())));
+        } else {
+            context.status(500);
             context.result(new Gson().toJson(Map.of("message", e.getMessage())));
         }
     }

@@ -198,7 +198,7 @@ public class ServiceTests {
         gameService.createGame(
                 new CreateGameRequest(authToken, "second_game"));
 
-        ListGameResult listGameResult = gameService.getAllGameData(new ListGameRequest(authToken));
+        ListGameResult listGameResult = gameService.listAllGameData(new ListGameRequest(authToken));
         Assertions.assertEquals(2,listGameResult.games().size());
     }
 
@@ -218,7 +218,7 @@ public class ServiceTests {
 
         //submit list request with wrong authToken
         assertThrows(FailedLoginException.class,
-                () -> gameService.getAllGameData(new ListGameRequest("")));
+                () -> gameService.listAllGameData(new ListGameRequest("")));
     }
 
     @Test

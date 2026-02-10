@@ -4,18 +4,18 @@ import model.AuthData;
 import java.util.HashMap;
 
 public class MemoryAuthDataAccess implements AuthDataAccess {
-    private static final HashMap<String, AuthData> allAuthData = new HashMap<>();
+    private static final HashMap<String, AuthData> AllAuthData = new HashMap<>();
 
     public void addAuthData(AuthData newAuth) {
-        allAuthData.put(newAuth.authToken(), newAuth);
+        AllAuthData.put(newAuth.authToken(), newAuth);
     }
     public AuthData getAuth(String authToken) {
-        return allAuthData.getOrDefault(authToken, null);
+        return AllAuthData.getOrDefault(authToken, null);
     }
     public void deleteAuth(String authToken) {
-        allAuthData.remove(authToken);
+        AllAuthData.remove(authToken);
     }
     public void removeAllAuthData() {
-        allAuthData.clear();
+        AllAuthData.clear();
     }
 }

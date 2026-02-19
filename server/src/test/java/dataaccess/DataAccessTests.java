@@ -14,6 +14,8 @@ import service.UserService;
 
 import javax.security.auth.login.FailedLoginException;
 
+import java.util.ArrayList;
+
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class DataAccessTests {
@@ -71,6 +73,31 @@ public class DataAccessTests {
 
         //this will error currently with Illegal operation on empty result set, which is a good thing
         Assertions.assertNull(gameDataAccess.getGame(10), "Game 1 was not deleted");
+    }
+
+    @Test
+    @Order(4)
+    @DisplayName("Get all games normally")
+    public void getAllGamesSuccess() {
+
+        gameDataAccess.removeAllGameData();
+        GameData testGame1 = new GameData(10, null, null,
+                "game1", new ChessGame());
+        GameData testGame2 = new GameData(11, null, null,
+                "game2", new ChessGame());
+        GameData testGame3 = new GameData(12, null, null,
+                "game3", new ChessGame());
+        gameDataAccess.addGameData(testGame1);
+        gameDataAccess.addGameData(testGame2);
+        gameDataAccess.addGameData(testGame3);
+
+        ArrayList<GameData> gamesExpected = new ArrayList<>();
+        gamesExpected.add(testGame1);
+        gamesExpected.add(testGame2);
+        gamesExpected.add(testGame3);
+
+        Assertions.assertEquals(gamesExpected, gameDataAccess.getAllGameData());
+        gameDataAccess.removeAllGameData();
     }
 //    @Test
 //    @Order(2)

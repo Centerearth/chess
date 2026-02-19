@@ -82,17 +82,30 @@ public class SQLGameDataAccess implements GameDataAccess{
     }
 
     public ArrayList<GameData> getAllGameData() {
-        return null;
+        try (var conn = DatabaseManager.getConnection()) {
+            try (var preparedStatement = conn.prepareStatement("SELECT gameData FROM game")) {
+                conn.setCatalog("chess");
+
+                try (var rs = preparedStatement.executeQuery()) {
+                    ArrayList<GameData> allGames = new ArrayList<>();
+                    var serializer = new Gson();
+                    while (rs.next()) {
+                        var gameDataString = rs.getString("gameData");
+                        allGames.add(serializer.fromJson(gameDataString, GameData.class));
+                    }
+                    return allGames;
+                }
+            }
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
    }
     public void updateGame(ChessGame.TeamColor teamColor, int gameID, String username) {
     }
 
 
-//
-//    public void removeAllGameData() {
-//        ALLGAMEDATA.clear();
-//    }
-//
+
 //    public ArrayList<GameData> getAllGameData() {
 //        return new ArrayList<>(ALLGAMEDATA.values());
 //    }

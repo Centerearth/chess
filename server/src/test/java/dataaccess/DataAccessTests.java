@@ -23,6 +23,7 @@ public class DataAccessTests {
     private final MemoryAuthDataAccess authDataAccess = new MemoryAuthDataAccess();
     private final SQLGameDataAccess gameDataAccess = new SQLGameDataAccess();
 
+    //make sure to take care of checking all errors and everything
     @Test
     @Order(1)
     @DisplayName("Add new game")
@@ -32,8 +33,29 @@ public class DataAccessTests {
                 "game1", new ChessGame());
         gameDataAccess.addGameData(testGame);
         Assertions.assertEquals(testGame, gameDataAccess.getGame(10),
-                "Response was not the same game as was added");
+                "Returned game was not the same game as was added");
         gameDataAccess.removeAllGameData();
+    }
+
+    @Test
+    @Order(2)
+    @DisplayName("Clear all games")
+    public void ClearGameSuccess() {
+        GameData testGame1 = new GameData(10, null, null,
+                "game1", new ChessGame());
+        GameData testGame2 = new GameData(11, null, null,
+                "game2", new ChessGame());
+        GameData testGame3 = new GameData(12, null, null,
+                "game3", new ChessGame());
+        gameDataAccess.addGameData(testGame1);
+        gameDataAccess.addGameData(testGame2);
+        gameDataAccess.addGameData(testGame3);
+        gameDataAccess.removeAllGameData();
+
+        //this will error currently with Illegal operation on empty result set
+        Assertions.assertNull(gameDataAccess.getGame(10), "Game 1 was not deleted");
+        Assertions.assertNull(gameDataAccess.getGame(11), "Game 2 was not deleted");
+        Assertions.assertNull(gameDataAccess.getGame(12), "Game 3 was not deleted");
     }
 
 //    @Test

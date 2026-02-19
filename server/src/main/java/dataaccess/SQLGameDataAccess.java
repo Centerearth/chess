@@ -15,7 +15,13 @@ public class SQLGameDataAccess implements GameDataAccess{
             System.out.println(e);
         }
     }
-    public void addGameData (GameData newGame){}
+    public void addGameData (GameData newGame) {
+        try (var conn = DatabaseManager.getConnection()) {
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
 //    public void addGameData(GameData newGame) throws DataAccessException, SQLException {
 //        try (var conn = DatabaseManager.getConnection()) {
@@ -29,7 +35,18 @@ public class SQLGameDataAccess implements GameDataAccess{
     public void removeGameData(int gameID) {
     }
 
-    public void removeAllGameData() {}
+    public void removeAllGameData() {
+        try (var conn = DatabaseManager.getConnection(); ) {
+
+            conn.setCatalog("chess");
+            var statement = "TRUNCATE TABLE game";
+            var preparedStatement = conn.prepareStatement(statement);
+            preparedStatement.executeUpdate();
+        } catch (Exception e){
+            throw new RuntimeException(e);
+        }
+    }
+
     public ArrayList<GameData> getAllGameData() {
         return null;
    }

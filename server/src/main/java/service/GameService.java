@@ -1,8 +1,10 @@
 package service;
 
 import chess.ChessGame;
+import dataaccess.DataAccessException;
 import dataaccess.MemoryAuthDataAccess;
 import dataaccess.MemoryGameDataAccess;
+import dataaccess.SQLGameDataAccess;
 import model.GameData;
 import model.GameMetaData;
 import recordandrequest.*;
@@ -12,7 +14,7 @@ import java.util.ArrayList;
 import java.util.Random;
 
 public class GameService {
-    private final MemoryGameDataAccess gameDataAccess = new MemoryGameDataAccess();
+    private final SQLGameDataAccess gameDataAccess = new SQLGameDataAccess();
     private final MemoryAuthDataAccess authDataAccess = new MemoryAuthDataAccess();
 
     public static int generateID() {

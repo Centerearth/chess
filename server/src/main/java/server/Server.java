@@ -2,6 +2,7 @@ package server;
 
 import chess.ChessGame;
 import com.google.gson.Gson;
+import dataaccess.DataAccessException;
 import io.javalin.*;
 import io.javalin.http.Context;
 import recordandrequest.*;

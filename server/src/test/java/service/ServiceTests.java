@@ -1,6 +1,7 @@
 package service;
 
 import chess.ChessGame;
+import dataaccess.DataAccessException;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -13,6 +14,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 public class ServiceTests {
     private final UserService userService = new UserService();
     private final GameService gameService = new GameService();
+
+    public ServiceTests() throws DataAccessException {
+    }
     //add static to declaration if wanted to be persistent
 
     @Order(1)

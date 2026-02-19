@@ -10,15 +10,32 @@ import java.util.HashMap;
 import static dataaccess.DatabaseManager.*;
 
 public class SQLGameDataAccess implements GameDataAccess{
-    public SQLGameDataAccess() throws DataAccessException {
-        createDatabase();
-    }
-
-    public void addGameData(GameData newGame) throws DataAccessException, SQLException {
-        try (var conn = DatabaseManager.getConnection()) {
-            //do something
+    public SQLGameDataAccess() {
+        try {createDatabase();} catch (DataAccessException e) {
+            System.out.println(e);
         }
     }
+    public void addGameData (GameData newGame){}
+
+//    public void addGameData(GameData newGame) throws DataAccessException, SQLException {
+//        try (var conn = DatabaseManager.getConnection()) {
+//
+//        }
+//    }
+
+    public GameData getGame(int gameID) {
+        return null;
+    }
+    public void removeGameData(int gameID) {
+    }
+
+    public void removeAllGameData() {}
+    public ArrayList<GameData> getAllGameData() {
+        return null;
+   }
+    public void updateGame(ChessGame.TeamColor teamColor, int gameID, String username) {
+    }
+
 //    private static final HashMap<Integer, GameData> ALLGAMEDATA = new HashMap<>();
 //
 //    public void addGameData(GameData newGame) {

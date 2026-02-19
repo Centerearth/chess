@@ -24,6 +24,19 @@ public class DatabaseManager {
         try (var conn = DriverManager.getConnection(connectionUrl, dbUsername, dbPassword);
              var preparedStatement = conn.prepareStatement(statement)) {
             preparedStatement.executeUpdate();
+
+            conn.setCatalog("chess");
+
+            var createGameTable = """
+            CREATE TABLE IF NOT EXISTS game (
+                id INT NOT NULL,
+                gameData longtext NOT NULL,
+                PRIMARY KEY (id)
+            )""";
+            try (var createTableStatement = conn.prepareStatement(createGameTable)) {
+                createTableStatement.executeUpdate();
+            }
+
         } catch (SQLException ex) {
             throw new DataAccessException("failed to create database", ex);
         }

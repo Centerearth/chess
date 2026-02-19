@@ -12,7 +12,8 @@ import java.util.UUID;
 public class UserService {
     private final MemoryUserDataAccess userDataAccess = new MemoryUserDataAccess();
     private final MemoryAuthDataAccess authDataAccess = new MemoryAuthDataAccess();
-    private final MemoryGameDataAccess gameDataAccess = new MemoryGameDataAccess();
+    private final SQLGameDataAccess gameDataAccess = new SQLGameDataAccess();
+
 
     public static String generateToken() {
         return UUID.randomUUID().toString();

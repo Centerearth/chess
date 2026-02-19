@@ -99,6 +99,23 @@ public class DataAccessTests {
         Assertions.assertEquals(gamesExpected, gameDataAccess.getAllGameData());
         gameDataAccess.removeAllGameData();
     }
+
+    @Test
+    @Order(5)
+    @DisplayName("Update game")
+    public void joinGameSuccess() throws FailedLoginException {
+
+        gameDataAccess.removeAllGameData();
+        GameData testGame1 = new GameData(10, null, null,
+                "game1", new ChessGame());
+        gameDataAccess.addGameData(testGame1);
+        gameDataAccess.updateGame(ChessGame.TeamColor.WHITE, 10, "white_username");
+
+        Assertions.assertNotEquals(testGame1, gameDataAccess.getGame(10));
+        gameDataAccess.removeAllGameData();
+
+    }
+
 //    @Test
 //    @Order(2)
 //    @DisplayName("User already exists")

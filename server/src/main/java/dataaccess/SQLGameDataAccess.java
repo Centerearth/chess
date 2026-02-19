@@ -44,7 +44,6 @@ public class SQLGameDataAccess implements GameDataAccess{
                 try (var rs = preparedStatement.executeQuery()) {
                     rs.next();
                     var gameDataString = rs.getString("gameData");
-                    System.out.println(gameDataString);
                     return new Gson().fromJson(gameDataString, GameData.class);
                 }
             }
@@ -102,24 +101,17 @@ public class SQLGameDataAccess implements GameDataAccess{
         }
    }
     public void updateGame(ChessGame.TeamColor teamColor, int gameID, String username) {
+
+        GameData oldGame = getGame(gameID);
+        GameData updatedGame;
+        if (teamColor == ChessGame.TeamColor.WHITE) {
+            updatedGame = new GameData(gameID,
+                    username, oldGame.blackUsername(), oldGame.gameName(), oldGame.game());
+        } else {
+            updatedGame = new GameData(gameID,
+                    oldGame.whiteUsername(), username, oldGame.gameName(), oldGame.game());
+        }
+        removeGameData(gameID);
+        addGameData(updatedGame);
     }
-
-
-
-//    public ArrayList<GameData> getAllGameData() {
-//        return new ArrayList<>(ALLGAMEDATA.values());
-//    }
-//    public void updateGame(ChessGame.TeamColor teamColor, int gameID, String username) {
-//        GameData oldGame = getGame(gameID);
-//        GameData updatedGame;
-//        if (teamColor == ChessGame.TeamColor.WHITE) {
-//            updatedGame = new GameData(gameID,
-//                    username, oldGame.blackUsername(), oldGame.gameName(), oldGame.game());
-//        } else {
-//            updatedGame = new GameData(gameID,
-//                    oldGame.whiteUsername(), username, oldGame.gameName(), oldGame.game());
-//        }
-//        removeGameData(gameID);
-//        addGameData(updatedGame);
-//    }
 }

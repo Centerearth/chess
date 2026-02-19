@@ -18,9 +18,11 @@ public class SQLGameDataAccess implements GameDataAccess{
     }
     public void addGameData (GameData newGame) {
         try (var conn = DatabaseManager.getConnection()) {
+
             var serializer = new Gson();
             var gameJSON = serializer.toJson(newGame);
             System.out.println("JSON: " + gameJSON);
+
             try (var preparedStatement = conn.prepareStatement("INSERT INTO game (gameID, gameData) VALUES(?, ?)")) {
                 conn.setCatalog("chess");
                 preparedStatement.setInt(1, newGame.gameID());
@@ -33,15 +35,28 @@ public class SQLGameDataAccess implements GameDataAccess{
         }
     }
 
-//    public void addGameData(GameData newGame) throws DataAccessException, SQLException {
-//        try (var conn = DatabaseManager.getConnection()) {
-//
-//        }
-//    }
 
     public GameData getGame(int gameID) {
-        return null;
+        try (var conn = DatabaseManager.getConnection()) {
+            try (var preparedStatement = conn.prepareStatement("SELECT gameData FROM game WHERE gameID=?")) {
+                preparedStatement.setInt(1, gameID);
+                conn.setCatalog("chess");
+
+                try (var rs = preparedStatement.executeQuery()) {
+                    rs.next();
+                    var gameDataString = rs.getString("gameData");
+                    System.out.println(gameDataString);
+                    return new Gson().fromJson(gameDataString, GameData.class);
+                }
+            }
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
+
+
+
     public void removeGameData(int gameID) {
     }
 

@@ -1,6 +1,7 @@
 package dataaccess;
 
 import chess.ChessGame;
+import com.google.gson.Gson;
 import model.GameData;
 
 import java.sql.SQLException;
@@ -17,6 +18,15 @@ public class SQLGameDataAccess implements GameDataAccess{
     }
     public void addGameData (GameData newGame) {
         try (var conn = DatabaseManager.getConnection()) {
+            var serializer = new Gson();
+            var gameJSON = serializer.toJson(newGame);
+            System.out.println("JSON: " + gameJSON);
+            try (var preparedStatement = conn.prepareStatement("INSERT INTO game (gameID, gameData) VALUES(?, ?)")) {
+                conn.setCatalog("chess");
+                preparedStatement.setInt(1, newGame.gameID());
+                preparedStatement.setString(2, gameJSON);
+                preparedStatement.executeUpdate();
+            }
 
         } catch (Exception e) {
             throw new RuntimeException(e);

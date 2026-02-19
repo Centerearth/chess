@@ -29,9 +29,9 @@ public class DatabaseManager {
 
             var createGameTable = """
             CREATE TABLE IF NOT EXISTS game (
-                id INT NOT NULL,
+                gameID INT NOT NULL,
                 gameData longtext NOT NULL,
-                PRIMARY KEY (id)
+                PRIMARY KEY (gameID)
             )""";
             try (var createTableStatement = conn.prepareStatement(createGameTable)) {
                 createTableStatement.executeUpdate();

@@ -21,7 +21,6 @@ public class SQLGameDataAccess implements GameDataAccess{
 
             var serializer = new Gson();
             var gameJSON = serializer.toJson(newGame);
-            System.out.println("JSON: " + gameJSON);
 
             try (var preparedStatement = conn.prepareStatement("INSERT INTO game (gameID, gameData) VALUES(?, ?)")) {
                 conn.setCatalog("chess");
@@ -58,6 +57,16 @@ public class SQLGameDataAccess implements GameDataAccess{
 
 
     public void removeGameData(int gameID) {
+        try (var conn = DatabaseManager.getConnection()) {
+            conn.setCatalog("chess");
+            try (var preparedStatement = conn.prepareStatement("DELETE FROM game WHERE gameID=?")) {
+                preparedStatement.setInt(1, gameID);
+                preparedStatement.executeUpdate();
+            }
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public void removeAllGameData() {
@@ -78,18 +87,7 @@ public class SQLGameDataAccess implements GameDataAccess{
     public void updateGame(ChessGame.TeamColor teamColor, int gameID, String username) {
     }
 
-//    private static final HashMap<Integer, GameData> ALLGAMEDATA = new HashMap<>();
-//
-//    public void addGameData(GameData newGame) {
-//        ALLGAMEDATA.put(newGame.gameID(), newGame);
-//    }
-//    public GameData getGame(int gameID) {
-//        return ALLGAMEDATA.getOrDefault(gameID, null);
-//    }
-//
-//    public void removeGameData(int gameID) {
-//        ALLGAMEDATA.remove(gameID);
-//    }
+
 //
 //    public void removeAllGameData() {
 //        ALLGAMEDATA.clear();

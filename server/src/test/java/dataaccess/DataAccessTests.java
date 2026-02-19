@@ -58,6 +58,20 @@ public class DataAccessTests {
         Assertions.assertNull(gameDataAccess.getGame(12), "Game 3 was not deleted");
     }
 
+
+    @Test
+    @Order(3)
+    @DisplayName("Delete a game")
+    public void RemoveGameSuccess() {
+        gameDataAccess.removeAllGameData();
+        GameData testGame = new GameData(10, null, null,
+                "game1", new ChessGame());
+        gameDataAccess.addGameData(testGame);
+        gameDataAccess.removeGameData(10);
+
+        //this will error currently with Illegal operation on empty result set, which is a good thing
+        Assertions.assertNull(gameDataAccess.getGame(10), "Game 1 was not deleted");
+    }
 //    @Test
 //    @Order(2)
 //    @DisplayName("User already exists")

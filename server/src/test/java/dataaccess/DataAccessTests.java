@@ -124,7 +124,17 @@ public class DataAccessTests {
     }
 
     @Test
-    @Order(5)
+    @Order(6)
+    @DisplayName("No games to get")
+    public void getAllGamesFailure() throws DataAccessException  {
+        gameDataAccess.removeAllGameData();
+        ArrayList<GameData> emptyData = new ArrayList<>();
+        Assertions.assertEquals(gameDataAccess.getAllGameData(), emptyData);
+        gameDataAccess.removeAllGameData();
+    }
+
+    @Test
+    @Order(7)
     @DisplayName("Update game")
     public void updateGameSuccess() throws DataAccessException  {
 
@@ -140,7 +150,19 @@ public class DataAccessTests {
     }
 
     @Test
-    @Order(6)
+    @Order(8)
+    @DisplayName("Update game but game doesn't exist")
+    public void updateGameFailure() throws DataAccessException  {
+
+        gameDataAccess.removeAllGameData();
+        Assertions.assertThrows(Exception.class, () -> gameDataAccess.updateGame(
+                ChessGame.TeamColor.WHITE, 10, "white_username"));
+        gameDataAccess.removeAllGameData();
+
+    }
+
+    @Test
+    @Order(9)
     @DisplayName("Add new user")
     public void addUserSuccess() throws DataAccessException {
         userDataAccess.removeAllUsers();

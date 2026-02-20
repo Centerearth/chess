@@ -33,7 +33,7 @@ public class Server {
                     .get("/game", this::listGames);
     } catch (Exception e) {
         javalin = Javalin.create(config -> config.staticFiles.add("web"))
-                .before(ctx -> {exceptionHandler(ctx, e);});
+                .before(ctx -> exceptionHandler(ctx, e));
     }
     }
 

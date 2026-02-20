@@ -29,7 +29,7 @@ public class SQLUserDataAccess implements UserDataAccess{
     }
 
 
-    public UserData getUser(String username) throws DataAccessException {
+    public UserData getUser(String username) {
         try (var conn = DatabaseManager.getConnection()) {
             try (var preparedStatement = conn.prepareStatement("SELECT userData FROM user WHERE username=?")) {
                 preparedStatement.setString(1, username);

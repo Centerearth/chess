@@ -51,6 +51,28 @@ public class DataAccessTests {
     }
 
     @Test
+    @Order(17)
+    @DisplayName("Get game")
+    public void getGameSuccess() throws DataAccessException {
+        gameDataAccess.removeAllGameData();
+        GameData newTestGame = new GameData(100, null, null,
+                "newGame1", new ChessGame());
+        gameDataAccess.addGameData(newTestGame);
+        Assertions.assertEquals(newTestGame, gameDataAccess.getGame(100),
+                "Returned game was not the same game as was added");
+        gameDataAccess.removeAllGameData();
+    }
+
+    @Test
+    @Order(18)
+    @DisplayName("Get game - game doesn't exist")
+    public void getGameFailure() throws DataAccessException {
+        gameDataAccess.removeAllGameData();
+        Assertions.assertNull(gameDataAccess.getGame(100));
+        gameDataAccess.removeAllGameData();
+    }
+
+    @Test
     @Order(3)
     @DisplayName("Clear all games")
     public void clearGameSuccess() throws DataAccessException {

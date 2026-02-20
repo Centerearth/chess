@@ -9,23 +9,16 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import recordandrequest.*;
-import service.GameService;
 import service.UserService;
-
-import javax.security.auth.login.FailedLoginException;
 
 import java.util.ArrayList;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class DataAccessTests {
     private final UserService userService = new UserService();
     private final SQLUserDataAccess userDataAccess = new SQLUserDataAccess();
     private final SQLAuthDataAccess authDataAccess = new SQLAuthDataAccess();
     private final SQLGameDataAccess gameDataAccess = new SQLGameDataAccess();
-
-    public DataAccessTests() throws DataAccessException {
-    }
 
     @Test
     @Order(1)

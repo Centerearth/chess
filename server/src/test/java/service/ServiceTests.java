@@ -15,8 +15,6 @@ public class ServiceTests {
     private final UserService userService = new UserService();
     private final GameService gameService = new GameService();
 
-    //add static to declaration if wanted to be persistent
-
     @Order(1)
     @DisplayName("Register normally")
     @ParameterizedTest

@@ -1,11 +1,7 @@
 package dataaccess;
 
-import chess.ChessGame;
 import com.google.gson.Gson;
 import model.AuthData;
-import model.GameData;
-import java.util.ArrayList;
-import java.util.HashMap;
 
 import static dataaccess.DatabaseManager.*;
 
@@ -32,7 +28,7 @@ public class SQLAuthDataAccess implements AuthDataAccess {
     }
 
 
-    public AuthData getAuth(String authToken) throws DataAccessException {
+    public AuthData getAuth(String authToken) {
         try (var conn = DatabaseManager.getConnection()) {
             try (var preparedStatement = conn.prepareStatement("SELECT authData FROM auth WHERE authToken=?")) {
                 preparedStatement.setString(1, authToken);

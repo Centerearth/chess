@@ -3,6 +3,7 @@ package service;
 import dataaccess.*;
 import model.AuthData;
 import model.UserData;
+import org.mindrot.jbcrypt.BCrypt;
 import recordandrequest.*;
 
 import javax.security.auth.login.FailedLoginException;
@@ -36,8 +37,9 @@ public class UserService {
         if (userDataAccess.getUser(registerRequest.username()) != null) {
             throw new AlreadyTakenException("Error: This username is already taken.");
         } else {
+            String hashedPassword = BCrypt.hashpw(registerRequest.password(), BCrypt.gensalt());
             UserData newUserData = new UserData(registerRequest.username(),
-                    registerRequest.password(), registerRequest.email());
+                    hashedPassword, registerRequest.email());
             AuthData newAuthData = new AuthData(generateToken(), registerRequest.username());
 
             userDataAccess.addUserData(newUserData);
@@ -54,7 +56,7 @@ public class UserService {
 
         if (userDataAccess.getUser(loginRequest.username()) == null) {
             throw new FailedLoginException("Error: No user exists with this username");
-        } else if (!Objects.equals(userDataAccess.getUser(loginRequest.username()).password(), loginRequest.password())) {
+        } else if (!BCrypt.checkpw(loginRequest.password(), userDataAccess.getUser(loginRequest.username()).password())) {
             throw new FailedLoginException("Error: unauthorized");
         } else {
             AuthData newAuthData = new AuthData(generateToken(), loginRequest.username());

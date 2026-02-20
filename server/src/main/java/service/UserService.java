@@ -23,11 +23,19 @@ public class UserService {
     }
 
     public boolean authDataExists(String authToken) {
-        return (authDataAccess.getAuth(authToken) != null);
+        try {
+            return (authDataAccess.getAuth(authToken) != null);
+        } catch (DataAccessException e) {
+            return false;
+        }
     }
 
     public boolean userDataExists(String username) {
-        return (userDataAccess.getUser(username) != null);
+        try {
+            return (userDataAccess.getUser(username) != null);
+        } catch (DataAccessException e) {
+            return false;
+        }
     }
 
     public RegisterResult register(RegisterRequest registerRequest) throws DataAccessException {
@@ -36,7 +44,7 @@ public class UserService {
             throw new BadRequestException("Error: The fields cannot be left blank");
         }
 
-        if (userDataAccess.getUser(registerRequest.username()) != null) {
+        if (userDataExists(registerRequest.username())) {
             throw new AlreadyTakenException("Error: This username is already taken.");
         } else {
             String hashedPassword = BCrypt.hashpw(registerRequest.password(), BCrypt.gensalt());
@@ -55,7 +63,6 @@ public class UserService {
         if (loginRequest.username().isBlank() || loginRequest.password().isBlank()) {
             throw new BadRequestException("Error: The fields cannot be left blank");
         }
-
         if (userDataAccess.getUser(loginRequest.username()) == null) {
             throw new FailedLoginException("Error: No user exists with this username");
         } else if (!BCrypt.checkpw(loginRequest.password(), userDataAccess.getUser(loginRequest.username()).password())) {
@@ -71,7 +78,7 @@ public class UserService {
         String authToken = logoutRequest.authToken();
         if (authToken.isBlank()) {
             throw new BadRequestException("Error: The fields cannot be left blank");
-        } else if (authDataAccess.getAuth(authToken) == null ) {
+        } else if (authDataAccess.getAuth(authToken) == null) {
             throw new FailedLoginException("Error: unauthorized");
         } else {
             authDataAccess.deleteAuth(authToken);

@@ -29,7 +29,7 @@ public class SQLUserDataAccess implements UserDataAccess{
     }
 
 
-    public UserData getUser(String username) {
+    public UserData getUser(String username) throws DataAccessException {
         try (var conn = DatabaseManager.getConnection()) {
             try (var preparedStatement = conn.prepareStatement("SELECT userData FROM user WHERE username=?")) {
                 preparedStatement.setString(1, username);
@@ -42,6 +42,8 @@ public class SQLUserDataAccess implements UserDataAccess{
                 }
             }
 
+        } catch (DataAccessException e) {
+            throw new DataAccessException("Error: user could not be retrieved");
         } catch (Exception e) {
             return null;
         }

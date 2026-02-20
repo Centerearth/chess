@@ -30,7 +30,7 @@ public class SQLGameDataAccess implements GameDataAccess{
     }
 
 
-    public GameData getGame(int gameID) {
+    public GameData getGame(int gameID) throws DataAccessException {
         try (var conn = DatabaseManager.getConnection()) {
             try (var preparedStatement = conn.prepareStatement("SELECT gameData FROM game WHERE gameID=?")) {
                 preparedStatement.setInt(1, gameID);
@@ -43,6 +43,8 @@ public class SQLGameDataAccess implements GameDataAccess{
                 }
             }
 
+        } catch (DataAccessException e) {
+            throw new DataAccessException("Error: game could not be retrieved");
         } catch (Exception e) {
             return null;
         }

@@ -28,7 +28,7 @@ public class SQLAuthDataAccess implements AuthDataAccess {
     }
 
 
-    public AuthData getAuth(String authToken) {
+    public AuthData getAuth(String authToken) throws DataAccessException {
         try (var conn = DatabaseManager.getConnection()) {
             try (var preparedStatement = conn.prepareStatement("SELECT authData FROM auth WHERE authToken=?")) {
                 preparedStatement.setString(1, authToken);
@@ -41,10 +41,14 @@ public class SQLAuthDataAccess implements AuthDataAccess {
                 }
             }
 
+        } catch (DataAccessException e) {
+            throw new DataAccessException("Error: auth Token could not be retrieved");
         } catch (Exception e) {
             return null;
         }
     }
+
+
 
 
 

@@ -25,7 +25,7 @@ public class DatabaseManager {
              var preparedStatement = conn.prepareStatement(statement)) {
             preparedStatement.executeUpdate();
 
-            conn.setCatalog("chess");
+            conn.setCatalog(databaseName);
 
             var createGameTable = """
             CREATE TABLE IF NOT EXISTS game (

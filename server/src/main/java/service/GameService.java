@@ -25,11 +25,11 @@ public class GameService {
     }
 
     //for testing purposes
-    public GameData getGame(int gameID) throws DataAccessException {
+    public GameData getGame(int gameID) {
         return gameDataAccess.getGame(gameID);
     }
 
-    public boolean gameDataExists(int gameID) throws DataAccessException {
+    public boolean gameDataExists(int gameID) {
         return (gameDataAccess.getGame(gameID) != null);
     }
 

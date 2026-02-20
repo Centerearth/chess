@@ -26,7 +26,7 @@ public class UserService {
         return (authDataAccess.getAuth(authToken) != null);
     }
 
-    public boolean userDataExists(String username) throws DataAccessException {
+    public boolean userDataExists(String username) {
         return (userDataAccess.getUser(username) != null);
     }
 

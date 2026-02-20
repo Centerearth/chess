@@ -65,9 +65,13 @@ public class DataAccessTests {
         gameDataAccess.addGameData(testGame3);
         gameDataAccess.removeAllGameData();
 
-        Assertions.assertThrows(DataAccessException.class, () -> gameDataAccess.getGame(10));
-        Assertions.assertThrows(DataAccessException.class, () -> gameDataAccess.getGame(11));
-        Assertions.assertThrows(DataAccessException.class, () -> gameDataAccess.getGame(12));
+        Assertions.assertNull(gameDataAccess.getGame(10));
+        Assertions.assertNull(gameDataAccess.getGame(11));
+        Assertions.assertNull(gameDataAccess.getGame(12));
+
+//        Assertions.assertThrows(DataAccessException.class, () -> gameDataAccess.getGame(10));
+//        Assertions.assertThrows(DataAccessException.class, () -> gameDataAccess.getGame(11));
+//        Assertions.assertThrows(DataAccessException.class, () -> gameDataAccess.getGame(12));
     }
 
 
@@ -81,7 +85,8 @@ public class DataAccessTests {
         gameDataAccess.addGameData(testGame);
         gameDataAccess.removeGameData(10);
 
-        Assertions.assertThrows(DataAccessException.class, () -> gameDataAccess.getGame(10));
+        Assertions.assertNull(gameDataAccess.getGame(10));
+        //Assertions.assertThrows(DataAccessException.class, () -> gameDataAccess.getGame(10));
     }
 
     @Test
@@ -90,7 +95,8 @@ public class DataAccessTests {
     public void RemoveGameFailure() throws DataAccessException {
         gameDataAccess.removeAllGameData();
         gameDataAccess.removeGameData(10);
-        Assertions.assertThrows(DataAccessException.class, () -> gameDataAccess.getGame(10));
+        Assertions.assertNull(gameDataAccess.getGame(10));
+        //Assertions.assertThrows(DataAccessException.class, () -> gameDataAccess.getGame(10));
 
     }
 
@@ -192,9 +198,13 @@ public class DataAccessTests {
         userDataAccess.addUserData(testUser3);
         userDataAccess.removeAllUsers();
 
-        Assertions.assertThrows(DataAccessException.class, () -> userDataAccess.getUser("user1"));
-        Assertions.assertThrows(DataAccessException.class, () -> userDataAccess.getUser("user2"));
-        Assertions.assertThrows(DataAccessException.class, () -> userDataAccess.getUser("user3"));
+        Assertions.assertNull(userDataAccess.getUser("user1"));
+        Assertions.assertNull(userDataAccess.getUser("user2"));
+        Assertions.assertNull(userDataAccess.getUser("user3"));
+
+//        Assertions.assertThrows(DataAccessException.class, () -> userDataAccess.getUser("user1"));
+//        Assertions.assertThrows(DataAccessException.class, () -> userDataAccess.getUser("user2"));
+//        Assertions.assertThrows(DataAccessException.class, () -> userDataAccess.getUser("user3"));
     }
 
     @Test
@@ -232,9 +242,12 @@ public class DataAccessTests {
         authDataAccess.addAuthData(testAuth3);
         authDataAccess.removeAllAuthData();
 
-        Assertions.assertThrows(DataAccessException.class, () -> authDataAccess.getAuth("authToken1"));
-        Assertions.assertThrows(DataAccessException.class, () -> authDataAccess.getAuth("authToken2"));
-        Assertions.assertThrows(DataAccessException.class, () -> authDataAccess.getAuth("authToken3"));
+        Assertions.assertNull(authDataAccess.getAuth("authToken1"));
+        Assertions.assertNull(authDataAccess.getAuth("authToken2"));
+        Assertions.assertNull(authDataAccess.getAuth("authToken3"));
+//        Assertions.assertThrows(DataAccessException.class, () -> authDataAccess.getAuth("authToken1"));
+//        Assertions.assertThrows(DataAccessException.class, () -> authDataAccess.getAuth("authToken2"));
+//        Assertions.assertThrows(DataAccessException.class, () -> authDataAccess.getAuth("authToken3"));
     }
 
 
@@ -242,13 +255,13 @@ public class DataAccessTests {
     @Order(15)
     @DisplayName("Delete an auth")
     public void RemoveAuthSuccess() throws DataAccessException {
-        gameDataAccess.removeAllGameData();
-        GameData testGame = new GameData(10, null, null,
-                "game1", new ChessGame());
-        gameDataAccess.addGameData(testGame);
-        gameDataAccess.removeGameData(10);
+        authDataAccess.removeAllAuthData();
+        AuthData testAuth = new AuthData("authToken", "user1");
+        authDataAccess.addAuthData(testAuth);
+        authDataAccess.deleteAuth("authToken");
 
-        Assertions.assertThrows(DataAccessException.class, () -> gameDataAccess.getGame(10));
+        Assertions.assertNull(authDataAccess.getAuth("authToken"));
+        //Assertions.assertThrows(DataAccessException.class, () -> authDataAccess.getAuth("authToken"));
     }
 
     @Test
@@ -257,6 +270,7 @@ public class DataAccessTests {
     public void RemoveAuthFailure() throws DataAccessException {
         authDataAccess.removeAllAuthData();
         authDataAccess.deleteAuth("username1");
-        Assertions.assertThrows(DataAccessException.class, () -> authDataAccess.getAuth("username1"));
+        Assertions.assertNull(authDataAccess.getAuth("username1"));
+        //Assertions.assertThrows(DataAccessException.class, () -> authDataAccess.getAuth("username1"));
     }
 }

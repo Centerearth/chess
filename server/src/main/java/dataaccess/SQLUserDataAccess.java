@@ -33,7 +33,7 @@ public class SQLUserDataAccess implements UserDataAccess{
         try (var conn = DatabaseManager.getConnection()) {
             try (var preparedStatement = conn.prepareStatement("SELECT userData FROM user WHERE username=?")) {
                 preparedStatement.setString(1, username);
-                conn.setCatalog("chess");
+                conn.setCatalog(databaseName);
 
                 try (var rs = preparedStatement.executeQuery()) {
                     rs.next();

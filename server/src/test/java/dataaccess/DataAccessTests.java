@@ -129,6 +129,24 @@ public class DataAccessTests {
                 "Returned user was not the same user as was added");
     }
 
+    @Test
+    @Order(7)
+    @DisplayName("Clear all users")
+    public void ClearUserSuccess() throws DataAccessException  {
+        UserData testUser1 = new UserData("user1", "pswd", "abcd@yahoo.com");
+        UserData testUser2 = new UserData("user2", "pswd", "abcd@yahoo.com");
+        UserData testUser3 = new UserData("user3", "pswd", "abcd@yahoo.com");
+        userDataAccess.addUserData(testUser1);
+        userDataAccess.addUserData(testUser2);
+        userDataAccess.addUserData(testUser3);
+        userDataAccess.removeAllUsers();
+
+        Assertions.assertThrows(DataAccessException.class, () -> userDataAccess.getUser("user1"));
+        Assertions.assertThrows(DataAccessException.class, () -> userDataAccess.getUser("user2"));
+        Assertions.assertThrows(DataAccessException.class, () -> userDataAccess.getUser("user3"));
+    }
+
+
 //    @Test
 //    @Order(2)
 //    @DisplayName("User already exists")

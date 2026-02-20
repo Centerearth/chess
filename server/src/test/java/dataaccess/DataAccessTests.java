@@ -2,6 +2,7 @@ package dataaccess;
 
 import chess.ChessGame;
 import model.GameData;
+import model.UserData;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Order;
@@ -21,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 public class DataAccessTests {
     private final UserService userService = new UserService();
     private final GameService gameService = new GameService();
-    private final MemoryUserDataAccess userDataAccess = new MemoryUserDataAccess();
+    private final SQLUserDataAccess userDataAccess = new SQLUserDataAccess();
     private final MemoryAuthDataAccess authDataAccess = new MemoryAuthDataAccess();
     private final SQLGameDataAccess gameDataAccess = new SQLGameDataAccess();
 
@@ -115,6 +116,17 @@ public class DataAccessTests {
         Assertions.assertNotEquals(testGame1, gameDataAccess.getGame(10));
         gameDataAccess.removeAllGameData();
 
+    }
+
+    @Test
+    @Order(6)
+    @DisplayName("Add new user")
+    public void addUserSuccess() throws DataAccessException {
+        userDataAccess.removeAllUsers();
+        UserData testUser = new UserData("user1", "pswd", "abcd@yahoo.com");
+        userDataAccess.addUserData(testUser);
+        Assertions.assertEquals(testUser, userDataAccess.getUser("user1"),
+                "Returned user was not the same user as was added");
     }
 
 //    @Test

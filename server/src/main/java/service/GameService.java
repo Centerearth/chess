@@ -29,7 +29,7 @@ public class GameService {
         return gameDataAccess.getGame(gameID);
     }
 
-    public boolean gameDataExists(int gameID) throws DataAccessException {
+    public boolean gameDataExists(int gameID) {
         try {
             return (gameDataAccess.getGame(gameID) != null);
         } catch (DataAccessException e) {

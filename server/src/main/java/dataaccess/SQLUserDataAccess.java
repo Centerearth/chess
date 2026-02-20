@@ -18,7 +18,7 @@ public class SQLUserDataAccess implements UserDataAccess{
             var userJSON = serializer.toJson(newUser);
 
             try (var preparedStatement = conn.prepareStatement("INSERT INTO user (username, userData) VALUES(?, ?)")) {
-                conn.setCatalog("chess");
+                conn.setCatalog(databaseName);
                 preparedStatement.setString(1, newUser.username());
                 preparedStatement.setString(2, userJSON);
                 preparedStatement.executeUpdate();
@@ -53,7 +53,7 @@ public class SQLUserDataAccess implements UserDataAccess{
     public void removeAllUsers() throws DataAccessException {
         try (var conn = DatabaseManager.getConnection()) {
 
-            conn.setCatalog("chess");
+            conn.setCatalog(databaseName);
             var statement = "TRUNCATE TABLE user";
             var preparedStatement = conn.prepareStatement(statement);
             preparedStatement.executeUpdate();

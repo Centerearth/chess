@@ -17,7 +17,7 @@ public class SQLAuthDataAccess implements AuthDataAccess {
             var authJSON = serializer.toJson(newAuth);
 
             try (var preparedStatement = conn.prepareStatement("INSERT INTO auth (authToken, authData) VALUES(?, ?)")) {
-                conn.setCatalog("chess");
+                conn.setCatalog(databaseName);
                 preparedStatement.setString(1, newAuth.authToken());
                 preparedStatement.setString(2, authJSON);
                 preparedStatement.executeUpdate();
@@ -32,7 +32,7 @@ public class SQLAuthDataAccess implements AuthDataAccess {
         try (var conn = DatabaseManager.getConnection()) {
             try (var preparedStatement = conn.prepareStatement("SELECT authData FROM auth WHERE authToken=?")) {
                 preparedStatement.setString(1, authToken);
-                conn.setCatalog("chess");
+                conn.setCatalog(databaseName);
 
                 try (var rs = preparedStatement.executeQuery()) {
                     rs.next();
@@ -54,7 +54,7 @@ public class SQLAuthDataAccess implements AuthDataAccess {
 
     public void deleteAuth(String authToken) throws DataAccessException {
         try (var conn = DatabaseManager.getConnection()) {
-            conn.setCatalog("chess");
+            conn.setCatalog(databaseName);
             try (var preparedStatement = conn.prepareStatement("DELETE FROM auth WHERE authToken=?")) {
                 preparedStatement.setString(1, authToken);
                 preparedStatement.executeUpdate();
@@ -68,7 +68,7 @@ public class SQLAuthDataAccess implements AuthDataAccess {
     public void removeAllAuthData() throws DataAccessException {
         try (var conn = DatabaseManager.getConnection()) {
 
-            conn.setCatalog("chess");
+            conn.setCatalog(databaseName);
             var statement = "TRUNCATE TABLE auth";
             var preparedStatement = conn.prepareStatement(statement);
             preparedStatement.executeUpdate();

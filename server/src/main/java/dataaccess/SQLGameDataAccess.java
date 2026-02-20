@@ -19,7 +19,7 @@ public class SQLGameDataAccess implements GameDataAccess{
             var gameJSON = serializer.toJson(newGame);
 
             try (var preparedStatement = conn.prepareStatement("INSERT INTO game (gameID, gameData) VALUES(?, ?)")) {
-                conn.setCatalog("chess");
+                conn.setCatalog(databaseName);
                 preparedStatement.setInt(1, newGame.gameID());
                 preparedStatement.setString(2, gameJSON);
                 preparedStatement.executeUpdate();
@@ -34,7 +34,7 @@ public class SQLGameDataAccess implements GameDataAccess{
         try (var conn = DatabaseManager.getConnection()) {
             try (var preparedStatement = conn.prepareStatement("SELECT gameData FROM game WHERE gameID=?")) {
                 preparedStatement.setInt(1, gameID);
-                conn.setCatalog("chess");
+                conn.setCatalog(databaseName);
 
                 try (var rs = preparedStatement.executeQuery()) {
                     rs.next();
@@ -54,7 +54,7 @@ public class SQLGameDataAccess implements GameDataAccess{
 
     public void removeGameData(int gameID) throws DataAccessException {
         try (var conn = DatabaseManager.getConnection()) {
-            conn.setCatalog("chess");
+            conn.setCatalog(databaseName);
             try (var preparedStatement = conn.prepareStatement("DELETE FROM game WHERE gameID=?")) {
                 preparedStatement.setInt(1, gameID);
                 preparedStatement.executeUpdate();
@@ -68,7 +68,7 @@ public class SQLGameDataAccess implements GameDataAccess{
     public void removeAllGameData() throws DataAccessException {
         try (var conn = DatabaseManager.getConnection()) {
 
-            conn.setCatalog("chess");
+            conn.setCatalog(databaseName);
             var statement = "TRUNCATE TABLE game";
             var preparedStatement = conn.prepareStatement(statement);
             preparedStatement.executeUpdate();
@@ -80,7 +80,7 @@ public class SQLGameDataAccess implements GameDataAccess{
     public ArrayList<GameData> getAllGameData() throws DataAccessException {
         try (var conn = DatabaseManager.getConnection()) {
             try (var preparedStatement = conn.prepareStatement("SELECT gameData FROM game")) {
-                conn.setCatalog("chess");
+                conn.setCatalog(databaseName);
 
                 try (var rs = preparedStatement.executeQuery()) {
                     ArrayList<GameData> allGames = new ArrayList<>();

@@ -74,7 +74,7 @@ public class UserService {
         }
     }
 
-    public void clearAllData() {
+    public void clearAllData() throws DataAccessException {
         userDataAccess.removeAllUsers();
         authDataAccess.removeAllAuthData();
         gameDataAccess.removeAllGameData();

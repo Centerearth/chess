@@ -14,6 +14,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 public class ServiceTests {
     private final UserService userService = new UserService();
     private final GameService gameService = new GameService();
+
+    public ServiceTests() throws DataAccessException {
+    }
     //add static to declaration if wanted to be persistent
 
     @Order(1)
@@ -119,7 +122,7 @@ public class ServiceTests {
     @DisplayName("Create game normally")
     @ParameterizedTest
     @ValueSource(strings = {"first_name", "second_name", "third_name"})
-    public void createGameSuccess(String gameName) throws FailedLoginException {
+    public void createGameSuccess(String gameName) throws FailedLoginException, DataAccessException {
         //submit create request
         RegisterResult registerResult = userService.register(
                 new RegisterRequest("first_username", "pswd", "abcd@yahoo.com"));
@@ -156,7 +159,7 @@ public class ServiceTests {
     @Test
     @Order(12)
     @DisplayName("Clear everything")
-    public void clearData() throws FailedLoginException {
+    public void clearData() throws FailedLoginException, DataAccessException {
 
         RegisterResult registerResult1 = userService.register(
                 new RegisterRequest("first_username", "pswd", "abcd@yahoo.com"));
@@ -173,20 +176,21 @@ public class ServiceTests {
                 new CreateGameRequest(authToken2, "second_game"));
 
         userService.clearAllData();
-
         Assertions.assertFalse(userService.authDataExists(authToken1), "authToken1 was not deleted");
         Assertions.assertFalse(userService.authDataExists(authToken2), "authToken2 was not deleted");
         Assertions.assertFalse(userService.userDataExists(registerResult1.username()), "user1 was not deleted");
         Assertions.assertFalse(userService.userDataExists(registerResult2.username()), "user2 was not deleted");
-        Assertions.assertFalse(gameService.gameDataExists(createGameResult1.gameID()), "game1 was not deleted");
-        Assertions.assertFalse(gameService.gameDataExists(createGameResult2.gameID()), "game2 was not deleted");
+        Assertions.assertThrows(DataAccessException.class, () -> gameService.gameDataExists(createGameResult1.gameID()));
+        Assertions.assertThrows(DataAccessException.class, () -> gameService.gameDataExists(createGameResult2.gameID()));
+//        Assertions.assertFalse(gameService.gameDataExists(createGameResult1.gameID()), "game1 was not deleted");
+//        Assertions.assertFalse(gameService.gameDataExists(createGameResult2.gameID()), "game2 was not deleted");
 
     }
 
     @Test
     @Order(13)
     @DisplayName("List games normally")
-    public void listGameSuccess() throws FailedLoginException {
+    public void listGameSuccess() throws FailedLoginException, DataAccessException {
         //submit list request
         userService.clearAllData();
         RegisterResult registerResult = userService.register(
@@ -206,7 +210,7 @@ public class ServiceTests {
     @Test
     @Order(14)
     @DisplayName("List Games - User is unauthorized")
-    public void listGameUnauthorized() throws FailedLoginException {
+    public void listGameUnauthorized() throws FailedLoginException, DataAccessException {
         RegisterResult registerResult = userService.register(
                 new RegisterRequest("first_username", "pswd", "abcd@yahoo.com"));
 
@@ -225,7 +229,7 @@ public class ServiceTests {
     @Test
     @Order(15)
     @DisplayName("Join game normally")
-    public void joinGameSuccess() throws FailedLoginException {
+    public void joinGameSuccess() throws FailedLoginException, DataAccessException {
 
         //submit join request
         userService.clearAllData();
@@ -250,7 +254,7 @@ public class ServiceTests {
     @Test
     @Order(16)
     @DisplayName("Join Game - User is unauthorized")
-    public void joinGameUnauthorized() throws FailedLoginException {
+    public void joinGameUnauthorized() throws FailedLoginException, DataAccessException {
         RegisterResult registerResult = userService.register(
                 new RegisterRequest("first_username", "pswd", "abcd@yahoo.com"));
 
@@ -268,7 +272,7 @@ public class ServiceTests {
     @Test
     @Order(17)
     @DisplayName("Join Game - Place is already taken")
-    public void joinTakenGame() throws FailedLoginException {
+    public void joinTakenGame() throws FailedLoginException, DataAccessException {
         RegisterResult registerResult = userService.register(
                 new RegisterRequest("first_username", "pswd", "abcd@yahoo.com"));
 

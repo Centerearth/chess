@@ -2,21 +2,25 @@ package dataaccess;
 
 import chess.ChessGame;
 import com.google.gson.Gson;
+import io.javalin.http.Context;
 import model.GameData;
+import recordandrequest.AlreadyTakenException;
+import recordandrequest.BadRequestException;
 
+import javax.security.auth.login.FailedLoginException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 import static dataaccess.DatabaseManager.*;
 
 public class SQLGameDataAccess implements GameDataAccess{
     public SQLGameDataAccess() {
-        try {createDatabase();} catch (DataAccessException e) {
-            System.out.println(e);
-        }
+        createDatabase();
     }
-    public void addGameData (GameData newGame) {
+
+    public void addGameData (GameData newGame) throws DataAccessException {
         try (var conn = DatabaseManager.getConnection()) {
 
             var serializer = new Gson();
@@ -28,14 +32,13 @@ public class SQLGameDataAccess implements GameDataAccess{
                 preparedStatement.setString(2, gameJSON);
                 preparedStatement.executeUpdate();
             }
-
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new DataAccessException("Error: the game failed to add", e);
         }
     }
 
 
-    public GameData getGame(int gameID) {
+    public GameData getGame(int gameID) throws DataAccessException {
         try (var conn = DatabaseManager.getConnection()) {
             try (var preparedStatement = conn.prepareStatement("SELECT gameData FROM game WHERE gameID=?")) {
                 preparedStatement.setInt(1, gameID);
@@ -49,13 +52,13 @@ public class SQLGameDataAccess implements GameDataAccess{
             }
 
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new DataAccessException("Error: failed to fetch the game", e);
         }
     }
 
 
 
-    public void removeGameData(int gameID) {
+    public void removeGameData(int gameID) throws DataAccessException {
         try (var conn = DatabaseManager.getConnection()) {
             conn.setCatalog("chess");
             try (var preparedStatement = conn.prepareStatement("DELETE FROM game WHERE gameID=?")) {
@@ -64,23 +67,23 @@ public class SQLGameDataAccess implements GameDataAccess{
             }
 
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new DataAccessException("Error: the game failed to add", e);
         }
     }
 
-    public void removeAllGameData() {
+    public void removeAllGameData() throws DataAccessException {
         try (var conn = DatabaseManager.getConnection(); ) {
 
             conn.setCatalog("chess");
             var statement = "TRUNCATE TABLE game";
             var preparedStatement = conn.prepareStatement(statement);
             preparedStatement.executeUpdate();
-        } catch (Exception e){
-            throw new RuntimeException(e);
+        } catch (Exception e) {
+            throw new DataAccessException("Error: the game failed to add", e);
         }
     }
 
-    public ArrayList<GameData> getAllGameData() {
+    public ArrayList<GameData> getAllGameData() throws DataAccessException {
         try (var conn = DatabaseManager.getConnection()) {
             try (var preparedStatement = conn.prepareStatement("SELECT gameData FROM game")) {
                 conn.setCatalog("chess");
@@ -97,10 +100,10 @@ public class SQLGameDataAccess implements GameDataAccess{
             }
 
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new DataAccessException("Error: the game failed to add", e);
         }
    }
-    public void updateGame(ChessGame.TeamColor teamColor, int gameID, String username) {
+    public void updateGame(ChessGame.TeamColor teamColor, int gameID, String username) throws DataAccessException {
 
         GameData oldGame = getGame(gameID);
         GameData updatedGame;

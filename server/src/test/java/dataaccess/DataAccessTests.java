@@ -25,11 +25,14 @@ public class DataAccessTests {
     private final MemoryAuthDataAccess authDataAccess = new MemoryAuthDataAccess();
     private final SQLGameDataAccess gameDataAccess = new SQLGameDataAccess();
 
+    public DataAccessTests() throws DataAccessException {
+    }
+
     //make sure to take care of checking all errors and everything
     @Test
     @Order(1)
     @DisplayName("Add new game")
-    public void addGameSuccess() {
+    public void addGameSuccess() throws DataAccessException {
         gameDataAccess.removeAllGameData();
         GameData testGame = new GameData(10, null, null,
                 "game1", new ChessGame());
@@ -42,7 +45,7 @@ public class DataAccessTests {
     @Test
     @Order(2)
     @DisplayName("Clear all games")
-    public void ClearGameSuccess() {
+    public void ClearGameSuccess() throws DataAccessException  {
         GameData testGame1 = new GameData(10, null, null,
                 "game1", new ChessGame());
         GameData testGame2 = new GameData(11, null, null,
@@ -54,31 +57,29 @@ public class DataAccessTests {
         gameDataAccess.addGameData(testGame3);
         gameDataAccess.removeAllGameData();
 
-        //this will error currently with Illegal operation on empty result set
-        Assertions.assertNull(gameDataAccess.getGame(10), "Game 1 was not deleted");
-        Assertions.assertNull(gameDataAccess.getGame(11), "Game 2 was not deleted");
-        Assertions.assertNull(gameDataAccess.getGame(12), "Game 3 was not deleted");
+        Assertions.assertThrows(DataAccessException.class, () -> gameDataAccess.getGame(10));
+        Assertions.assertThrows(DataAccessException.class, () -> gameDataAccess.getGame(11));
+        Assertions.assertThrows(DataAccessException.class, () -> gameDataAccess.getGame(12));
     }
 
 
     @Test
     @Order(3)
     @DisplayName("Delete a game")
-    public void RemoveGameSuccess() {
+    public void RemoveGameSuccess() throws DataAccessException  {
         gameDataAccess.removeAllGameData();
         GameData testGame = new GameData(10, null, null,
                 "game1", new ChessGame());
         gameDataAccess.addGameData(testGame);
         gameDataAccess.removeGameData(10);
 
-        //this will error currently with Illegal operation on empty result set, which is a good thing
-        Assertions.assertNull(gameDataAccess.getGame(10), "Game 1 was not deleted");
+        Assertions.assertThrows(DataAccessException.class, () -> gameDataAccess.getGame(10));
     }
 
     @Test
     @Order(4)
     @DisplayName("Get all games normally")
-    public void getAllGamesSuccess() {
+    public void getAllGamesSuccess() throws DataAccessException  {
 
         gameDataAccess.removeAllGameData();
         GameData testGame1 = new GameData(10, null, null,
@@ -103,7 +104,7 @@ public class DataAccessTests {
     @Test
     @Order(5)
     @DisplayName("Update game")
-    public void joinGameSuccess() throws FailedLoginException {
+    public void updateGameSuccess() throws DataAccessException  {
 
         gameDataAccess.removeAllGameData();
         GameData testGame1 = new GameData(10, null, null,

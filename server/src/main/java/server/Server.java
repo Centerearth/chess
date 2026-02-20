@@ -180,6 +180,9 @@ public class Server {
         } else if (e instanceof FailedLoginException) {
             context.status(401);
             context.result(new Gson().toJson(Map.of("message", e.getMessage())));
+        } else if (e instanceof DataAccessException) {
+            context.status(500);
+            context.result(new Gson().toJson(Map.of("message", e.getMessage())));
         } else {
             context.status(500);
             context.result(new Gson().toJson(Map.of("message", e.getMessage())));

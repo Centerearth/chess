@@ -6,10 +6,10 @@ import java.util.ArrayList;
 
 
 public interface GameDataAccess {
-    public void addGameData (GameData newGame);
-    public GameData getGame(int gameID);
-    public void removeGameData(int gameID);
-    public void removeAllGameData();
-    public ArrayList<GameData> getAllGameData();
-    public void updateGame(ChessGame.TeamColor teamColor, int gameID, String username);
+    public void addGameData (GameData newGame) throws DataAccessException;
+    public GameData getGame(int gameID) throws DataAccessException;
+    public void removeGameData(int gameID) throws DataAccessException;
+    public void removeAllGameData() throws DataAccessException;
+    public ArrayList<GameData> getAllGameData() throws DataAccessException;
+    public void updateGame(ChessGame.TeamColor teamColor, int gameID, String username) throws DataAccessException;
 }

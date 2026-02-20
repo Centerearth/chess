@@ -23,15 +23,15 @@ public class GameService {
     }
 
     //for testing purposes
-    public GameData getGame(int gameID) {
+    public GameData getGame(int gameID) throws DataAccessException {
         return gameDataAccess.getGame(gameID);
     }
 
-    public boolean gameDataExists(int gameID) {
+    public boolean gameDataExists(int gameID) throws DataAccessException {
         return (gameDataAccess.getGame(gameID) != null);
     }
 
-    public CreateGameResult createGame(CreateGameRequest createGameRequest) throws FailedLoginException {
+    public CreateGameResult createGame(CreateGameRequest createGameRequest) throws FailedLoginException, DataAccessException {
         String authToken = createGameRequest.authToken();
         if (createGameRequest.gameName().isBlank()) {
             throw new BadRequestException("Error: The fields cannot be left blank");
@@ -46,7 +46,7 @@ public class GameService {
         }
     }
 
-    public ListGameResult listAllGameMetaData(ListGameRequest listGameRequest) throws FailedLoginException {
+    public ListGameResult listAllGameMetaData(ListGameRequest listGameRequest) throws FailedLoginException, DataAccessException {
         if (authDataAccess.getAuth(listGameRequest.authToken()) == null) {
             throw new FailedLoginException("Error: unauthorized");
         } else {
@@ -60,7 +60,7 @@ public class GameService {
         }
     }
 
-    public void joinGame(JoinGameRequest joinGameRequest) throws FailedLoginException {
+    public void joinGame(JoinGameRequest joinGameRequest) throws FailedLoginException, DataAccessException {
         if (authDataAccess.getAuth(joinGameRequest.authToken()) == null) {
             throw new FailedLoginException("Error: unauthorized");
         } else if (joinGameRequest.teamColor() == null) {

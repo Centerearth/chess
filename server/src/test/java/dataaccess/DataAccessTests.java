@@ -1,6 +1,7 @@
 package dataaccess;
 
 import chess.ChessGame;
+import model.AuthData;
 import model.GameData;
 import model.UserData;
 import org.junit.jupiter.api.Assertions;
@@ -23,7 +24,7 @@ public class DataAccessTests {
     private final UserService userService = new UserService();
     private final GameService gameService = new GameService();
     private final SQLUserDataAccess userDataAccess = new SQLUserDataAccess();
-    private final MemoryAuthDataAccess authDataAccess = new MemoryAuthDataAccess();
+    private final SQLAuthDataAccess authDataAccess = new SQLAuthDataAccess();
     private final SQLGameDataAccess gameDataAccess = new SQLGameDataAccess();
 
     public DataAccessTests() throws DataAccessException {
@@ -145,6 +146,49 @@ public class DataAccessTests {
         Assertions.assertNull(userDataAccess.getUser("user1"));
         Assertions.assertNull(userDataAccess.getUser("user2"));
         Assertions.assertNull(userDataAccess.getUser("user3"));
+    }
+
+    @Test
+    @Order(8)
+    @DisplayName("Add new game")
+    public void addAuthSuccess() throws DataAccessException {
+        authDataAccess.removeAllAuthData();
+        AuthData testAuth = new AuthData("authToken1", "username1");
+        authDataAccess.addAuthData(testAuth);
+        Assertions.assertEquals(testAuth, authDataAccess.getAuth("authToken1"),
+                "Returned auth was not the same auth as was added");
+        authDataAccess.removeAllAuthData();
+    }
+
+    @Test
+    @Order(9)
+    @DisplayName("Clear all auth")
+    public void ClearAuthSuccess() throws DataAccessException  {
+        AuthData testAuth1 = new AuthData("authToken1", "username1");
+        AuthData testAuth2 = new AuthData("authToken2", "username2");
+        AuthData testAuth3 = new AuthData("authToken3", "username3");
+        authDataAccess.addAuthData(testAuth1);
+        authDataAccess.addAuthData(testAuth2);
+        authDataAccess.addAuthData(testAuth3);
+        authDataAccess.removeAllAuthData();
+
+        Assertions.assertNull(authDataAccess.getAuth("authToken1"));
+        Assertions.assertNull(authDataAccess.getAuth("authToken2"));
+        Assertions.assertNull(authDataAccess.getAuth("authToken3"));
+    }
+
+
+    @Test
+    @Order(10)
+    @DisplayName("Delete a game")
+    public void RemoveAuthSuccess() throws DataAccessException  {
+        gameDataAccess.removeAllGameData();
+        GameData testGame = new GameData(10, null, null,
+                "game1", new ChessGame());
+        gameDataAccess.addGameData(testGame);
+        gameDataAccess.removeGameData(10);
+
+        Assertions.assertNull(gameDataAccess.getGame(10));
     }
 
 

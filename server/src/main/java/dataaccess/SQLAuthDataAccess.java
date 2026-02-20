@@ -6,7 +6,7 @@ import model.AuthData;
 import static dataaccess.DatabaseManager.*;
 
 public class SQLAuthDataAccess implements AuthDataAccess {
-    public SQLAuthDataAccess() {
+    public SQLAuthDataAccess() throws DataAccessException {
         createDatabase();
     }
 

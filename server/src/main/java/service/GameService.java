@@ -16,6 +16,9 @@ public class GameService {
     private final SQLGameDataAccess gameDataAccess = new SQLGameDataAccess();
     private final SQLAuthDataAccess authDataAccess = new SQLAuthDataAccess();
 
+    public GameService() throws DataAccessException {
+    }
+
     public static int generateID() {
         Random r= new Random();
         return r.nextInt(500);
@@ -60,12 +63,12 @@ public class GameService {
     }
 
     public void joinGame(JoinGameRequest joinGameRequest) throws FailedLoginException, DataAccessException {
-        if (authDataAccess.getAuth(joinGameRequest.authToken()) == null) {
+        if (gameDataAccess.getGame(joinGameRequest.gameID()) == null) {
+            throw new DataAccessException("Error: game does not exist");
+        } else if (authDataAccess.getAuth(joinGameRequest.authToken()) == null) {
             throw new FailedLoginException("Error: unauthorized");
         } else if (joinGameRequest.teamColor() == null) {
             throw new BadRequestException("Error: Fields cannot be left blank");
-        } else if (gameDataAccess.getGame(joinGameRequest.gameID()) == null) {
-            throw new BadRequestException("Error: game does not exist");
         } else {
             if (joinGameRequest.teamColor() == ChessGame.TeamColor.WHITE &&
                     gameDataAccess.getGame(joinGameRequest.gameID()).whiteUsername() != null) {

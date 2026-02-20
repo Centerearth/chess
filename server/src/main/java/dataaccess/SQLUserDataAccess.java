@@ -7,7 +7,7 @@ import model.UserData;
 import static dataaccess.DatabaseManager.*;
 
 public class SQLUserDataAccess implements UserDataAccess{
-    public SQLUserDataAccess() {
+    public SQLUserDataAccess() throws DataAccessException {
         createDatabase();
     }
 

@@ -20,6 +20,9 @@ public class DataAccessTests {
     private final SQLAuthDataAccess authDataAccess = new SQLAuthDataAccess();
     private final SQLGameDataAccess gameDataAccess = new SQLGameDataAccess();
 
+    public DataAccessTests() throws DataAccessException {
+    }
+
     @Test
     @Order(1)
     @DisplayName("Add new game")

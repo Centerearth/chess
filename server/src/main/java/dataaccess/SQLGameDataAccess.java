@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import static dataaccess.DatabaseManager.*;
 
 public class SQLGameDataAccess implements GameDataAccess{
-    public SQLGameDataAccess() {
+    public SQLGameDataAccess() throws DataAccessException {
         createDatabase();
     }
 

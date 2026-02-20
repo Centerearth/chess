@@ -15,21 +15,26 @@ import java.util.Map;
 
 public class Server {
 
-    private final Javalin javalin;
-    private final UserService userService = new UserService();
-    private final GameService gameService = new GameService();
+    private Javalin javalin;
+    private UserService userService;
+    private GameService gameService;
 
     public Server() {
+        try {
+            userService = new UserService();
+            gameService = new GameService();
+            javalin = Javalin.create(config -> config.staticFiles.add("web"))
+                    .delete("/db", this::clearApplication)
+                    .delete("/session", this::logoutUser)
+                    .post("/session", this::loginUser)
+                    .post("/user", this::createNewUser)
+                    .post("/game", this::createNewGame)
+                    .put("/game", this::joinGame)
+                    .get("/game", this::listGames);
+    } catch (Exception e) {
         javalin = Javalin.create(config -> config.staticFiles.add("web"))
-                .delete("/db", this::clearApplication)
-                .delete("/session", this::logoutUser)
-                .post("/session", this::loginUser)
-                .post("/user", this::createNewUser)
-                .post("/game", this::createNewGame)
-                .put("/game", this::joinGame)
-                .get("/game", this::listGames);
-
-
+                .before(ctx -> {exceptionHandler(ctx, e);});
+    }
     }
 
     private void clearApplication(Context context) {

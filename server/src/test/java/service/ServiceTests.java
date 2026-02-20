@@ -15,6 +15,9 @@ public class ServiceTests {
     private final UserService userService = new UserService();
     private final GameService gameService = new GameService();
 
+    public ServiceTests() throws DataAccessException {
+    }
+
     @Order(1)
     @DisplayName("Register normally")
     @ParameterizedTest

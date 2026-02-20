@@ -7,7 +7,6 @@ import org.mindrot.jbcrypt.BCrypt;
 import recordandrequest.*;
 
 import javax.security.auth.login.FailedLoginException;
-import java.util.Objects;
 import java.util.UUID;
 
 public class UserService {
@@ -15,12 +14,15 @@ public class UserService {
     private final SQLAuthDataAccess authDataAccess = new SQLAuthDataAccess();
     private final SQLGameDataAccess gameDataAccess = new SQLGameDataAccess();
 
+    public UserService() throws DataAccessException {
+    }
+
 
     public static String generateToken() {
         return UUID.randomUUID().toString();
     }
 
-    public boolean authDataExists(String authToken) throws DataAccessException {
+    public boolean authDataExists(String authToken) {
         return (authDataAccess.getAuth(authToken) != null);
     }
 

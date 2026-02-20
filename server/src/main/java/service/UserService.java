@@ -11,7 +11,7 @@ import java.util.UUID;
 
 public class UserService {
     private final SQLUserDataAccess userDataAccess = new SQLUserDataAccess();
-    private final MemoryAuthDataAccess authDataAccess = new MemoryAuthDataAccess();
+    private final SQLAuthDataAccess authDataAccess = new SQLAuthDataAccess();
     private final SQLGameDataAccess gameDataAccess = new SQLGameDataAccess();
 
 
@@ -19,7 +19,7 @@ public class UserService {
         return UUID.randomUUID().toString();
     }
 
-    public boolean authDataExists(String authToken) {
+    public boolean authDataExists(String authToken) throws DataAccessException {
         return (authDataAccess.getAuth(authToken) != null);
     }
 
@@ -63,7 +63,7 @@ public class UserService {
         }
     }
 
-    public void logout(LogoutRequest logoutRequest) throws FailedLoginException {
+    public void logout(LogoutRequest logoutRequest) throws FailedLoginException, DataAccessException {
         String authToken = logoutRequest.authToken();
         if (authToken.isBlank()) {
             throw new BadRequestException("Error: The fields cannot be left blank");

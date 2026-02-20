@@ -8,8 +8,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 import recordandrequest.*;
 import service.GameService;
 import service.UserService;
@@ -22,7 +20,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class DataAccessTests {
     private final UserService userService = new UserService();
-    private final GameService gameService = new GameService();
     private final SQLUserDataAccess userDataAccess = new SQLUserDataAccess();
     private final SQLAuthDataAccess authDataAccess = new SQLAuthDataAccess();
     private final SQLGameDataAccess gameDataAccess = new SQLGameDataAccess();
@@ -30,7 +27,6 @@ public class DataAccessTests {
     public DataAccessTests() throws DataAccessException {
     }
 
-    //make sure to take care of checking all errors and everything
     @Test
     @Order(1)
     @DisplayName("Add new game")
@@ -46,6 +42,20 @@ public class DataAccessTests {
 
     @Test
     @Order(2)
+    @DisplayName("Game already exists")
+    public void addGameFailure() throws DataAccessException {
+        gameDataAccess.removeAllGameData();
+        GameData testGame1 = new GameData(10, null, null,
+                "game1", new ChessGame());
+        GameData testGame2 = new GameData(10, null, null,
+                "game1", new ChessGame());
+        gameDataAccess.addGameData(testGame1);
+        Assertions.assertThrows(DataAccessException.class, () -> gameDataAccess.addGameData(testGame2));
+        gameDataAccess.removeAllGameData();
+    }
+
+    @Test
+    @Order(3)
     @DisplayName("Clear all games")
     public void ClearGameSuccess() throws DataAccessException  {
         GameData testGame1 = new GameData(10, null, null,
@@ -66,7 +76,7 @@ public class DataAccessTests {
 
 
     @Test
-    @Order(3)
+    @Order(4)
     @DisplayName("Delete a game")
     public void RemoveGameSuccess() throws DataAccessException  {
         gameDataAccess.removeAllGameData();
@@ -80,6 +90,16 @@ public class DataAccessTests {
 
     @Test
     @Order(4)
+    @DisplayName("Delete game that doesn't exist")
+    public void RemoveGameFailure() throws DataAccessException  {
+        gameDataAccess.removeAllGameData();
+        gameDataAccess.removeGameData(10);
+        Assertions.assertNull(gameDataAccess.getGame(10));
+
+    }
+
+    @Test
+    @Order(5)
     @DisplayName("Get all games normally")
     public void getAllGamesSuccess() throws DataAccessException  {
 

@@ -2,7 +2,7 @@ package service;
 
 import chess.ChessGame;
 import dataaccess.DataAccessException;
-import dataaccess.MemoryAuthDataAccess;
+import dataaccess.SQLAuthDataAccess;
 import dataaccess.SQLGameDataAccess;
 import model.GameData;
 import model.GameMetaData;
@@ -14,7 +14,7 @@ import java.util.Random;
 
 public class GameService {
     private final SQLGameDataAccess gameDataAccess = new SQLGameDataAccess();
-    private final MemoryAuthDataAccess authDataAccess = new MemoryAuthDataAccess();
+    private final SQLAuthDataAccess authDataAccess = new SQLAuthDataAccess();
 
     public static int generateID() {
         Random r= new Random();

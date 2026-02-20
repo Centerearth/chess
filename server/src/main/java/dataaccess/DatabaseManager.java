@@ -47,6 +47,16 @@ public class DatabaseManager {
                 createUserStatement.executeUpdate();
             }
 
+            var createAuthTable = """
+            CREATE TABLE IF NOT EXISTS auth (
+                authToken VARCHAR(255) NOT NULL,
+                authData longtext NOT NULL,
+                PRIMARY KEY (authToken)
+            )""";
+            try (var createAuthStatement = conn.prepareStatement(createAuthTable)) {
+                createAuthStatement.executeUpdate();
+            }
+
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

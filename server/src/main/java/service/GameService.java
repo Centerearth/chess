@@ -3,7 +3,6 @@ package service;
 import chess.ChessGame;
 import dataaccess.DataAccessException;
 import dataaccess.MemoryAuthDataAccess;
-import dataaccess.MemoryGameDataAccess;
 import dataaccess.SQLGameDataAccess;
 import model.GameData;
 import model.GameMetaData;

@@ -2,16 +2,8 @@ package dataaccess;
 
 import chess.ChessGame;
 import com.google.gson.Gson;
-import io.javalin.http.Context;
 import model.GameData;
-import recordandrequest.AlreadyTakenException;
-import recordandrequest.BadRequestException;
-
-import javax.security.auth.login.FailedLoginException;
-import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
 import static dataaccess.DatabaseManager.*;
 
@@ -72,7 +64,7 @@ public class SQLGameDataAccess implements GameDataAccess{
     }
 
     public void removeAllGameData() throws DataAccessException {
-        try (var conn = DatabaseManager.getConnection(); ) {
+        try (var conn = DatabaseManager.getConnection()) {
 
             conn.setCatalog("chess");
             var statement = "TRUNCATE TABLE game";

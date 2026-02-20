@@ -10,7 +10,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 public class UserService {
-    private final MemoryUserDataAccess userDataAccess = new MemoryUserDataAccess();
+    private final SQLUserDataAccess userDataAccess = new SQLUserDataAccess();
     private final MemoryAuthDataAccess authDataAccess = new MemoryAuthDataAccess();
     private final SQLGameDataAccess gameDataAccess = new SQLGameDataAccess();
 
@@ -23,11 +23,11 @@ public class UserService {
         return (authDataAccess.getAuth(authToken) != null);
     }
 
-    public boolean userDataExists(String username) {
+    public boolean userDataExists(String username) throws DataAccessException {
         return (userDataAccess.getUser(username) != null);
     }
 
-    public RegisterResult register(RegisterRequest registerRequest) {
+    public RegisterResult register(RegisterRequest registerRequest) throws DataAccessException {
         if (registerRequest.username().isBlank() || registerRequest.password().isBlank()
         || registerRequest.email().isBlank()) {
             throw new BadRequestException("Error: The fields cannot be left blank");
@@ -47,7 +47,7 @@ public class UserService {
 
     }
 
-    public LoginResult login(LoginRequest loginRequest) throws FailedLoginException {
+    public LoginResult login(LoginRequest loginRequest) throws FailedLoginException, DataAccessException {
         if (loginRequest.username().isBlank() || loginRequest.password().isBlank()) {
             throw new BadRequestException("Error: The fields cannot be left blank");
         }

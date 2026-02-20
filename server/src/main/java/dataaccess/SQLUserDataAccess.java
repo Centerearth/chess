@@ -1,7 +1,6 @@
 package dataaccess;
 
 import com.google.gson.Gson;
-import model.GameData;
 import model.UserData;
 
 
@@ -44,7 +43,7 @@ public class SQLUserDataAccess implements UserDataAccess{
             }
 
         } catch (Exception e) {
-            throw new DataAccessException("Error: failed to fetch the game", e);
+            return null;
         }
     }
 
@@ -57,7 +56,7 @@ public class SQLUserDataAccess implements UserDataAccess{
             var preparedStatement = conn.prepareStatement(statement);
             preparedStatement.executeUpdate();
         } catch (Exception e) {
-            throw new DataAccessException("Error: the game failed to add", e);
+            throw new DataAccessException("Error: failed to remove all users", e);
         }
     }
 

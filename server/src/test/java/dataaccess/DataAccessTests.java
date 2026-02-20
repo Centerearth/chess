@@ -58,9 +58,9 @@ public class DataAccessTests {
         gameDataAccess.addGameData(testGame3);
         gameDataAccess.removeAllGameData();
 
-        Assertions.assertThrows(DataAccessException.class, () -> gameDataAccess.getGame(10));
-        Assertions.assertThrows(DataAccessException.class, () -> gameDataAccess.getGame(11));
-        Assertions.assertThrows(DataAccessException.class, () -> gameDataAccess.getGame(12));
+        Assertions.assertNull(gameDataAccess.getGame(10));
+        Assertions.assertNull(gameDataAccess.getGame(11));
+        Assertions.assertNull(gameDataAccess.getGame(12));
     }
 
 
@@ -74,7 +74,7 @@ public class DataAccessTests {
         gameDataAccess.addGameData(testGame);
         gameDataAccess.removeGameData(10);
 
-        Assertions.assertThrows(DataAccessException.class, () -> gameDataAccess.getGame(10));
+        Assertions.assertNull(gameDataAccess.getGame(10));
     }
 
     @Test
@@ -133,6 +133,7 @@ public class DataAccessTests {
     @Order(7)
     @DisplayName("Clear all users")
     public void ClearUserSuccess() throws DataAccessException  {
+        userService.clearAllData();
         UserData testUser1 = new UserData("user1", "pswd", "abcd@yahoo.com");
         UserData testUser2 = new UserData("user2", "pswd", "abcd@yahoo.com");
         UserData testUser3 = new UserData("user3", "pswd", "abcd@yahoo.com");
@@ -141,9 +142,9 @@ public class DataAccessTests {
         userDataAccess.addUserData(testUser3);
         userDataAccess.removeAllUsers();
 
-        Assertions.assertThrows(DataAccessException.class, () -> userDataAccess.getUser("user1"));
-        Assertions.assertThrows(DataAccessException.class, () -> userDataAccess.getUser("user2"));
-        Assertions.assertThrows(DataAccessException.class, () -> userDataAccess.getUser("user3"));
+        Assertions.assertNull(userDataAccess.getUser("user1"));
+        Assertions.assertNull(userDataAccess.getUser("user2"));
+        Assertions.assertNull(userDataAccess.getUser("user3"));
     }
 
 

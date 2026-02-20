@@ -38,7 +38,7 @@ public class DatabaseManager {
             }
 
             var createUserTable = """
-            CREATE TABLE IF NOT EXISTS game (
+            CREATE TABLE IF NOT EXISTS user (
                 username VARCHAR(255) NOT NULL,
                 userData longtext NOT NULL,
                 PRIMARY KEY (username)

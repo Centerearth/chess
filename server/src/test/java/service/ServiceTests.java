@@ -21,7 +21,8 @@ public class ServiceTests {
     @DisplayName("Register normally")
     @ParameterizedTest
     @ValueSource(strings = {"basic_username", "second_username", "third_username"})
-    public void registerSuccess(String username) {
+    public void registerSuccess(String username) throws DataAccessException {
+        userService.clearAllData();
         //submit register request
 
         RegisterResult registerResult = userService.register(
@@ -35,7 +36,8 @@ public class ServiceTests {
     @Test
     @Order(2)
     @DisplayName("User already exists")
-    public void registerTwice() {
+    public void registerTwice() throws DataAccessException {
+        userService.clearAllData();
         userService.register(
                 new RegisterRequest("basic_username", "pswd", "abcd@yahoo.com"));
         //submit register request trying to register existing user
@@ -46,7 +48,8 @@ public class ServiceTests {
     @Test
     @Order(3)
     @DisplayName("Register with bad request")
-    public void registerBadRequest() {
+    public void registerBadRequest() throws DataAccessException {
+        userService.clearAllData();
         //attempt to register a user without a password
         assertThrows(BadRequestException.class, () -> userService.register(
                     new RegisterRequest("", "pswd", "abcd@yahoo.com")));
@@ -58,7 +61,8 @@ public class ServiceTests {
     @DisplayName("Login normally")
     @ParameterizedTest
     @ValueSource(strings = {"basic_username", "second_username", "third_username"})
-    public void loginSuccess(String username) throws FailedLoginException {
+    public void loginSuccess(String username) throws FailedLoginException, DataAccessException {
+        userService.clearAllData();
         userService.register(new RegisterRequest(username, "pswd", "abcd@yahoo.com"));
         //submit login request
 
@@ -73,7 +77,8 @@ public class ServiceTests {
     @Test
     @Order(5)
     @DisplayName("Login - User is unauthorized")
-    public void loginUnauthorized() {
+    public void loginUnauthorized() throws DataAccessException {
+        userService.clearAllData();
         userService.register(
                 new RegisterRequest("basic_username", "pswd", "abcd@yahoo.com"));
         //submit login request with wrong password
@@ -84,7 +89,8 @@ public class ServiceTests {
     @Test
     @Order(6)
     @DisplayName("Login with bad request")
-    public void loginBadRequest() {
+    public void loginBadRequest() throws DataAccessException {
+        userService.clearAllData();
         //attempt to log in a user without a password
         assertThrows(BadRequestException.class, () -> userService.login(
                 new LoginRequest("hello", "")));
@@ -94,7 +100,8 @@ public class ServiceTests {
     @DisplayName("Logout normally")
     @ParameterizedTest
     @ValueSource(strings = {"basic_username", "second_username", "third_username"})
-    public void logoutSuccess(String username) throws FailedLoginException {
+    public void logoutSuccess(String username) throws FailedLoginException, DataAccessException {
+        userService.clearAllData();
         RegisterResult registerResult = userService.register(
                 new RegisterRequest(username, "pswd", "abcd@yahoo.com"));
         //submit logout request
@@ -108,7 +115,8 @@ public class ServiceTests {
     @Test
     @Order(8)
     @DisplayName("Logout - User is unauthorized")
-    public void logoutUnauthorized() {
+    public void logoutUnauthorized() throws DataAccessException {
+        userService.clearAllData();
         userService.register(
                 new RegisterRequest("basic_username", "pswd", "abcd@yahoo.com"));
         //submit logout request with wrong authToken
@@ -121,6 +129,7 @@ public class ServiceTests {
     @ParameterizedTest
     @ValueSource(strings = {"first_name", "second_name", "third_name"})
     public void createGameSuccess(String gameName) throws FailedLoginException, DataAccessException {
+        userService.clearAllData();
         //submit create request
         RegisterResult registerResult = userService.register(
                 new RegisterRequest("first_username", "pswd", "abcd@yahoo.com"));
@@ -135,7 +144,8 @@ public class ServiceTests {
     @Test
     @Order(10)
     @DisplayName("Create game with bad request")
-    public void createGameBadRequest() {
+    public void createGameBadRequest() throws DataAccessException {
+        userService.clearAllData();
         //attempt to create a game without a name
         RegisterResult registerResult =  userService.register(
                 new RegisterRequest("basic_username", "pswd", "abcd@yahoo.com"));
@@ -146,7 +156,8 @@ public class ServiceTests {
     @Test
     @Order(11)
     @DisplayName("Create Game - User is unauthorized")
-    public void createGameUnauthorized() {
+    public void createGameUnauthorized() throws DataAccessException {
+        userService.clearAllData();
         userService.register(
                 new RegisterRequest("basic_username", "pswd", "abcd@yahoo.com"));
         //submit logout request with wrong authToken
@@ -158,6 +169,7 @@ public class ServiceTests {
     @Order(12)
     @DisplayName("Clear everything")
     public void clearData() throws FailedLoginException, DataAccessException {
+        userService.clearAllData();
 
         RegisterResult registerResult1 = userService.register(
                 new RegisterRequest("first_username", "pswd", "abcd@yahoo.com"));
@@ -178,10 +190,8 @@ public class ServiceTests {
         Assertions.assertFalse(userService.authDataExists(authToken2), "authToken2 was not deleted");
         Assertions.assertFalse(userService.userDataExists(registerResult1.username()), "user1 was not deleted");
         Assertions.assertFalse(userService.userDataExists(registerResult2.username()), "user2 was not deleted");
-        Assertions.assertThrows(DataAccessException.class, () -> gameService.gameDataExists(createGameResult1.gameID()));
-        Assertions.assertThrows(DataAccessException.class, () -> gameService.gameDataExists(createGameResult2.gameID()));
-//        Assertions.assertFalse(gameService.gameDataExists(createGameResult1.gameID()), "game1 was not deleted");
-//        Assertions.assertFalse(gameService.gameDataExists(createGameResult2.gameID()), "game2 was not deleted");
+        Assertions.assertFalse(gameService.gameDataExists(createGameResult1.gameID()), "game1 was not deleted");
+        Assertions.assertFalse(gameService.gameDataExists(createGameResult2.gameID()), "game2 was not deleted");
 
     }
 
@@ -209,6 +219,7 @@ public class ServiceTests {
     @Order(14)
     @DisplayName("List Games - User is unauthorized")
     public void listGameUnauthorized() throws FailedLoginException, DataAccessException {
+        userService.clearAllData();
         RegisterResult registerResult = userService.register(
                 new RegisterRequest("first_username", "pswd", "abcd@yahoo.com"));
 

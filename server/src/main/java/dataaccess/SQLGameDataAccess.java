@@ -44,7 +44,7 @@ public class SQLGameDataAccess implements GameDataAccess{
             }
 
         } catch (Exception e) {
-            throw new DataAccessException("Error: failed to fetch the game", e);
+            return null;
         }
     }
 

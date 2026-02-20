@@ -59,7 +59,7 @@ public class SQLGameDataAccess implements GameDataAccess{
             }
 
         } catch (Exception e) {
-            throw new DataAccessException("Error: the game failed to add", e);
+            throw new DataAccessException("Error: failed to remove game", e);
         }
     }
 
@@ -71,7 +71,7 @@ public class SQLGameDataAccess implements GameDataAccess{
             var preparedStatement = conn.prepareStatement(statement);
             preparedStatement.executeUpdate();
         } catch (Exception e) {
-            throw new DataAccessException("Error: the game failed to add", e);
+            throw new DataAccessException("Error: failed to remove games", e);
         }
     }
 
@@ -92,7 +92,7 @@ public class SQLGameDataAccess implements GameDataAccess{
             }
 
         } catch (Exception e) {
-            throw new DataAccessException("Error: the game failed to add", e);
+            throw new DataAccessException("Error: failed to fetch all game data", e);
         }
    }
     public void updateGame(ChessGame.TeamColor teamColor, int gameID, String username) throws DataAccessException {

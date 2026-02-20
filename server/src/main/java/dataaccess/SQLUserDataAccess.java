@@ -1,11 +1,9 @@
 package dataaccess;
 
-import chess.ChessGame;
 import com.google.gson.Gson;
 import model.GameData;
 import model.UserData;
 
-import java.util.ArrayList;
 
 import static dataaccess.DatabaseManager.*;
 
@@ -18,30 +16,30 @@ public class SQLUserDataAccess implements UserDataAccess{
         try (var conn = DatabaseManager.getConnection()) {
 
             var serializer = new Gson();
-            var gameJSON = serializer.toJson(newGame);
+            var userJSON = serializer.toJson(newUser);
 
-            try (var preparedStatement = conn.prepareStatement("INSERT INTO game (gameID, gameData) VALUES(?, ?)")) {
+            try (var preparedStatement = conn.prepareStatement("INSERT INTO user (username, userData) VALUES(?, ?)")) {
                 conn.setCatalog("chess");
-                preparedStatement.setInt(1, newGame.gameID());
-                preparedStatement.setString(2, gameJSON);
+                preparedStatement.setString(1, newUser.username());
+                preparedStatement.setString(2, userJSON);
                 preparedStatement.executeUpdate();
             }
         } catch (Exception e) {
-            throw new DataAccessException("Error: the game failed to add", e);
+            throw new DataAccessException("Error: the user failed to add", e);
         }
     }
 
 
-    public GameData getUser(String username) throws DataAccessException {
+    public UserData getUser(String username) throws DataAccessException {
         try (var conn = DatabaseManager.getConnection()) {
-            try (var preparedStatement = conn.prepareStatement("SELECT gameData FROM game WHERE gameID=?")) {
-                preparedStatement.setInt(1, gameID);
+            try (var preparedStatement = conn.prepareStatement("SELECT userData FROM user WHERE username=?")) {
+                preparedStatement.setString(1, username);
                 conn.setCatalog("chess");
 
                 try (var rs = preparedStatement.executeQuery()) {
                     rs.next();
-                    var gameDataString = rs.getString("gameData");
-                    return new Gson().fromJson(gameDataString, GameData.class);
+                    var userDataString = rs.getString("userData");
+                    return new Gson().fromJson(userDataString, UserData.class);
                 }
             }
 
@@ -55,7 +53,7 @@ public class SQLUserDataAccess implements UserDataAccess{
         try (var conn = DatabaseManager.getConnection()) {
 
             conn.setCatalog("chess");
-            var statement = "TRUNCATE TABLE game";
+            var statement = "TRUNCATE TABLE user";
             var preparedStatement = conn.prepareStatement(statement);
             preparedStatement.executeUpdate();
         } catch (Exception e) {

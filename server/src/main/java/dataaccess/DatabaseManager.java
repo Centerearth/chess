@@ -37,6 +37,16 @@ public class DatabaseManager {
                 createTableStatement.executeUpdate();
             }
 
+            var createUserTable = """
+            CREATE TABLE IF NOT EXISTS game (
+                username VARCHAR(255) NOT NULL,
+                userData longtext NOT NULL,
+                PRIMARY KEY (username)
+            )""";
+            try (var createUserStatement = conn.prepareStatement(createUserTable)) {
+                createUserStatement.executeUpdate();
+            }
+
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

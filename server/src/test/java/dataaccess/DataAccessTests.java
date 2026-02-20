@@ -53,7 +53,7 @@ public class DataAccessTests {
     @Test
     @Order(3)
     @DisplayName("Clear all games")
-    public void ClearGameSuccess() throws DataAccessException {
+    public void clearGameSuccess() throws DataAccessException {
         GameData testGame1 = new GameData(10, null, null,
                 "game1", new ChessGame());
         GameData testGame2 = new GameData(11, null, null,
@@ -69,16 +69,13 @@ public class DataAccessTests {
         Assertions.assertNull(gameDataAccess.getGame(11));
         Assertions.assertNull(gameDataAccess.getGame(12));
 
-//        Assertions.assertThrows(DataAccessException.class, () -> gameDataAccess.getGame(10));
-//        Assertions.assertThrows(DataAccessException.class, () -> gameDataAccess.getGame(11));
-//        Assertions.assertThrows(DataAccessException.class, () -> gameDataAccess.getGame(12));
     }
 
 
     @Test
     @Order(4)
     @DisplayName("Delete a game")
-    public void RemoveGameSuccess() throws DataAccessException {
+    public void removeGameSuccess() throws DataAccessException {
         gameDataAccess.removeAllGameData();
         GameData testGame = new GameData(10, null, null,
                 "game1", new ChessGame());
@@ -92,7 +89,7 @@ public class DataAccessTests {
     @Test
     @Order(4)
     @DisplayName("Delete game that doesn't exist")
-    public void RemoveGameFailure() throws DataAccessException {
+    public void removeGameFailure() throws DataAccessException {
         gameDataAccess.removeAllGameData();
         gameDataAccess.removeGameData(10);
         Assertions.assertNull(gameDataAccess.getGame(10));
@@ -188,7 +185,7 @@ public class DataAccessTests {
     @Test
     @Order(11)
     @DisplayName("Clear all users")
-    public void ClearUserSuccess() throws DataAccessException {
+    public void clearUserSuccess() throws DataAccessException {
         userService.clearAllData();
         UserData testUser1 = new UserData("user1", "pswd", "abcd@yahoo.com");
         UserData testUser2 = new UserData("user2", "pswd", "abcd@yahoo.com");
@@ -202,9 +199,6 @@ public class DataAccessTests {
         Assertions.assertNull(userDataAccess.getUser("user2"));
         Assertions.assertNull(userDataAccess.getUser("user3"));
 
-//        Assertions.assertThrows(DataAccessException.class, () -> userDataAccess.getUser("user1"));
-//        Assertions.assertThrows(DataAccessException.class, () -> userDataAccess.getUser("user2"));
-//        Assertions.assertThrows(DataAccessException.class, () -> userDataAccess.getUser("user3"));
     }
 
     @Test
@@ -233,7 +227,7 @@ public class DataAccessTests {
     @Test
     @Order(14)
     @DisplayName("Clear all auth")
-    public void ClearAuthSuccess() throws DataAccessException {
+    public void clearAuthSuccess() throws DataAccessException {
         AuthData testAuth1 = new AuthData("authToken1", "username1");
         AuthData testAuth2 = new AuthData("authToken2", "username2");
         AuthData testAuth3 = new AuthData("authToken3", "username3");
@@ -245,16 +239,13 @@ public class DataAccessTests {
         Assertions.assertNull(authDataAccess.getAuth("authToken1"));
         Assertions.assertNull(authDataAccess.getAuth("authToken2"));
         Assertions.assertNull(authDataAccess.getAuth("authToken3"));
-//        Assertions.assertThrows(DataAccessException.class, () -> authDataAccess.getAuth("authToken1"));
-//        Assertions.assertThrows(DataAccessException.class, () -> authDataAccess.getAuth("authToken2"));
-//        Assertions.assertThrows(DataAccessException.class, () -> authDataAccess.getAuth("authToken3"));
     }
 
 
     @Test
     @Order(15)
     @DisplayName("Delete an auth")
-    public void RemoveAuthSuccess() throws DataAccessException {
+    public void removeAuthSuccess() throws DataAccessException {
         authDataAccess.removeAllAuthData();
         AuthData testAuth = new AuthData("authToken", "user1");
         authDataAccess.addAuthData(testAuth);
@@ -267,7 +258,7 @@ public class DataAccessTests {
     @Test
     @Order(16)
     @DisplayName("Delete an auth that doesn't exist")
-    public void RemoveAuthFailure() throws DataAccessException {
+    public void removeAuthFailure() throws DataAccessException {
         authDataAccess.removeAllAuthData();
         authDataAccess.deleteAuth("username1");
         Assertions.assertNull(authDataAccess.getAuth("username1"));

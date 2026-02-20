@@ -100,15 +100,17 @@ public class SQLGameDataAccess implements GameDataAccess{
     public void updateGame(ChessGame.TeamColor teamColor, int gameID, String username) throws DataAccessException {
 
         GameData oldGame = getGame(gameID);
-        GameData updatedGame;
-        if (teamColor == ChessGame.TeamColor.WHITE) {
-            updatedGame = new GameData(gameID,
-                    username, oldGame.blackUsername(), oldGame.gameName(), oldGame.game());
-        } else {
-            updatedGame = new GameData(gameID,
+        GameData newGame;
+
+        if (teamColor == ChessGame.TeamColor.BLACK) {
+            newGame = new GameData(gameID,
                     oldGame.whiteUsername(), username, oldGame.gameName(), oldGame.game());
+        } else {
+            newGame = new GameData(gameID,
+                    username, oldGame.blackUsername(), oldGame.gameName(), oldGame.game());
         }
+
         removeGameData(gameID);
-        addGameData(updatedGame);
+        addGameData(newGame);
     }
 }

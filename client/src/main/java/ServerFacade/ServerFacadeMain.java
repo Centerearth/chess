@@ -127,13 +127,15 @@ public class ServerFacadeMain {
         if (httpResponse.statusCode() >= 200 && httpResponse.statusCode() < 300) {
             System.out.println(httpResponse.body());
             return defaultMessage;
-        } else if (httpResponse.statusCode() == 403) {
-            return "User is already registered.";
         } else if (httpResponse.statusCode() == 400) {
             return "Request was malformed.";
+        } else if (httpResponse.statusCode() == 401) {
+            return "User is not authorized.";
+        } else if (httpResponse.statusCode() == 403) {
+            return "User is already registered.";
         } else {
-            System.out.println("Error: received status code " + httpResponse.statusCode());
-            return "Error"; // change
+            System.out.println("Error: received status code " + httpResponse.statusCode()); //delete
+            return "An unknown error occurred.";
         }
     }
     //for now have each functionality that interacts with the server its own thing. then start to group functionality

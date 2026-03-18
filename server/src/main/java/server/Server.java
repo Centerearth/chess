@@ -190,7 +190,6 @@ public class Server {
             context.result(new Gson().toJson(Map.of("message", e.getMessage())));
         } else {
             context.status(500);
-            System.out.println(new Gson().toJson(Map.of("message", e.getMessage()))); //delete later
             context.result(new Gson().toJson(Map.of("message", e.getMessage())));
         }
     }

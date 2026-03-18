@@ -27,6 +27,10 @@ public class ServerFacadeMain {
         authData = new AuthData(token, username);
     }
 
+    public void clearEverything() throws IOException, InterruptedException {
+        //for testing purposes
+        HttpResponse<String> httpResponse = buildAndReceiveRequest("DELETE", "/db", null);
+    }
     public String loginUser(String username, String password) throws IOException, InterruptedException {
         HashMap<String, String> bodyObject = new HashMap<>();
         bodyObject.put("username", username);

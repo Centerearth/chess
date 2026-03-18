@@ -4,6 +4,8 @@ import org.junit.jupiter.api.*;
 import server.Server;
 import ServerFacade.ServerFacadeMain;
 
+import java.io.IOException;
+
 public class ServerFacadeTests {
 
     private static Server server;
@@ -16,6 +18,11 @@ public class ServerFacadeTests {
         System.out.println("Started test HTTP server on " + port);
         String urlString = String.format("http://%s:%d", "localhost", port);
         serverFacade = new ServerFacadeMain(urlString);
+    }
+
+    @BeforeEach
+    public void clearDatabase() throws IOException, InterruptedException {
+        serverFacade.clearEverything();
     }
 
     @AfterAll

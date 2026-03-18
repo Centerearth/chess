@@ -35,7 +35,7 @@ public class ServerFacadeMain {
 
     public void clearEverything() throws IOException, InterruptedException {
         //for testing purposes
-        HttpResponse<String> httpResponse = buildAndReceiveRequest("DELETE", "/db", null, null);
+        buildAndReceiveRequest("DELETE", "/db", null, null);
     }
 
     public String logoutUser() throws IOException, InterruptedException {
@@ -76,7 +76,21 @@ public class ServerFacadeMain {
 
     }
 
+    public String createGame(String gameName) throws IOException, InterruptedException {
+        if (authData == null) {
+            return "User is not logged in.";
+        }
+        String authToken = authData.authToken();
+        HashMap<String, String> headers = new HashMap<>();
+        headers.put("authorization", authToken);
 
+        HashMap<String, String> bodyObject = new HashMap<>();
+        bodyObject.put("gameName", gameName);
+        String jsonBody = new Gson().toJson(bodyObject);
+
+        HttpResponse<String> httpResponse = buildAndReceiveRequest("POST", "/game", jsonBody, headers);
+        return responseHandler("Game was created successfully.", httpResponse);
+    }
 
     private HttpResponse<String> buildAndReceiveRequest(String method, String path, Object body, HashMap<String, String> header) throws IOException, InterruptedException {
         HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()

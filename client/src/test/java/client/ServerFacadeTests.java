@@ -69,4 +69,15 @@ public class ServerFacadeTests {
         Assertions.assertEquals("User is already logged out.", serverFacade.logoutUser());
     }
 
+    @Test
+    public void createGame() throws Exception {
+        serverFacade.registerUser("user1", "pswd", "abcd@yahoo.com");
+        Assertions.assertEquals("Game was created successfully.", serverFacade.createGame("game1"));
+    }
+
+    @Test
+    public void createGameFail() throws Exception {
+        Assertions.assertEquals("User is not logged in.", serverFacade.createGame("game1"));
+    }
+
 }

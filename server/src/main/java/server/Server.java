@@ -165,7 +165,7 @@ public class Server {
     }
 
     private static <T> T getBodyObject(Context context, Class<T> classType) {
-        System.out.println("context body: " + context.body());
+        System.out.println("context body: " + context.body()); //delete later
         var bodyObject = new Gson().fromJson(context.body(), classType);
         if (bodyObject == null) {
             throw new RuntimeException("missing required body");
@@ -190,8 +190,7 @@ public class Server {
             context.result(new Gson().toJson(Map.of("message", e.getMessage())));
         } else {
             context.status(500);
-            System.out.println("Hi");
-            System.out.println(new Gson().toJson(Map.of("message", e.getMessage())));
+            System.out.println(new Gson().toJson(Map.of("message", e.getMessage()))); //delete later
             context.result(new Gson().toJson(Map.of("message", e.getMessage())));
         }
     }

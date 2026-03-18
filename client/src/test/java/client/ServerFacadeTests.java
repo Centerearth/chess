@@ -25,9 +25,21 @@ public class ServerFacadeTests {
 
 
     @Test
+    public void registerTest() throws Exception {
+        Assertions.assertEquals("User was registered successfully. User was logged in successfully.", serverFacade.registerUser("user1", "pswd", "abcd@yahoo.com"));
+    }
+
+    @Test
+    public void registerTestTwice() throws Exception {
+        serverFacade.registerUser("user1", "pswd", "abcd@yahoo.com");
+        Assertions.assertEquals("User is already registered.", serverFacade.registerUser("user1", "pswd", "abcd@yahoo.com"));
+    }
+
+    @Test
     public void loginTest() throws Exception {
-        System.out.println(serverFacade.loginUser("hello", "hello"));
-        Assertions.assertTrue(true);
+        serverFacade.registerUser("user1", "pswd", "abcd@yahoo.com");
+        Assertions.assertEquals("User was logged in successfully.", serverFacade.loginUser("user1", "pswd"));
+
     }
 
 }

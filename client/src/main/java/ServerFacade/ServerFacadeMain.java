@@ -22,12 +22,24 @@ public class ServerFacadeMain {
         bodyObject.put("username", username);
         bodyObject.put("password", password);
         String jsonBody = new Gson().toJson(bodyObject);
-        System.out.println(jsonBody);
         HttpResponse<String> httpResponse = buildAndReceiveRequest("POST", "/session", jsonBody);
-        System.out.println(httpResponse);
         return responseHandler("User was logged in successfully.", httpResponse);
 
     }
+
+    public String registerUser(String username, String password, String email) throws IOException, InterruptedException {
+        HashMap<String, String> bodyObject = new HashMap<>();
+        bodyObject.put("username", username);
+        bodyObject.put("password", password);
+        bodyObject.put("email", email);
+        String jsonBody = new Gson().toJson(bodyObject);
+        HttpResponse<String> httpResponse = buildAndReceiveRequest("POST", "/user", jsonBody);
+        String loginResult = loginUser(username, password);
+        return responseHandler("User was registered successfully. " + loginResult, httpResponse);
+
+    }
+
+
 
     private HttpResponse<String> buildAndReceiveRequest(String method, String path, Object body) throws IOException, InterruptedException {
         HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
@@ -36,7 +48,7 @@ public class ServerFacadeMain {
                 .method(method, makeRequestBody(body));
         if (body != null) {
             requestBuilder.setHeader("Content-Type", "application/json");
-            //probably need to set other headers as well
+            //probably need to set other headers as well?
         }
         HttpRequest finishedRequest = requestBuilder.build();
         System.out.println(finishedRequest);
@@ -57,6 +69,8 @@ public class ServerFacadeMain {
         if (httpResponse.statusCode() >= 200 && httpResponse.statusCode() < 300) {
             System.out.println(httpResponse.body());
             return defaultMessage;
+        } else if (httpResponse.statusCode() == 403) {
+            return "User is already registered.";
         } else {
             System.out.println("Error: received status code " + httpResponse.statusCode());
             return "Error"; // change

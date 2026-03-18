@@ -17,12 +17,14 @@ public class ServerFacadeMain {
         this.serverUrl = url;
     }
 
-    public String loginUser(String username, String password) throws Exception {
+    public String loginUser(String username, String password) throws IOException, InterruptedException {
         HashMap<String, String> bodyObject = new HashMap<>();
         bodyObject.put("username", username);
         bodyObject.put("password", password);
         String jsonBody = new Gson().toJson(bodyObject);
+        System.out.println(jsonBody);
         HttpResponse<String> httpResponse = buildAndReceiveRequest("POST", "/session", jsonBody);
+        System.out.println(httpResponse);
         return responseHandler("User was logged in successfully.", httpResponse);
 
     }
@@ -37,6 +39,7 @@ public class ServerFacadeMain {
             //probably need to set other headers as well
         }
         HttpRequest finishedRequest = requestBuilder.build();
+        System.out.println(finishedRequest);
         return httpClient.send(finishedRequest, HttpResponse.BodyHandlers.ofString()); //Should it always be a string?
 
     }
@@ -44,7 +47,7 @@ public class ServerFacadeMain {
 
     private HttpRequest.BodyPublisher makeRequestBody(Object request) {
         if (request != null) {
-            return HttpRequest.BodyPublishers.ofString(new Gson().toJson(request));
+            return HttpRequest.BodyPublishers.ofString((String) request); //seems like a bandaid
         } else {
             return HttpRequest.BodyPublishers.noBody();
         }

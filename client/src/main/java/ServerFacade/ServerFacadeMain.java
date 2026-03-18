@@ -14,6 +14,7 @@ public class ServerFacadeMain {
     private static final HttpClient httpClient = HttpClient.newHttpClient();
     private final String serverUrl;
     private static AuthData authData;
+    //add logging
 
     public ServerFacadeMain(String url) {
         this.serverUrl = url;
@@ -29,22 +30,29 @@ public class ServerFacadeMain {
 
     public void clearEverything() throws IOException, InterruptedException {
         //for testing purposes
-        HttpResponse<String> httpResponse = buildAndReceiveRequest("DELETE", "/db", null);
+        HttpResponse<String> httpResponse = buildAndReceiveRequest("DELETE", "/db", null, null);
     }
+
+    public String logoutUser() throws IOException, InterruptedException {
+        String authToken = authData.authToken();
+        HashMap<String, String> headers = new HashMap<>();
+        headers.put("authorization", authToken);
+        HttpResponse<String> httpResponse = buildAndReceiveRequest("DELETE", "/session", null, headers);
+        return responseHandler("User was logged out successfully.", httpResponse);
+    }
+
     public String loginUser(String username, String password) throws IOException, InterruptedException {
         HashMap<String, String> bodyObject = new HashMap<>();
         bodyObject.put("username", username);
         bodyObject.put("password", password);
         String jsonBody = new Gson().toJson(bodyObject);
-        HttpResponse<String> httpResponse = buildAndReceiveRequest("POST", "/session", jsonBody);
+        HttpResponse<String> httpResponse = buildAndReceiveRequest("POST", "/session", jsonBody, null);
 
         if (httpResponse.statusCode() >= 200 && httpResponse.statusCode() < 300) {
             var body = new Gson().fromJson(httpResponse.body(), HashMap.class);
             setAuth(body.get("username").toString(), body.get("authToken").toString());
         }
         return responseHandler("User was logged in successfully.", httpResponse);
-        //have authToken be stored here in a static variable and have getters and setters
-        //add logging
 
     }
 
@@ -54,7 +62,7 @@ public class ServerFacadeMain {
         bodyObject.put("password", password);
         bodyObject.put("email", email);
         String jsonBody = new Gson().toJson(bodyObject);
-        HttpResponse<String> httpResponse = buildAndReceiveRequest("POST", "/user", jsonBody);
+        HttpResponse<String> httpResponse = buildAndReceiveRequest("POST", "/user", jsonBody, null);
         String loginResult = loginUser(username, password);
         return responseHandler("User was registered successfully. " + loginResult, httpResponse);
 
@@ -62,18 +70,25 @@ public class ServerFacadeMain {
 
 
 
-    private HttpResponse<String> buildAndReceiveRequest(String method, String path, Object body) throws IOException, InterruptedException {
+    private HttpResponse<String> buildAndReceiveRequest(String method, String path, Object body, HashMap<String, String> header) throws IOException, InterruptedException {
         HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
                 .uri(URI.create(serverUrl + path))
                 .timeout(java.time.Duration.ofMillis(5000))
                 .method(method, makeRequestBody(body));
         if (body != null) {
             requestBuilder.setHeader("Content-Type", "application/json");
-            //probably need to set other headers as well?
+        }
+        if (header != null) {
+            for (String key : header.keySet()) {
+                System.out.println(key);
+                System.out.println(header.get(key));
+                requestBuilder.setHeader(key, header.get(key));
+            }
         }
         HttpRequest finishedRequest = requestBuilder.build();
         System.out.println(finishedRequest);
-        return httpClient.send(finishedRequest, HttpResponse.BodyHandlers.ofString()); //Should it always be a string?
+        System.out.println(finishedRequest.headers());
+        return httpClient.send(finishedRequest, HttpResponse.BodyHandlers.ofString());
 
     }
 
@@ -98,5 +113,4 @@ public class ServerFacadeMain {
         }
     }
     //for now have each functionality that interacts with the server its own thing. then start to group functionality
-    //have a seperate error checker that has a message passed in based ont the method but ovverides if there is an error
 }

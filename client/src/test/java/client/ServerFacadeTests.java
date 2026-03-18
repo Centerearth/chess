@@ -43,11 +43,24 @@ public class ServerFacadeTests {
     }
 
     @Test
-    public void loginTest() throws Exception {
-        serverFacade.registerUser("user1", "pswd", "abcd@yahoo.com");
+    public void registerAndLoginTest() throws Exception {
+        Assertions.assertEquals("User was registered successfully. User was logged in successfully.", serverFacade.registerUser("user1", "pswd", "abcd@yahoo.com"));
         Assertions.assertNotNull(serverFacade.getAuth());
-        Assertions.assertEquals("User was logged in successfully.", serverFacade.loginUser("user1", "pswd"));
+    }
 
+    //have a register, logout, then login test
+
+    @Test
+    public void loginFail() throws Exception {
+        Assertions.assertNull(serverFacade.getAuth());
+        Assertions.assertNotEquals("User was logged in successfully.", serverFacade.loginUser("user1", "pswd"));
+        //finish this
+    }
+
+    @Test
+    public void logoutUser() throws Exception {
+        serverFacade.registerUser("user1", "pswd", "abcd@yahoo.com");
+        Assertions.assertEquals("User was logged out successfully.", serverFacade.logoutUser());
     }
 
 }

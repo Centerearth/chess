@@ -1,6 +1,7 @@
 package ServerFacade;
 
 import com.google.gson.Gson;
+import model.AuthData;
 
 import java.io.IOException;
 import java.net.URI;
@@ -12,9 +13,18 @@ import java.util.HashMap;
 public class ServerFacadeMain {
     private static final HttpClient httpClient = HttpClient.newHttpClient();
     private final String serverUrl;
+    private static AuthData authData;
 
     public ServerFacadeMain(String url) {
         this.serverUrl = url;
+    }
+
+    public AuthData getAuth() {
+        return authData;
+    }
+
+    public void setAuth(String username, String token) {
+        authData = new AuthData(token, username);
     }
 
     public String loginUser(String username, String password) throws IOException, InterruptedException {
@@ -23,7 +33,14 @@ public class ServerFacadeMain {
         bodyObject.put("password", password);
         String jsonBody = new Gson().toJson(bodyObject);
         HttpResponse<String> httpResponse = buildAndReceiveRequest("POST", "/session", jsonBody);
+
+        if (httpResponse.statusCode() >= 200 && httpResponse.statusCode() < 300) {
+            var body = new Gson().fromJson(httpResponse.body(), HashMap.class);
+            setAuth(body.get("username").toString(), body.get("authToken").toString());
+        }
         return responseHandler("User was logged in successfully.", httpResponse);
+        //have authToken be stored here in a static variable and have getters and setters
+        //add logging
 
     }
 

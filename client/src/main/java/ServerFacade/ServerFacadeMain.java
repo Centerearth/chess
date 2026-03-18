@@ -7,6 +7,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.HashMap;
 
 public class ServerFacadeMain {
     private static final HttpClient httpClient = HttpClient.newHttpClient();
@@ -16,21 +17,30 @@ public class ServerFacadeMain {
         this.serverUrl = url;
     }
 
-    private void loginUser(String host, int port, String path, String username, String password) throws Exception {
+    public String loginUser(String username, String password) throws Exception {
+        HashMap<String, String> bodyObject = new HashMap<>();
+        bodyObject.put("username", username);
+        bodyObject.put("password", password);
+        String jsonBody = new Gson().toJson(bodyObject);
+        HttpResponse<String> httpResponse = buildAndReceiveRequest("POST", "/session", jsonBody);
+        return responseHandler("User was logged in successfully.", httpResponse);
+
     }
 
-    private HttpRequest buildAndReceiveRequest(String method, String path, Object body) throws IOException, InterruptedException {
-        var request = HttpRequest.newBuilder()
+    private HttpResponse<String> buildAndReceiveRequest(String method, String path, Object body) throws IOException, InterruptedException {
+        HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
                 .uri(URI.create(serverUrl + path))
                 .timeout(java.time.Duration.ofMillis(5000))
                 .method(method, makeRequestBody(body));
         if (body != null) {
-            request.setHeader("Content-Type", "application/json");
+            requestBuilder.setHeader("Content-Type", "application/json");
+            //probably need to set other headers as well
         }
-        request = request.build();
-        HttpResponse<String> httpResponse = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-        return null;
+        HttpRequest finishedRequest = requestBuilder.build();
+        return httpClient.send(finishedRequest, HttpResponse.BodyHandlers.ofString()); //Should it always be a string?
+
     }
+
 
     private HttpRequest.BodyPublisher makeRequestBody(Object request) {
         if (request != null) {

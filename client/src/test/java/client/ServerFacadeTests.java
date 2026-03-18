@@ -86,4 +86,11 @@ public class ServerFacadeTests {
         Assertions.assertEquals("User is not logged in.", serverFacade.createGame("game1"));
     }
 
+    @Test
+    public void listGames() throws Exception {
+        serverFacade.registerUser("user1", "pswd", "abcd@yahoo.com");
+        serverFacade.createGame("game1");
+        serverFacade.listGames();
+    }
+
 }

@@ -92,6 +92,21 @@ public class ServerFacadeMain {
         return responseHandler("Game was created successfully.", httpResponse);
     }
 
+    public String listGames() throws IOException, InterruptedException {
+        if (authData == null) {
+            return "User is not logged in.";
+        }
+        String authToken = authData.authToken();
+        HashMap<String, String> headers = new HashMap<>();
+        headers.put("authorization", authToken);
+
+        HttpResponse<String> httpResponse = buildAndReceiveRequest("GET", "/game", null, headers);
+        System.out.println(httpResponse.body());
+        //return responseHandler("Game was created successfully.", httpResponse);
+        //need a way to format the games and then store them in a static variable where the order matches to the id
+        return null;
+    }
+
     private HttpResponse<String> buildAndReceiveRequest(String method, String path, Object body, HashMap<String, String> header) throws IOException, InterruptedException {
         HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
                 .uri(URI.create(serverUrl + path))

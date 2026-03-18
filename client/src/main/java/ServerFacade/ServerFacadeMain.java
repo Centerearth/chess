@@ -28,12 +28,20 @@ public class ServerFacadeMain {
         authData = new AuthData(token, username);
     }
 
+    public void resetAuth() {
+        //for testing purposes
+        authData = null;
+    }
+
     public void clearEverything() throws IOException, InterruptedException {
         //for testing purposes
         HttpResponse<String> httpResponse = buildAndReceiveRequest("DELETE", "/db", null, null);
     }
 
     public String logoutUser() throws IOException, InterruptedException {
+        if (authData == null) {
+            return "User is already logged out.";
+        }
         String authToken = authData.authToken();
         HashMap<String, String> headers = new HashMap<>();
         headers.put("authorization", authToken);
@@ -107,6 +115,8 @@ public class ServerFacadeMain {
             return defaultMessage;
         } else if (httpResponse.statusCode() == 403) {
             return "User is already registered.";
+        } else if (httpResponse.statusCode() == 400) {
+            return "Request was malformed.";
         } else {
             System.out.println("Error: received status code " + httpResponse.statusCode());
             return "Error"; // change

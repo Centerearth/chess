@@ -23,6 +23,7 @@ public class ServerFacadeTests {
     @BeforeEach
     public void clearDatabase() throws IOException, InterruptedException {
         serverFacade.clearEverything();
+        serverFacade.resetAuth();
     }
 
     @AfterAll
@@ -61,6 +62,11 @@ public class ServerFacadeTests {
     public void logoutUser() throws Exception {
         serverFacade.registerUser("user1", "pswd", "abcd@yahoo.com");
         Assertions.assertEquals("User was logged out successfully.", serverFacade.logoutUser());
+    }
+
+    @Test
+    public void logoutFail() throws Exception {
+        Assertions.assertEquals("User is already logged out.", serverFacade.logoutUser());
     }
 
 }

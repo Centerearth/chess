@@ -49,6 +49,12 @@ public class ServerFacadeTests {
         Assertions.assertNotNull(serverFacade.getAuth());
     }
 
+    @Test
+    public void registerLogoutLogin() throws Exception {
+        serverFacade.registerUser("user1", "pswd", "abcd@yahoo.com");
+        serverFacade.logoutUser();
+        Assertions.assertEquals("User was logged in successfully.", serverFacade.loginUser("user1", "pswd"));
+    }
     //have a register, logout, then login test
 
     @Test

@@ -2,7 +2,6 @@ package ServerFacade;
 
 import com.google.gson.Gson;
 import model.AuthData;
-import model.GameMetaData;
 import recordandrequest.ListGameResult;
 
 import java.io.IOException;
@@ -152,7 +151,7 @@ public class ServerFacadeMain {
         System.out.println("allGames: " + allGames);
 
         StringBuilder gameList = new StringBuilder();
-        idToNumber = new HashMap<Integer, Integer>();
+        idToNumber = new HashMap<>();
 
         if (allGames.games().isEmpty()) {
             return "No games to display.";

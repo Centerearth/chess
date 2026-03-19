@@ -57,7 +57,12 @@ public class ChessClient {
                 };
             } else {
                 return switch (cmd) {
-
+                    case "create" -> create(params);
+                    case "list" -> list();
+                    case "join" -> join(params);
+                    case "observe" -> observe(params);
+                    case "logout" -> logout();
+                    case "quit" -> "quit";
                     default -> help();
                 };
             }
@@ -65,6 +70,35 @@ public class ChessClient {
             return ex.getMessage(); //change later
         }
     }
+
+    private String register(String... params) {
+        return "register";
+    }
+
+    private String login(String... params) {
+        return "login";
+    }
+
+    private String create(String... params) {
+        return "create";
+    }
+
+    private String list() {
+        return "list";
+    }
+
+    private String join(String... params) {
+        return "join";
+    }
+
+    private String observe(String... params) {
+        return "observe";
+    }
+
+    private String logout() {
+        return "logout";
+    }
+
 
     public String help() {
         if (state == State.LOGGEDOUT) {

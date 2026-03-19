@@ -125,7 +125,7 @@ public class ChessClient {
     }
 
     private String join(String... params) {
-        try {
+        try { //needs to display the board too!!!! maybe make it case sensitive. add logging
             if (params.length == 2) {
                 try {
                     int id = Integer.parseInt(params[0]);
@@ -149,11 +149,35 @@ public class ChessClient {
     }
 
     private String observe(String... params) {
-        return "observe";
+        try {
+            if (params.length == 1) {
+                try {
+                    int id = Integer.parseInt(params[0]);
+                    String response = server.observeGame(id);
+                    if (Objects.equals(response, "Game is being observed.")) {
+                        return displayBoard();
+                    } else {
+                        return response;
+                    }
+                } catch (Exception e) {
+                    return "Request is malformed";
+                }
+            } else {
+                return "Request is malformed";
+            }
+        } catch (Exception e) {
+            return "Failed to observe.";
+        }
     }
 
     private String logout() {
-        return "logout";
+        try {
+            String response = server.logoutUser();
+            state = State.LOGGEDOUT;
+            return response;
+        } catch (Exception e) {
+            return "Failed to logout";
+        }
     }
 
 
@@ -175,5 +199,10 @@ public class ChessClient {
                 - quit
                 - help - will list all available commands.
                 """;
+    }
+
+    private String displayBoard() {
+        return "board";
+        //depends on the team. Could make it JSON compatible
     }
 }

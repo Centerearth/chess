@@ -165,7 +165,6 @@ public class Server {
     }
 
     private static <T> T getBodyObject(Context context, Class<T> classType) {
-        System.out.println("context body: " + context.body()); //delete later
         var bodyObject = new Gson().fromJson(context.body(), classType);
         if (bodyObject == null) {
             throw new RuntimeException("missing required body");

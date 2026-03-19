@@ -81,7 +81,7 @@ public class ServerFacadeMain {
         if (idToNumber == null || !idToNumber.containsKey(gameIndex)) {
             return "Game does not exist.";
         }
-        //need to make it so that the checks happen on the other end and that the right format is passed in
+
         HashMap<String, Object> bodyObject = new HashMap<>();
         bodyObject.put("gameID", idToNumber.get(gameIndex));
         bodyObject.put("playerColor", color);
@@ -89,7 +89,6 @@ public class ServerFacadeMain {
         HttpResponse<String> httpResponse = buildAndReceiveRequest("PUT", "/game", jsonBody, headers);
         return responseHandler("User joined successfully.", httpResponse);
     }
-    //need to change from string?
 
     public String observeGame(int gameIndex) {
         if (authData == null) {
@@ -139,9 +138,7 @@ public class ServerFacadeMain {
         headers.put("authorization", authToken);
 
         HttpResponse<String> httpResponse = buildAndReceiveRequest("GET", "/game", null, headers);
-        System.out.println(httpResponse.body());
         ListGameResult allGames = new Gson().fromJson(httpResponse.body(), ListGameResult.class);
-        System.out.println("allGames: " + allGames);
 
         StringBuilder gameList = new StringBuilder();
         idToNumber = new HashMap<>();
@@ -171,9 +168,6 @@ public class ServerFacadeMain {
             }
             gameList.append("\n");
         }
-
-        System.out.println(idToNumber);
-        //need a way to format the games and then store them in a static variable where the order matches to the id
         return responseHandler(gameList.toString(), httpResponse);
     }
 
@@ -188,14 +182,10 @@ public class ServerFacadeMain {
         }
         if (header != null) {
             for (String key : header.keySet()) {
-                System.out.println(key);
-                System.out.println(header.get(key));
                 requestBuilder.setHeader(key, header.get(key));
             }
         }
         HttpRequest finishedRequest = requestBuilder.build();
-        System.out.println(finishedRequest);
-        System.out.println(finishedRequest.headers());
         return HTTPCLIENT.send(finishedRequest, HttpResponse.BodyHandlers.ofString());
 
     }
@@ -211,7 +201,6 @@ public class ServerFacadeMain {
 
     private String responseHandler(String defaultMessage, HttpResponse httpResponse) {
         if (httpResponse.statusCode() >= 200 && httpResponse.statusCode() < 300) {
-            System.out.println(httpResponse.body());
             return defaultMessage;
         } else if (httpResponse.statusCode() == 400) {
             return "Request was malformed.";
@@ -220,7 +209,6 @@ public class ServerFacadeMain {
         } else if (httpResponse.statusCode() == 403) {
             return "That option is already taken";
         } else {
-            System.out.println("Error: received status code " + httpResponse.statusCode()); //delete
             return "An unknown error occurred.";
         }
     }

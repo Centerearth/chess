@@ -16,6 +16,7 @@ public class ChessClient {
 
     public void run() {
         System.out.println("Welcome to the chess application. Sign in to start.");
+        System.out.println("Note - application is not case sensitive.");
         System.out.print(help());
 
         Scanner scanner = new Scanner(System.in);
@@ -131,8 +132,10 @@ public class ChessClient {
                     int id = Integer.parseInt(params[0]);
                     String color = params[1];
                     if (Objects.equals(color, "WHITE") || Objects.equals(color, "white")) {
+                        displayBoard("WHITE");
                         return server.playGame(id, "WHITE");
                     } else if (Objects.equals(color, "BLACK") || Objects.equals(color, "black")) {
+                        displayBoard("BLACK");
                         return server.playGame(id, "BLACK");
                     } else {
                         return "Request is malformed";
@@ -155,7 +158,8 @@ public class ChessClient {
                     int id = Integer.parseInt(params[0]);
                     String response = server.observeGame(id);
                     if (Objects.equals(response, "Game is being observed.")) {
-                        return displayBoard();
+                        displayBoard("WHITE");
+                        return "Observing game...";
                     } else {
                         return response;
                     }
@@ -201,8 +205,55 @@ public class ChessClient {
                 """;
     }
 
-    private String displayBoard() {
-        return "board";
+    private void displayBoard(String color) {
+        String[] pieces = {"R", "N", "B", "Q", "K", "B", "N", "R"};
+        String opposingColor = "BLACK";
+        if (Objects.equals(color, "BLACK")) {
+            pieces = new String[]{"R", "N", "B", "K", "Q", "B", "N", "R"};
+            opposingColor = "WHITE";
+        }
+        String[] pawns = {"P","P","P","P","P","P","P","P"};
+        String[] empty = {" "," "," "," "," "," "," "," ",};
+
+        String startingColor = color;
+        startingColor = displayLine(pieces, startingColor, opposingColor);
+        startingColor = displayLine(pawns, startingColor, opposingColor);
+        startingColor = displayLine(empty, startingColor, "WHITE");
+        startingColor = displayLine(empty, startingColor, "WHITE");
+        startingColor = displayLine(empty, startingColor, "WHITE");
+        startingColor = displayLine(empty, startingColor, "WHITE");
+        startingColor = displayLine(pawns, startingColor, color);
+        displayLine(pieces, startingColor, color);
+
+        System.out.println("\u001b[39;49m");
         //depends on the team. Could make it JSON compatible
+    }
+
+    private String displayLine(String[] pieceSequence, String startingColor, String teamColor) {
+        String currentBackgroundColor = startingColor;
+        String nextLineStartingColor = "BLACK";
+        if (Objects.equals(startingColor, "BLACK")) {
+            nextLineStartingColor = "WHITE";
+        }
+        String displayColor;
+
+        if (Objects.equals(teamColor, "BLACK")) {
+            displayColor = "32";
+        } else {
+            displayColor = "34";
+        }
+        for (int i = 0; i < 8; i++) {
+            if (Objects.equals(currentBackgroundColor, "WHITE")) {
+                System.out.printf("\u001b[%s;107m", displayColor);
+                System.out.printf(" %s ", pieceSequence[i]);
+                currentBackgroundColor = "BLACK";
+            } else {
+                System.out.printf("\u001b[%s;40m", displayColor);
+                System.out.printf(" %s ", pieceSequence[i]);
+                currentBackgroundColor = "WHITE";
+            }
+        }
+        System.out.println("\u001b[39;49m");
+        return nextLineStartingColor;
     }
 }

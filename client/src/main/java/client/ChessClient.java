@@ -76,7 +76,7 @@ public class ChessClient {
         try {
             if (params.length == 3) {
                 String response = server.registerUser(params[0], params[1], params[2]);
-                if (Objects.equals(response, "User was registered successfully.")) {
+                if (Objects.equals(response, "User was registered successfully. User was logged in successfully.")) {
                     state = State.LOGGEDIN;
                 }
                 return response;
@@ -117,11 +117,35 @@ public class ChessClient {
     }
 
     private String list() {
-        return "list";
+        try {
+            return server.listGames();
+        } catch (Exception e) {
+            return "Failed to list games.";
+        }
     }
 
     private String join(String... params) {
-        return "join";
+        try {
+            if (params.length == 2) {
+                try {
+                    int id = Integer.parseInt(params[0]);
+                    String color = params[1];
+                    if (Objects.equals(color, "WHITE") || Objects.equals(color, "white")) {
+                        return server.playGame(id, "WHITE");
+                    } else if (Objects.equals(color, "BLACK") || Objects.equals(color, "black")) {
+                        return server.playGame(id, "BLACK");
+                    } else {
+                        return "Request is malformed";
+                    }
+                } catch (Exception e) {
+                    return "Request is malformed";
+                }
+            } else {
+                return "Request is malformed";
+            }
+        } catch (Exception e) {
+            return "Failed to join.";
+        }
     }
 
     private String observe(String... params) {

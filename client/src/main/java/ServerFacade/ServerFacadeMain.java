@@ -224,7 +224,7 @@ public class ServerFacadeMain {
         } else if (httpResponse.statusCode() == 401) {
             return "User is not authorized.";
         } else if (httpResponse.statusCode() == 403) {
-            return "User is already registered.";
+            return "That option is already taken";
         } else {
             System.out.println("Error: received status code " + httpResponse.statusCode()); //delete
             return "An unknown error occurred.";

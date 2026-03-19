@@ -28,7 +28,10 @@ public class ServerFacadeTests {
     }
 
     @AfterAll
-    static void stopServer() {
+    static void stopServer() throws IOException, InterruptedException {
+        serverFacade.clearEverything();
+        serverFacade.resetAuth();
+        serverFacade.resetIds();
         server.stop();
     }
 
@@ -41,7 +44,7 @@ public class ServerFacadeTests {
     @Test
     public void registerTestTwice() throws Exception {
         serverFacade.registerUser("user1", "pswd", "abcd@yahoo.com");
-        Assertions.assertEquals("User is already registered.", serverFacade.registerUser("user1", "pswd", "abcd@yahoo.com"));
+        Assertions.assertEquals("That option is already taken", serverFacade.registerUser("user1", "pswd", "abcd@yahoo.com"));
     }
 
     @Test

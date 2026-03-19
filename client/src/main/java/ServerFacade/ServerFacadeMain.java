@@ -16,6 +16,7 @@ public class ServerFacadeMain {
     private static final HttpClient httpClient = HttpClient.newHttpClient();
     private final String serverUrl;
     private static AuthData authData;
+    private static HashMap<Integer, Integer> idToNumber;
     //add logging
 
     public ServerFacadeMain(String url) {
@@ -108,7 +109,7 @@ public class ServerFacadeMain {
         System.out.println("allGames: " + allGames);
 
         StringBuilder gameList = new StringBuilder();
-        HashMap<Integer, Integer> idToNumber = new HashMap<Integer, Integer>();
+        idToNumber = new HashMap<Integer, Integer>();
 
         if (allGames.games().isEmpty()) {
             return "No games to display.";

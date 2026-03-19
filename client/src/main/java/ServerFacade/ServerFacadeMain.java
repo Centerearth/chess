@@ -2,6 +2,8 @@ package ServerFacade;
 
 import com.google.gson.Gson;
 import model.AuthData;
+import model.GameMetaData;
+import recordandrequest.ListGameResult;
 
 import java.io.IOException;
 import java.net.URI;
@@ -102,9 +104,41 @@ public class ServerFacadeMain {
 
         HttpResponse<String> httpResponse = buildAndReceiveRequest("GET", "/game", null, headers);
         System.out.println(httpResponse.body());
-        //return responseHandler("Game was created successfully.", httpResponse);
+        ListGameResult allGames = new Gson().fromJson(httpResponse.body(), ListGameResult.class);
+        System.out.println("allGames: " + allGames);
+
+        StringBuilder gameList = new StringBuilder();
+        HashMap<Integer, Integer> idToNumber = new HashMap<Integer, Integer>();
+
+        if (allGames.games().isEmpty()) {
+            return "No games to display.";
+        }
+
+        for (int i = 0; i < allGames.games().size(); i++) {
+            idToNumber.put(i+1, allGames.games().get(i).gameID());
+
+            gameList.append("Game: ");
+            gameList.append(i+1);
+            gameList.append(", Game Name: ");
+            gameList.append(allGames.games().get(i).gameName());
+            gameList.append(", White Player: ");
+            if (allGames.games().get(i).whiteUsername() != null) {
+                gameList.append(allGames.games().get(i).whiteUsername());
+            } else {
+                gameList.append("none");
+            }
+            gameList.append(", Black Player: ");
+            if (allGames.games().get(i).blackUsername() != null) {
+                gameList.append(allGames.games().get(i).blackUsername());
+            } else {
+                gameList.append("none");
+            }
+            gameList.append("\n");
+        }
+
+        System.out.println(idToNumber);
         //need a way to format the games and then store them in a static variable where the order matches to the id
-        return null;
+        return responseHandler(gameList.toString(), httpResponse);
     }
 
     private HttpResponse<String> buildAndReceiveRequest(String method, String path, Object body, HashMap<String, String> header) throws IOException, InterruptedException {

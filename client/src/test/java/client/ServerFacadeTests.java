@@ -90,7 +90,14 @@ public class ServerFacadeTests {
     public void listGames() throws Exception {
         serverFacade.registerUser("user1", "pswd", "abcd@yahoo.com");
         serverFacade.createGame("game1");
-        serverFacade.listGames();
+        serverFacade.createGame("game2");
+        Assertions.assertTrue(serverFacade.listGames().length() > 10);
+    }
+
+    @Test
+    public void listNoGames() throws Exception {
+        serverFacade.registerUser("user1", "pswd", "abcd@yahoo.com");
+        Assertions.assertEquals("No games to display.", serverFacade.listGames());
     }
 
 }

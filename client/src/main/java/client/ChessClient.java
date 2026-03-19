@@ -217,8 +217,13 @@ public class ChessClient {
             pieces = new String[]{"R", "N", "B", "K", "Q", "B", "N", "R"};
             opposingColor = "WHITE";
             rowLabels = new String[]{"h", "g", "f", "e", "d", "c", "b", "a"};
+            //columnLabels = new String[]{" ", "8", "7", "6", "5", "4", "3", "2", "1", " "};
+        }
+
+        if (Objects.equals(color, "WHITE")) {
             columnLabels = new String[]{" ", "8", "7", "6", "5", "4", "3", "2", "1", " "};
         }
+
         String[] pawns = {"P","P","P","P","P","P","P","P"};
         String[] empty = {" "," "," "," "," "," "," "," ",};
 

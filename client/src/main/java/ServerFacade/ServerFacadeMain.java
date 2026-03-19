@@ -2,7 +2,6 @@ package ServerFacade;
 
 import com.google.gson.Gson;
 import model.AuthData;
-import recordandrequest.ListGameResult;
 
 import java.io.IOException;
 import java.net.URI;

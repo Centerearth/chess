@@ -193,7 +193,7 @@ public class ServerFacadeMain {
 
     private HttpRequest.BodyPublisher makeRequestBody(Object request) {
         if (request != null) {
-            return HttpRequest.BodyPublishers.ofString((String) request); //seems like a bandaid
+            return HttpRequest.BodyPublishers.ofString((String) request);
         } else {
             return HttpRequest.BodyPublishers.noBody();
         }
@@ -212,5 +212,4 @@ public class ServerFacadeMain {
             return "An unknown error occurred.";
         }
     }
-    //for now have each functionality that interacts with the server its own thing. then start to group functionality
 }

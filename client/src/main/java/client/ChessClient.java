@@ -69,7 +69,7 @@ public class ChessClient {
                 };
             }
         } catch (Exception ex) {
-            return ex.getMessage(); //change later
+            return ex.getMessage();
         }
     }
 
@@ -126,17 +126,23 @@ public class ChessClient {
     }
 
     private String join(String... params) {
-        try { //needs to display the board too!!!! maybe make it case sensitive. add logging
+        try {
             if (params.length == 2) {
                 try {
                     int id = Integer.parseInt(params[0]);
                     String color = params[1];
                     if (Objects.equals(color, "WHITE") || Objects.equals(color, "white")) {
-                        displayBoard("WHITE");
-                        return server.playGame(id, "WHITE");
+                        String response = server.playGame(id, "WHITE");
+                        if (Objects.equals(response, "User joined successfully.")) {
+                            displayBoard("WHITE");
+                        }
+                        return response;
                     } else if (Objects.equals(color, "BLACK") || Objects.equals(color, "black")) {
-                        displayBoard("BLACK");
-                        return server.playGame(id, "BLACK");
+                        String response = server.playGame(id, "BLACK");
+                        if (Objects.equals(response, "User joined successfully.")) {
+                            displayBoard("BLACK");
+                        }
+                        return response;
                     } else {
                         return "Request is malformed";
                     }
@@ -206,25 +212,38 @@ public class ChessClient {
     }
 
     private void displayBoard(String color) {
+        String[] rowLabels = {"a", "b", "c", "d", "e", "f", "g", "h"};
         String[] pieces = {"R", "N", "B", "Q", "K", "B", "N", "R"};
+        String[] columnLabels = {" ", "1", "2", "3", "4", "5", "6", "7", "8", " "};
         String opposingColor = "BLACK";
+
         if (Objects.equals(color, "BLACK")) {
             pieces = new String[]{"R", "N", "B", "K", "Q", "B", "N", "R"};
             opposingColor = "WHITE";
+            rowLabels = new String[]{"h", "g", "f", "e", "d", "c", "b", "a"};
+            columnLabels = new String[]{" ", "8", "7", "6", "5", "4", "3", "2", "1", " "};
         }
         String[] pawns = {"P","P","P","P","P","P","P","P"};
         String[] empty = {" "," "," "," "," "," "," "," ",};
 
-        String startingColor = color;
-        startingColor = displayLine(pieces, startingColor, opposingColor);
-        startingColor = displayLine(pawns, startingColor, opposingColor);
-        startingColor = displayLine(empty, startingColor, "WHITE");
-        startingColor = displayLine(empty, startingColor, "WHITE");
-        startingColor = displayLine(empty, startingColor, "WHITE");
-        startingColor = displayLine(empty, startingColor, "WHITE");
-        startingColor = displayLine(pawns, startingColor, color);
-        displayLine(pieces, startingColor, color);
+        String[][] orderToPrint = new String[][]{rowLabels, pieces, pawns, empty, empty, empty, empty,
+                pawns, pieces, rowLabels};
+        String[] orderTeamColor = new String[]{"GRAY", opposingColor, opposingColor, "WHITE","WHITE",
+                "WHITE","WHITE", color, color, "GRAY"};
 
+        String startingColor = "GRAY";
+
+        for (int i = 0; i < 10; i ++) {
+            System.out.print("\u001b[30;100m");
+            System.out.printf(" %s ", columnLabels[i]);
+            if (i == 9) {
+                startingColor = "GRAY";
+            }
+            startingColor = displayLine(orderToPrint[i], startingColor, orderTeamColor[i]);
+            System.out.print("\u001b[30;100m");
+            System.out.printf(" %s ", columnLabels[i]);
+            System.out.println("\u001b[39;49m");
+        }
         System.out.println("\u001b[39;49m");
         //depends on the team. Could make it JSON compatible
     }
@@ -232,28 +251,34 @@ public class ChessClient {
     private String displayLine(String[] pieceSequence, String startingColor, String teamColor) {
         String currentBackgroundColor = startingColor;
         String nextLineStartingColor = "BLACK";
-        if (Objects.equals(startingColor, "BLACK")) {
+        if (Objects.equals(startingColor, "GRAY")) {
+            nextLineStartingColor = "WHITE";
+        } else if (Objects.equals(startingColor, "BLACK")) {
             nextLineStartingColor = "WHITE";
         }
         String displayColor;
 
         if (Objects.equals(teamColor, "BLACK")) {
             displayColor = "32";
-        } else {
+        } else if (Objects.equals(teamColor, "WHITE")){
             displayColor = "34";
+        } else {
+            displayColor = "30";
         }
         for (int i = 0; i < 8; i++) {
             if (Objects.equals(currentBackgroundColor, "WHITE")) {
                 System.out.printf("\u001b[%s;107m", displayColor);
                 System.out.printf(" %s ", pieceSequence[i]);
                 currentBackgroundColor = "BLACK";
-            } else {
+            } else if (Objects.equals(currentBackgroundColor, "BLACK")) {
                 System.out.printf("\u001b[%s;40m", displayColor);
                 System.out.printf(" %s ", pieceSequence[i]);
                 currentBackgroundColor = "WHITE";
+            } else {
+                System.out.printf("\u001b[%s;100m", displayColor);
+                System.out.printf(" %s ", pieceSequence[i]);
             }
         }
-        System.out.println("\u001b[39;49m");
         return nextLineStartingColor;
     }
 }

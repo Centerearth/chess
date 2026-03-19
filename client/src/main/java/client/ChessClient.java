@@ -105,7 +105,15 @@ public class ChessClient {
     }
 
     private String create(String... params) {
-        return "create";
+        try {
+            if (params.length == 1) {
+                return server.createGame(params[0]);
+            } else {
+                return "Request is malformed";
+            }
+        } catch (Exception e) {
+            return "Failed to create game.";
+        }
     }
 
     private String list() {

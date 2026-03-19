@@ -75,8 +75,11 @@ public class ChessClient {
     private String register(String... params) {
         try {
             if (params.length == 3) {
-                state = State.LOGGEDIN;
-                return server.registerUser(params[0], params[1], params[2]);
+                String response = server.registerUser(params[0], params[1], params[2]);
+                if (Objects.equals(response, "User was registered successfully.")) {
+                    state = State.LOGGEDIN;
+                }
+                return response;
             } else {
                 return "Request is malformed";
             }

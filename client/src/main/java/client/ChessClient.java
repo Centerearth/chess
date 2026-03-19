@@ -128,25 +128,21 @@ public class ChessClient {
     private String join(String... params) {
         try {
             if (params.length == 2) {
-                try {
-                    int id = Integer.parseInt(params[0]);
-                    String color = params[1];
-                    if (Objects.equals(color, "WHITE") || Objects.equals(color, "white")) {
-                        String response = server.playGame(id, "WHITE");
-                        if (Objects.equals(response, "User joined successfully.")) {
-                            displayBoard("WHITE");
-                        }
-                        return response;
-                    } else if (Objects.equals(color, "BLACK") || Objects.equals(color, "black")) {
-                        String response = server.playGame(id, "BLACK");
-                        if (Objects.equals(response, "User joined successfully.")) {
-                            displayBoard("BLACK");
-                        }
-                        return response;
-                    } else {
-                        return "Request is malformed";
+                int id = Integer.parseInt(params[0]);
+                String color = params[1];
+                if (Objects.equals(color, "WHITE") || Objects.equals(color, "white")) {
+                    String response = server.playGame(id, "WHITE");
+                    if (Objects.equals(response, "User joined successfully.")) {
+                        displayBoard("WHITE");
                     }
-                } catch (Exception e) {
+                    return response;
+                } else if (Objects.equals(color, "BLACK") || Objects.equals(color, "black")) {
+                    String response = server.playGame(id, "BLACK");
+                    if (Objects.equals(response, "User joined successfully.")) {
+                        displayBoard("BLACK");
+                    }
+                    return response;
+                } else {
                     return "Request is malformed";
                 }
             } else {

@@ -2,7 +2,7 @@ package client;
 
 import org.junit.jupiter.api.*;
 import server.Server;
-import ServerFacade.ServerFacadeMain;
+import serverfacade.ServerFacadeMain;
 
 import java.io.IOException;
 
@@ -38,7 +38,8 @@ public class ServerFacadeTests {
 
     @Test
     public void registerTest() throws Exception {
-        Assertions.assertEquals("User was registered successfully. User was logged in successfully.", serverFacade.registerUser("user1", "pswd", "abcd@yahoo.com"));
+        Assertions.assertEquals("User was registered successfully. User was logged in successfully.",
+                serverFacade.registerUser("user1", "pswd", "abcd@yahoo.com"));
     }
 
     @Test
@@ -49,7 +50,8 @@ public class ServerFacadeTests {
 
     @Test
     public void registerAndLoginTest() throws Exception {
-        Assertions.assertEquals("User was registered successfully. User was logged in successfully.", serverFacade.registerUser("user1", "pswd", "abcd@yahoo.com"));
+        Assertions.assertEquals("User was registered successfully. User was logged in successfully.",
+                serverFacade.registerUser("user1", "pswd", "abcd@yahoo.com"));
         Assertions.assertNotNull(serverFacade.getAuth());
     }
 

@@ -1,4 +1,4 @@
-package ServerFacade;
+package serverfacade;
 
 import com.google.gson.Gson;
 import model.AuthData;
@@ -11,7 +11,7 @@ import java.net.http.HttpResponse;
 import java.util.HashMap;
 
 public class ServerFacadeMain {
-    private static final HttpClient httpClient = HttpClient.newHttpClient();
+    private static final HttpClient HTTPCLIENT = HttpClient.newHttpClient();
     private final String serverUrl;
     private static AuthData authData;
     private static HashMap<Integer, Integer> idToNumber;
@@ -95,17 +95,11 @@ public class ServerFacadeMain {
         if (authData == null) {
             return "User is not logged in.";
         }
-//        String authToken = authData.authToken();
-//        HashMap<String, String> headers = new HashMap<>();
-//        headers.put("authorization", authToken);
-
+        //this will be implemented later
         if (idToNumber == null || !idToNumber.containsKey(gameIndex)) {
             return "Game does not exist.";
         }
         return "Game is being observed.";
-//        HashMap<String, Object> bodyObject = new HashMap<>();
-//        bodyObject.put("gameID", idToNumber.get(gameIndex));
-//        String jsonBody = new Gson().toJson(bodyObject);
     }
 
     public String registerUser(String username, String password, String email) throws IOException, InterruptedException {
@@ -183,7 +177,8 @@ public class ServerFacadeMain {
         return responseHandler(gameList.toString(), httpResponse);
     }
 
-    private HttpResponse<String> buildAndReceiveRequest(String method, String path, Object body, HashMap<String, String> header) throws IOException, InterruptedException {
+    private HttpResponse<String> buildAndReceiveRequest(String method, String path, Object body,
+                                                        HashMap<String, String> header) throws IOException, InterruptedException {
         HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
                 .uri(URI.create(serverUrl + path))
                 .timeout(java.time.Duration.ofMillis(5000))
@@ -201,7 +196,7 @@ public class ServerFacadeMain {
         HttpRequest finishedRequest = requestBuilder.build();
         System.out.println(finishedRequest);
         System.out.println(finishedRequest.headers());
-        return httpClient.send(finishedRequest, HttpResponse.BodyHandlers.ofString());
+        return HTTPCLIENT.send(finishedRequest, HttpResponse.BodyHandlers.ofString());
 
     }
 

@@ -1,6 +1,6 @@
 package client;
 
-import ServerFacade.ServerFacadeMain;
+import serverfacade.ServerFacadeMain;
 
 import java.util.Arrays;
 import java.util.Objects;

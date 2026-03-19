@@ -36,6 +36,11 @@ public class ServerFacadeMain {
         authData = null;
     }
 
+    public void resetIds() {
+        //for testing purposes
+        idToNumber = null;
+    }
+
     public void clearEverything() throws IOException, InterruptedException {
         //for testing purposes
         buildAndReceiveRequest("DELETE", "/db", null, null);
@@ -67,6 +72,26 @@ public class ServerFacadeMain {
 
     }
 
+    public String playGame(int gameIndex, String color) throws IOException, InterruptedException {
+        if (authData == null) {
+            return "User is not logged in.";
+        }
+        String authToken = authData.authToken();
+        HashMap<String, String> headers = new HashMap<>();
+        headers.put("authorization", authToken);
+
+        if (idToNumber == null || !idToNumber.containsKey(gameIndex)) {
+            return "Game does not exist.";
+        }
+        //need to make it so that the checks happen on the other end and that the right format is passed in
+        HashMap<String, Object> bodyObject = new HashMap<>();
+        bodyObject.put("gameID", idToNumber.get(gameIndex));
+        bodyObject.put("playerColor", color);
+        String jsonBody = new Gson().toJson(bodyObject);
+        HttpResponse<String> httpResponse = buildAndReceiveRequest("PUT", "/game", jsonBody, headers);
+        return responseHandler("User joined successfully.", httpResponse);
+    }
+    //need to change from string?
     public String registerUser(String username, String password, String email) throws IOException, InterruptedException {
         HashMap<String, String> bodyObject = new HashMap<>();
         bodyObject.put("username", username);

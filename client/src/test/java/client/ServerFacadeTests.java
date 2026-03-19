@@ -24,6 +24,7 @@ public class ServerFacadeTests {
     public void clearDatabase() throws IOException, InterruptedException {
         serverFacade.clearEverything();
         serverFacade.resetAuth();
+        serverFacade.resetIds();
     }
 
     @AfterAll
@@ -98,6 +99,22 @@ public class ServerFacadeTests {
     public void listNoGames() throws Exception {
         serverFacade.registerUser("user1", "pswd", "abcd@yahoo.com");
         Assertions.assertEquals("No games to display.", serverFacade.listGames());
+    }
+
+    @Test
+    public void playGame() throws Exception {
+        serverFacade.registerUser("user1", "pswd", "abcd@yahoo.com");
+        serverFacade.createGame("game1");
+        serverFacade.listGames();
+        Assertions.assertEquals("User joined successfully.", serverFacade.playGame(1, "WHITE"));
+    }
+
+    @Test
+    public void playGameFail() throws Exception {
+        //games haven't been listed yet
+        serverFacade.registerUser("user1", "pswd", "abcd@yahoo.com");
+        serverFacade.createGame("game1");
+        Assertions.assertEquals("Game does not exist.", serverFacade.playGame(1, "WHITE"));
     }
 
 }

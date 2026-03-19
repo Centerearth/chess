@@ -3,6 +3,7 @@ package client;
 import ServerFacade.ServerFacadeMain;
 
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.Scanner;
 
 public class ChessClient {
@@ -72,11 +73,32 @@ public class ChessClient {
     }
 
     private String register(String... params) {
-        return "register";
+        try {
+            if (params.length == 3) {
+                state = State.LOGGEDIN;
+                return server.registerUser(params[0], params[1], params[2]);
+            } else {
+                return "Request is malformed";
+            }
+        } catch (Exception e) {
+            return "Failed to register new user.";
+        }
     }
 
     private String login(String... params) {
-        return "login";
+        try {
+            if (params.length == 2) {
+                String response = server.loginUser(params[0], params[1]);
+                if (Objects.equals(response, "User was logged in successfully.")) {
+                    state = State.LOGGEDIN;
+                }
+                return response;
+            } else {
+                return "Request is malformed";
+            }
+        } catch (Exception e) {
+            return "Failed to login.";
+        }
     }
 
     private String create(String... params) {

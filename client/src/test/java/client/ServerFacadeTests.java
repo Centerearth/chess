@@ -56,7 +56,6 @@ public class ServerFacadeTests {
         serverFacade.logoutUser();
         Assertions.assertEquals("User was logged in successfully.", serverFacade.loginUser("user1", "pswd"));
     }
-    //have a register, logout, then login test
 
     @Test
     public void loginFail() throws Exception {
@@ -115,6 +114,23 @@ public class ServerFacadeTests {
         serverFacade.registerUser("user1", "pswd", "abcd@yahoo.com");
         serverFacade.createGame("game1");
         Assertions.assertEquals("Game does not exist.", serverFacade.playGame(1, "WHITE"));
+    }
+
+    @Test
+    public void observeGame() throws Exception {
+        //games haven't been listed yet
+        serverFacade.registerUser("user1", "pswd", "abcd@yahoo.com");
+        serverFacade.createGame("game1");
+        serverFacade.listGames();
+        Assertions.assertEquals("Game is being observed.", serverFacade.observeGame(1));
+    }
+
+    @Test
+    public void observeGameFail() throws Exception {
+        //games haven't been listed yet
+        serverFacade.registerUser("user1", "pswd", "abcd@yahoo.com");
+        serverFacade.createGame("game1");
+        Assertions.assertEquals("Game does not exist.", serverFacade.observeGame(1));
     }
 
 }

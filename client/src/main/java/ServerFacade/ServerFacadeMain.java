@@ -92,6 +92,24 @@ public class ServerFacadeMain {
         return responseHandler("User joined successfully.", httpResponse);
     }
     //need to change from string?
+
+    public String observeGame(int gameIndex) {
+        if (authData == null) {
+            return "User is not logged in.";
+        }
+//        String authToken = authData.authToken();
+//        HashMap<String, String> headers = new HashMap<>();
+//        headers.put("authorization", authToken);
+
+        if (idToNumber == null || !idToNumber.containsKey(gameIndex)) {
+            return "Game does not exist.";
+        }
+        return "Game is being observed.";
+//        HashMap<String, Object> bodyObject = new HashMap<>();
+//        bodyObject.put("gameID", idToNumber.get(gameIndex));
+//        String jsonBody = new Gson().toJson(bodyObject);
+    }
+
     public String registerUser(String username, String password, String email) throws IOException, InterruptedException {
         HashMap<String, String> bodyObject = new HashMap<>();
         bodyObject.put("username", username);

@@ -1,6 +1,7 @@
 package server;
 
 import org.eclipse.jetty.websocket.api.Session;
+import websocket.messages.ErrorMessage;
 import websocket.messages.ServerMessage;
 
 import java.io.IOException;
@@ -25,7 +26,19 @@ public class ConnectionManager {
         allConnections.remove(gameID);
     }
 
-    public void broadcast(Session excludeSession, ServerMessage serverMessage, int gameID) throws IOException {
+    public void broadcastAll(ServerMessage serverMessage, int gameID) throws IOException {
+        //String msg = notification.toString();
+        //this needs to be a JSON
+        String msg = "";
+        HashSet<Session> connections = allConnections.get(gameID);
+        for (Session s : connections) {
+            if (s.isOpen()) {
+                s.getRemote().sendString(msg);
+            }
+        }
+    }
+
+    public void broadcastSome(Session excludeSession, ServerMessage serverMessage, int gameID) throws IOException {
         //String msg = notification.toString();
         //this needs to be a JSON
         String msg = "";
@@ -38,4 +51,12 @@ public class ConnectionManager {
             }
         }
     }
+
+    public void broadcastError(Session session, ErrorMessage errorMessage) throws IOException {
+        String error = errorMessage.getMessage();
+        if (session.isOpen()) {
+            session.getRemote().sendString(error);
+        }
+    }
+
 }

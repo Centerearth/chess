@@ -1,12 +1,13 @@
 package client;
 
 import serverfacade.ServerFacadeMain;
+import websocket.messages.ServerMessage;
 
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Scanner;
 
-public class ChessClient {
+public class ChessClient implements ServerMessageObserver {
     private final ServerFacadeMain server;
     private State state = State.LOGGEDOUT;
 
@@ -281,5 +282,11 @@ public class ChessClient {
             }
         }
         return nextLineStartingColor;
+    }
+
+
+    @Override
+    public void notify(ServerMessage serverMessage) {
+
     }
 }

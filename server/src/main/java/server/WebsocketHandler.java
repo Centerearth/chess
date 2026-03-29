@@ -1,6 +1,8 @@
 package server;
 
+import chess.ChessGame;
 import com.google.gson.Gson;
+import dataaccess.DataAccessException;
 import io.javalin.websocket.WsCloseContext;
 import io.javalin.websocket.WsCloseHandler;
 import io.javalin.websocket.WsConnectContext;
@@ -8,13 +10,25 @@ import io.javalin.websocket.WsConnectHandler;
 import io.javalin.websocket.WsMessageContext;
 import io.javalin.websocket.WsMessageHandler;
 import org.eclipse.jetty.websocket.api.Session;
+import service.GameService;
 import websocket.commands.UserGameCommand;
+import websocket.messages.ErrorMessage;
+import websocket.messages.LoadGameMessage;
+import websocket.messages.NotificationMessage;
+import websocket.messages.ServerMessage;
 
 import java.io.IOException;
+
+import static websocket.messages.ServerMessage.ServerMessageType.*;
+
 
 public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsCloseHandler {
 
     private final ConnectionManager allConnections = new ConnectionManager();
+    private final GameService gameService = new GameService();
+
+    public WebsocketHandler() throws DataAccessException {
+    }
 
     @Override
     public void handleConnect(WsConnectContext ctx) {
@@ -24,12 +38,16 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
 
     @Override
     public void handleMessage(WsMessageContext ctx) {
-        UserGameCommand userGameCommand = new Gson().fromJson(ctx.message(), UserGameCommand.class);
-        switch (userGameCommand.getCommandType()) {
-            case CONNECT -> connect(ctx);
-            case MAKE_MOVE -> makeMove(ctx);
-            case LEAVE -> leave(ctx);
-            case RESIGN -> resign(ctx);
+        try {
+            UserGameCommand userGameCommand = new Gson().fromJson(ctx.message(), UserGameCommand.class);
+            switch (userGameCommand.getCommandType()) {
+                case CONNECT -> connect(userGameCommand, ctx.session);
+                case MAKE_MOVE -> makeMove(userGameCommand, ctx.session);
+                case LEAVE -> leave(userGameCommand, ctx.session);
+                case RESIGN -> resign(userGameCommand, ctx.session);
+            }
+        } catch (IOException ex ) {
+            ex.printStackTrace();
         }
     }
 
@@ -38,18 +56,32 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         System.out.println("Websocket closed"); //same thing here? delete?
     }
 
-    private void connect(WsMessageContext ctx) {
+    private void connect(UserGameCommand userGameCommand, Session session) throws IOException {
+        try {
+        allConnections.add(userGameCommand.getGameID(), session);
+
+        ChessGame game = gameService.getGame(userGameCommand.getGameID()).game();
+        LoadGameMessage loadGameMessage = new LoadGameMessage(LOAD_GAME, game);
+
+        String notification = String.format("%s has joined the game", userGameCommand.getUsername());
+        NotificationMessage notificationMessage = new NotificationMessage(NOTIFICATION, notification);
+
+        allConnections.broadcastAll(loadGameMessage, userGameCommand.getGameID());
+        allConnections.broadcastSome(session, notificationMessage, userGameCommand.getGameID());
+
+        } catch (Exception e) {
+            allConnections.broadcastError(session, new ErrorMessage(ERROR,"Error: failed to connect"));
+        }
+
     }
 
-    private void makeMove(WsMessageContext ctx) {
+    private void makeMove(UserGameCommand userGameCommand, Session session) {
+        //authToken check
+    }
+    private void leave(UserGameCommand userGameCommand, Session session) {
 
     }
-
-    private void leave(WsMessageContext ctx) {
-
-    }
-
-    private void resign(WsMessageContext ctx) {
+    private void resign(UserGameCommand userGameCommand, Session session) {
 
     }
 

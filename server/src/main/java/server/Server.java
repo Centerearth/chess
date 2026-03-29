@@ -35,6 +35,7 @@ public class Server {
                     .post("/game", this::createNewGame)
                     .put("/game", this::joinGame)
                     .get("/game", this::listGames)
+                    .exception(Exception.class, this::HTTPExceptionHandler)
                     .ws("/ws", ws -> {
                         ws.onConnect(websocketHandler);
                         ws.onMessage(websocketHandler);
@@ -201,6 +202,12 @@ public class Server {
             context.result(new Gson().toJson(Map.of("message", e.getMessage())));
         }
     }
+
+    private void HTTPExceptionHandler(Exception ex, Context ctx) {
+        ctx.status(500);
+        ctx.result(new Gson().toJson(Map.of("message", ex.getMessage())));
+    }
+
     public int run(int desiredPort) {
         javalin.start(desiredPort);
         return javalin.port();

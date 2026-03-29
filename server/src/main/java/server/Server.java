@@ -23,7 +23,8 @@ public class Server {
         try {
             userService = new UserService();
             gameService = new GameService();
-            javalin = Javalin.create(config -> config.staticFiles.add("web"))
+            javalin = Javalin.create(config -> {config.staticFiles.add("web");
+                config.bundledPlugins.enableDevLogging();})
                     .delete("/db", this::clearApplication)
                     .delete("/session", this::logoutUser)
                     .post("/session", this::loginUser)

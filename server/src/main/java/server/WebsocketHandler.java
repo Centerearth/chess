@@ -39,7 +39,6 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     }
 
     private void connect(WsMessageContext ctx) {
-
     }
 
     private void makeMove(WsMessageContext ctx) {

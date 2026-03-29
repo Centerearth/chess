@@ -1,6 +1,7 @@
 package client;
 
 import serverfacade.ServerFacadeMain;
+import serverfacade.WebsocketFacade;
 import websocket.messages.ServerMessage;
 
 import java.util.Arrays;
@@ -11,9 +12,11 @@ public class ChessClient implements ServerMessageObserver {
     private final ServerFacadeMain server;
     private State state = State.LOGGEDOUT;
     private String username;
+    private final WebsocketFacade websocketFacade;
 
-    public ChessClient(String serverUrl) {
+    public ChessClient(String serverUrl) throws Exception {
         server = new ServerFacadeMain(serverUrl);
+        websocketFacade = new WebsocketFacade(serverUrl, this);
     }
 
     public void run() {

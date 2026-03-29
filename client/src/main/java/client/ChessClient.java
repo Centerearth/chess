@@ -10,6 +10,7 @@ import java.util.Scanner;
 public class ChessClient implements ServerMessageObserver {
     private final ServerFacadeMain server;
     private State state = State.LOGGEDOUT;
+    private String username;
 
     public ChessClient(String serverUrl) {
         server = new ServerFacadeMain(serverUrl);
@@ -96,6 +97,7 @@ public class ChessClient implements ServerMessageObserver {
                 String response = server.loginUser(params[0], params[1]);
                 if (Objects.equals(response, "User was logged in successfully.")) {
                     state = State.LOGGEDIN;
+                    username = params[0];
                 }
                 return response;
             } else {
@@ -127,6 +129,7 @@ public class ChessClient implements ServerMessageObserver {
     }
 
     private String join(String... params) {
+        //should initiate a new ws and the new UI
         try {
             if (params.length == 2) {
                 int id = Integer.parseInt(params[0]);

@@ -18,11 +18,14 @@ public class Server {
     private Javalin javalin;
     private UserService userService;
     private GameService gameService;
+    private WebsocketHandler websocketHandler;
 
     public Server() {
         try {
             userService = new UserService();
             gameService = new GameService();
+            websocketHandler = new WebsocketHandler();
+
             javalin = Javalin.create(config -> {config.staticFiles.add("web");
                 config.bundledPlugins.enableDevLogging();})
                     .delete("/db", this::clearApplication)
@@ -31,7 +34,12 @@ public class Server {
                     .post("/user", this::createNewUser)
                     .post("/game", this::createNewGame)
                     .put("/game", this::joinGame)
-                    .get("/game", this::listGames);
+                    .get("/game", this::listGames)
+                    .ws("/ws", ws -> {
+                        ws.onConnect(websocketHandler);
+                        ws.onMessage(websocketHandler);
+                        ws.onClose(websocketHandler);
+                    });
     } catch (Exception e) {
         javalin = Javalin.create(config -> config.staticFiles.add("web"))
                 .before(ctx -> exceptionHandler(ctx, e));

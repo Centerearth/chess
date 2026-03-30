@@ -5,6 +5,7 @@ import com.google.gson.Gson;
 
 import jakarta.websocket.*;
 import websocket.commands.UserGameCommand;
+import websocket.messages.LoadGameMessage;
 import websocket.messages.ServerMessage;
 
 import java.io.IOException;
@@ -30,9 +31,13 @@ public class WebsocketFacade extends Endpoint {
             //set message handler
             this.session.addMessageHandler(new MessageHandler.Whole<String>() { //can replace with lambda
                 @Override
-                public void onMessage(String message) { //should this be String??
+                public void onMessage(String message) {
                     System.out.println("I am inside of onMessage");
                     ServerMessage serverMessage = new Gson().fromJson(message, ServerMessage.class);
+                    if (serverMessage.getServerMessageType() == ServerMessage.ServerMessageType.LOAD_GAME) {
+                        LoadGameMessage loadGameMessage = new Gson().fromJson(message, LoadGameMessage.class); //reassigning
+                        serverMessageObserver.displayGame(loadGameMessage);
+                    }
                     System.out.println("\nI received a message\n");
                     System.out.println(serverMessage);
                     serverMessageObserver.notify(serverMessage);

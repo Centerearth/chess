@@ -1,8 +1,11 @@
 package client;
 
+import chess.ChessGame;
+import com.google.gson.Gson;
 import model.AuthData;
 import serverfacade.ServerFacadeMain;
 import serverfacade.WebsocketFacade;
+import websocket.messages.LoadGameMessage;
 import websocket.messages.ServerMessage;
 
 import java.util.Arrays;
@@ -14,6 +17,7 @@ public class ChessClient implements ServerMessageObserver {
     private State state = State.LOGGEDOUT;
     private GameplayState gameplayState = GameplayState.NOGAMEPLAY;
     private final WebsocketFacade websocketFacade;
+    private ChessGame.TeamColor teamColor = ChessGame.TeamColor.WHITE;
 
     public ChessClient(String serverUrl) throws Exception {
         server = new ServerFacadeMain(serverUrl);
@@ -160,6 +164,7 @@ public class ChessClient implements ServerMessageObserver {
                     if (Objects.equals(response, "User joined successfully.")) {
                         websocketFacade.connect(server.getAuth().authToken(), server.getGameID(number), server.getAuth().username());
                         gameplayState = GameplayState.INGAMEPLAY;
+                        teamColor = ChessGame.TeamColor.BLACK;
                         displayBoard("BLACK");
                     }
                     return response;
@@ -314,9 +319,17 @@ public class ChessClient implements ServerMessageObserver {
 
     @Override
     public void notify(ServerMessage serverMessage) {
-        System.out.println("I am in notify");
         System.out.println(serverMessage);
+        if (serverMessage.getServerMessageType() == ServerMessage.ServerMessageType.LOAD_GAME) {
+        }
         printPrompt();
         //maybe should change this later?
+    }
+
+    @Override
+    public void displayGame (LoadGameMessage loadGameMessage) {
+        System.out.println("displaying game");
+        System.out.println(loadGameMessage.getGame());
+
     }
 }

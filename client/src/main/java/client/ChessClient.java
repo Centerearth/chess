@@ -12,7 +12,6 @@ import java.util.Scanner;
 public class ChessClient implements ServerMessageObserver {
     private final ServerFacadeMain server;
     private State state = State.LOGGEDOUT;
-    private AuthData authData;
     private final WebsocketFacade websocketFacade;
 
     public ChessClient(String serverUrl) throws Exception {
@@ -101,7 +100,6 @@ public class ChessClient implements ServerMessageObserver {
                 String response = server.loginUser(params[0], params[1]);
                 if (Objects.equals(response, "User was logged in successfully.")) {
                     state = State.LOGGEDIN;
-                    authData = server.getAuth();
                 }
                 return response;
             } else {
@@ -141,14 +139,14 @@ public class ChessClient implements ServerMessageObserver {
                 if (Objects.equals(color, "WHITE") || Objects.equals(color, "white")) {
                     String response = server.playGame(number, "WHITE");
                     if (Objects.equals(response, "User joined successfully.")) {
-                        websocketFacade.connect(authData.authToken(), server.getGameID(number), authData.username());
+                        websocketFacade.connect(server.getAuth().authToken(), server.getGameID(number), server.getAuth().username());
                         displayBoard("WHITE");
                     }
                     return response;
                 } else if (Objects.equals(color, "BLACK") || Objects.equals(color, "black")) {
                     String response = server.playGame(number, "BLACK");
                     if (Objects.equals(response, "User joined successfully.")) {
-                        websocketFacade.connect(authData.authToken(), server.getGameID(number), authData.username());
+                        websocketFacade.connect(server.getAuth().authToken(), server.getGameID(number), server.getAuth().username());
                         displayBoard("BLACK");
                     }
                     return response;
@@ -297,6 +295,7 @@ public class ChessClient implements ServerMessageObserver {
 
     @Override
     public void notify(ServerMessage serverMessage) {
-
+        System.out.println(serverMessage);
+        //maybe should change this later?
     }
 }

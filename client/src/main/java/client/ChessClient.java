@@ -15,6 +15,8 @@ import java.util.Arrays;
 import java.util.Objects;
 import java.util.Scanner;
 
+import static ui.EscapeSequences.*;
+
 public class ChessClient implements ServerMessageObserver {
     private final ServerFacadeMain server;
     private State state = State.LOGGEDOUT;
@@ -339,6 +341,11 @@ public class ChessClient implements ServerMessageObserver {
                 ChessPiece.PieceType chessPieceType = null;
                 if (chessPiece != null) {
                     chessPieceType = chessPiece.getPieceType();
+                    if (chessPiece.getTeamColor() == ChessGame.TeamColor.WHITE) {
+                        System.out.print(SET_TEXT_COLOR_BLUE);
+                    } else {
+                        System.out.print(SET_TEXT_COLOR_GREEN);
+                    }
                 }
 
                 switch (chessPieceType) {

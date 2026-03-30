@@ -1,5 +1,6 @@
 package client;
 
+import model.AuthData;
 import serverfacade.ServerFacadeMain;
 import serverfacade.WebsocketFacade;
 import websocket.messages.ServerMessage;
@@ -11,7 +12,7 @@ import java.util.Scanner;
 public class ChessClient implements ServerMessageObserver {
     private final ServerFacadeMain server;
     private State state = State.LOGGEDOUT;
-    private String username;
+    private AuthData authData;
     private final WebsocketFacade websocketFacade;
 
     public ChessClient(String serverUrl) throws Exception {
@@ -100,7 +101,7 @@ public class ChessClient implements ServerMessageObserver {
                 String response = server.loginUser(params[0], params[1]);
                 if (Objects.equals(response, "User was logged in successfully.")) {
                     state = State.LOGGEDIN;
-                    username = params[0];
+                    authData = server.getAuth();
                 }
                 return response;
             } else {
@@ -132,20 +133,22 @@ public class ChessClient implements ServerMessageObserver {
     }
 
     private String join(String... params) {
-        //should initiate a new ws and the new UI
+        //should initiate the new UI
         try {
             if (params.length == 2) {
-                int id = Integer.parseInt(params[0]);
+                int number = Integer.parseInt(params[0]);
                 String color = params[1];
                 if (Objects.equals(color, "WHITE") || Objects.equals(color, "white")) {
-                    String response = server.playGame(id, "WHITE");
+                    String response = server.playGame(number, "WHITE");
                     if (Objects.equals(response, "User joined successfully.")) {
+                        websocketFacade.connect(authData.authToken(), server.getGameID(number), authData.username());
                         displayBoard("WHITE");
                     }
                     return response;
                 } else if (Objects.equals(color, "BLACK") || Objects.equals(color, "black")) {
-                    String response = server.playGame(id, "BLACK");
+                    String response = server.playGame(number, "BLACK");
                     if (Objects.equals(response, "User joined successfully.")) {
+                        websocketFacade.connect(authData.authToken(), server.getGameID(number), authData.username());
                         displayBoard("BLACK");
                     }
                     return response;
@@ -156,6 +159,7 @@ public class ChessClient implements ServerMessageObserver {
                 return "Request is malformed";
             }
         } catch (Exception e) {
+            System.out.println(e.getMessage());
             return "Failed to join.";
         }
     }

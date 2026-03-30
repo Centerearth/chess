@@ -15,7 +15,10 @@ public class ServerFacadeMain {
     private final String serverUrl;
     private static AuthData authData;
     private static HashMap<Integer, Integer> idToNumber;
-    //add logging
+
+    public int getGameID (int number) {
+        return idToNumber.get(number);
+    }
 
     public ServerFacadeMain(String url) {
         this.serverUrl = url;

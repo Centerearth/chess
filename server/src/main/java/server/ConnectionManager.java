@@ -33,6 +33,7 @@ public class ConnectionManager {
         HashSet<Session> connections = allConnections.get(gameID);
         for (Session s : connections) {
             if (s.isOpen()) {
+                System.out.println("I am in broadcastAll!");
                 s.getRemote().sendString(msg);
             }
         }
@@ -46,6 +47,7 @@ public class ConnectionManager {
         for (Session s : connections) {
             if (s.isOpen()) {
                 if (!s.equals(excludeSession)) {
+                    System.out.println("I am in broadcastSome!");
                     s.getRemote().sendString(msg);
                 }
             }
@@ -55,6 +57,8 @@ public class ConnectionManager {
     public void broadcastError(Session session, ErrorMessage errorMessage) throws IOException {
         String error = errorMessage.getMessage();
         if (session.isOpen()) {
+            System.out.println(errorMessage.getMessage());
+            System.out.println("I am in broadcastError!");
             session.getRemote().sendString(error);
         }
     }

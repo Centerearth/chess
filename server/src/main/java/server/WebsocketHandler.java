@@ -60,16 +60,21 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         try {
         allConnections.add(userGameCommand.getGameID(), session);
 
+        System.out.println(userGameCommand.getGameID());
         ChessGame game = gameService.getGame(userGameCommand.getGameID()).game();
+
+
         LoadGameMessage loadGameMessage = new LoadGameMessage(LOAD_GAME, game);
 
         String notification = String.format("%s has joined the game", userGameCommand.getUsername());
+
         NotificationMessage notificationMessage = new NotificationMessage(NOTIFICATION, notification);
 
         allConnections.broadcastAll(loadGameMessage, userGameCommand.getGameID());
         allConnections.broadcastSome(session, notificationMessage, userGameCommand.getGameID());
 
         } catch (Exception e) {
+            System.out.println(e.getMessage());
             allConnections.broadcastError(session, new ErrorMessage(ERROR,"Error: failed to connect"));
         }
 

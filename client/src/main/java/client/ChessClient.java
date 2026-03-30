@@ -333,8 +333,33 @@ public class ChessClient implements ServerMessageObserver {
     public void displayGame (LoadGameMessage loadGameMessage) {
         ChessGame game = loadGameMessage.getGame();
         ChessBoard gameBoard = game.getBoard();
-        System.out.println(gameBoard);
+
+        String[] rowLabels;
+        String[] columnLabels;
+
+        if (teamColor == ChessGame.TeamColor.WHITE) {
+            rowLabels = new String[]{"a", "b", "c", "d", "e", "f", "g", "h"};
+            columnLabels = new String[]{"8", "7", "6", "5", "4", "3", "2", "1"};
+        } else {
+            rowLabels = new String[]{"h", "g", "f", "e", "d", "c", "b", "a"};
+            columnLabels = new String[]{"1", "2", "3", "4", "5", "6", "7", "8"};
+        }
+
+        System.out.print(SET_BG_COLOR_LIGHT_GREY);
+        System.out.print(SET_TEXT_COLOR_BLACK);
+
+        System.out.print("   ");
+        for (String letter : rowLabels) {
+            System.out.printf(" %s ", letter);
+        }
+        System.out.print("   ");
+        System.out.println("\u001b[39;49m");
+
         for (int i = 1; i <= 8; i++) {
+            System.out.print(SET_BG_COLOR_LIGHT_GREY);
+            System.out.print(SET_TEXT_COLOR_BLACK);
+            System.out.printf(" %s ", columnLabels[i-1]);
+
             for (int j = 1; j <= 8; j++) {
                 if (teamColor == ChessGame.TeamColor.WHITE) {
                     printSquare(gameBoard, 9-i, j);
@@ -342,8 +367,21 @@ public class ChessClient implements ServerMessageObserver {
                     printSquare(gameBoard, i, 9-j);
                 }
             }
+            System.out.print(SET_BG_COLOR_LIGHT_GREY);
+            System.out.print(SET_TEXT_COLOR_BLACK);
+            System.out.printf(" %s ", columnLabels[i-1]);
+
             System.out.println("\u001b[39;49m");
         }
+
+        System.out.print(SET_BG_COLOR_LIGHT_GREY);
+        System.out.print(SET_TEXT_COLOR_BLACK);
+        System.out.print("   ");
+        for (String letter : rowLabels) {
+            System.out.printf(" %s ", letter);
+        }
+        System.out.print("   ");
+        System.out.println("\u001b[39;49m");
     }
 
     private void printSquare(ChessBoard gameBoard, int i, int j) {

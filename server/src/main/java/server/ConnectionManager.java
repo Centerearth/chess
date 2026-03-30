@@ -1,5 +1,6 @@
 package server;
 
+import com.google.gson.Gson;
 import org.eclipse.jetty.websocket.api.Session;
 import websocket.messages.ErrorMessage;
 import websocket.messages.ServerMessage;
@@ -27,28 +28,24 @@ public class ConnectionManager {
     }
 
     public void broadcastAll(ServerMessage serverMessage, int gameID) throws IOException {
-        //String msg = notification.toString();
-        //this needs to be a JSON
-        String msg = "";
+        String messageJson = new Gson().toJson(serverMessage);
         HashSet<Session> connections = allConnections.get(gameID);
         for (Session s : connections) {
             if (s.isOpen()) {
                 System.out.println("I am in broadcastAll!");
-                s.getRemote().sendString(msg);
+                s.getRemote().sendString(messageJson);
             }
         }
     }
 
     public void broadcastSome(Session excludeSession, ServerMessage serverMessage, int gameID) throws IOException {
-        //String msg = notification.toString();
-        //this needs to be a JSON
-        String msg = "";
+        String messageJson = new Gson().toJson(serverMessage);
         HashSet<Session> connections = allConnections.get(gameID);
         for (Session s : connections) {
             if (s.isOpen()) {
                 if (!s.equals(excludeSession)) {
                     System.out.println("I am in broadcastSome!");
-                    s.getRemote().sendString(msg);
+                    s.getRemote().sendString(messageJson);
                 }
             }
         }

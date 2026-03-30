@@ -60,10 +60,7 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         try {
         allConnections.add(userGameCommand.getGameID(), session);
 
-        System.out.println(userGameCommand.getGameID());
         ChessGame game = gameService.getGame(userGameCommand.getGameID()).game();
-
-
         LoadGameMessage loadGameMessage = new LoadGameMessage(LOAD_GAME, game);
 
         String notification = String.format("%s has joined the game", userGameCommand.getUsername());

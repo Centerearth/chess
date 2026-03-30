@@ -31,8 +31,10 @@ public class WebsocketFacade extends Endpoint {
             this.session.addMessageHandler(new MessageHandler.Whole<String>() { //can replace with lambda
                 @Override
                 public void onMessage(String message) { //should this be String??
+                    System.out.println("I am inside of onMessage");
                     ServerMessage serverMessage = new Gson().fromJson(message, ServerMessage.class);
-                    System.out.println("I received a message");
+                    System.out.println("\nI received a message\n");
+                    System.out.println(serverMessage);
                     serverMessageObserver.notify(serverMessage);
                 }
             });

@@ -295,7 +295,9 @@ public class ChessClient implements ServerMessageObserver {
 
     @Override
     public void notify(ServerMessage serverMessage) {
+        System.out.println("I am in notify");
         System.out.println(serverMessage);
+        printPrompt();
         //maybe should change this later?
     }
 }

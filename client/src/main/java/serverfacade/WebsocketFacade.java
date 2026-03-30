@@ -37,10 +37,11 @@ public class WebsocketFacade extends Endpoint {
                     if (serverMessage.getServerMessageType() == ServerMessage.ServerMessageType.LOAD_GAME) {
                         LoadGameMessage loadGameMessage = new Gson().fromJson(message, LoadGameMessage.class); //reassigning
                         serverMessageObserver.displayGame(loadGameMessage);
+                    } else {
+                        System.out.println("\nI received a message\n");
+                        System.out.println(serverMessage);
+                        serverMessageObserver.notify(serverMessage);
                     }
-                    System.out.println("\nI received a message\n");
-                    System.out.println(serverMessage);
-                    serverMessageObserver.notify(serverMessage);
                 }
             });
         } catch (DeploymentException | IOException | URISyntaxException ex) {

@@ -1,6 +1,9 @@
 package client;
 
+import chess.ChessBoard;
 import chess.ChessGame;
+import chess.ChessPiece;
+import chess.ChessPosition;
 import com.google.gson.Gson;
 import model.AuthData;
 import serverfacade.ServerFacadeMain;
@@ -320,16 +323,50 @@ public class ChessClient implements ServerMessageObserver {
     @Override
     public void notify(ServerMessage serverMessage) {
         System.out.println(serverMessage);
-        if (serverMessage.getServerMessageType() == ServerMessage.ServerMessageType.LOAD_GAME) {
-        }
         printPrompt();
         //maybe should change this later?
     }
 
     @Override
     public void displayGame (LoadGameMessage loadGameMessage) {
-        System.out.println("displaying game");
-        System.out.println(loadGameMessage.getGame());
+        ChessGame game = loadGameMessage.getGame();
+        ChessBoard gameBoard = game.getBoard();
+        System.out.println(gameBoard);
+        for (int i = 1; i <= 8; i++) {
+            for (int j = 1; j <= 8; j++) {
+                ChessPiece chessPiece = gameBoard.getPiece(new ChessPosition(i, j));
 
+                ChessPiece.PieceType chessPieceType = null;
+                if (chessPiece != null) {
+                    chessPieceType = chessPiece.getPieceType();
+                }
+
+                switch (chessPieceType) {
+                    case null -> {
+                        System.out.print("   ");
+                    }
+                    case ROOK -> {
+                        System.out.print(" R ");
+                    }
+                    case KNIGHT -> {
+                        System.out.print(" N ");
+                    }
+                    case BISHOP -> {
+                        System.out.print(" B ");
+                    }
+                    case QUEEN -> {
+                        System.out.print(" Q ");
+                    }
+                    case KING -> {
+                        System.out.print(" K ");
+                    }
+                    case PAWN -> {
+                        System.out.print(" P ");
+                    }
+                }
+
+            }
+            System.out.println();
+        }
     }
 }

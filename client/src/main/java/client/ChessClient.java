@@ -12,6 +12,7 @@ import java.util.Scanner;
 public class ChessClient implements ServerMessageObserver {
     private final ServerFacadeMain server;
     private State state = State.LOGGEDOUT;
+    private GameplayState gameplayState = GameplayState.NOGAMEPLAY;
     private final WebsocketFacade websocketFacade;
 
     public ChessClient(String serverUrl) throws Exception {
@@ -63,6 +64,7 @@ public class ChessClient implements ServerMessageObserver {
                     default -> help();
                 };
             } else {
+                if (gameplayState == GameplayState.NOGAMEPLAY) {
                 return switch (cmd) {
                     case "create" -> create(params);
                     case "list" -> list();
@@ -72,6 +74,15 @@ public class ChessClient implements ServerMessageObserver {
                     case "quit" -> "quit";
                     default -> help();
                 };
+                } else {
+                    return switch (cmd) {
+                        case "filler" -> create(params);
+                        case "filler2" -> list();
+                        case "logout" -> logout();
+                        case "quit" -> "quit";
+                        default -> help();
+                    };
+                }
             }
         } catch (Exception ex) {
             return ex.getMessage();
@@ -140,6 +151,7 @@ public class ChessClient implements ServerMessageObserver {
                     String response = server.playGame(number, "WHITE");
                     if (Objects.equals(response, "User joined successfully.")) {
                         websocketFacade.connect(server.getAuth().authToken(), server.getGameID(number), server.getAuth().username());
+                        gameplayState = GameplayState.INGAMEPLAY;
                         displayBoard("WHITE");
                     }
                     return response;
@@ -147,6 +159,7 @@ public class ChessClient implements ServerMessageObserver {
                     String response = server.playGame(number, "BLACK");
                     if (Objects.equals(response, "User joined successfully.")) {
                         websocketFacade.connect(server.getAuth().authToken(), server.getGameID(number), server.getAuth().username());
+                        gameplayState = GameplayState.INGAMEPLAY;
                         displayBoard("BLACK");
                     }
                     return response;
@@ -204,16 +217,22 @@ public class ChessClient implements ServerMessageObserver {
                     - quit
                     - help - will list all available commands.
                     """;
+        } else if (gameplayState == GameplayState.NOGAMEPLAY) {
+            return """
+                    - create <NAME> - this will start a new game.
+                    - list - this will list all games.
+                    - join <ID> [WHITE|BLACK]
+                    - observe <ID>
+                    - logout
+                    - quit
+                    - help - will list all available commands.
+                    """;
+        } else { //fill in later with each command
+            return """ 
+                    - quit
+                    - help - will list all available commands.
+                    """;
         }
-        return """
-                - create <NAME> - this will start a new game.
-                - list - this will list all games.
-                - join <ID> [WHITE|BLACK]
-                - observe <ID>
-                - logout
-                - quit
-                - help - will list all available commands.
-                """;
     }
 
     private void displayBoard(String color) {

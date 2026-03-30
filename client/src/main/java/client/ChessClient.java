@@ -336,44 +336,57 @@ public class ChessClient implements ServerMessageObserver {
         System.out.println(gameBoard);
         for (int i = 1; i <= 8; i++) {
             for (int j = 1; j <= 8; j++) {
-                ChessPiece chessPiece = gameBoard.getPiece(new ChessPosition(i, j));
-
-                ChessPiece.PieceType chessPieceType = null;
-                if (chessPiece != null) {
-                    chessPieceType = chessPiece.getPieceType();
-                    if (chessPiece.getTeamColor() == ChessGame.TeamColor.WHITE) {
-                        System.out.print(SET_TEXT_COLOR_BLUE);
-                    } else {
-                        System.out.print(SET_TEXT_COLOR_GREEN);
-                    }
+                if (teamColor == ChessGame.TeamColor.WHITE) {
+                    printSquare(gameBoard, 9-i, j);
+                } else {
+                    printSquare(gameBoard, i, 9-j);
                 }
-
-                switch (chessPieceType) {
-                    case null -> {
-                        System.out.print("   ");
-                    }
-                    case ROOK -> {
-                        System.out.print(" R ");
-                    }
-                    case KNIGHT -> {
-                        System.out.print(" N ");
-                    }
-                    case BISHOP -> {
-                        System.out.print(" B ");
-                    }
-                    case QUEEN -> {
-                        System.out.print(" Q ");
-                    }
-                    case KING -> {
-                        System.out.print(" K ");
-                    }
-                    case PAWN -> {
-                        System.out.print(" P ");
-                    }
-                }
-
             }
-            System.out.println();
+            System.out.println("\u001b[39;49m");
+        }
+    }
+
+    private void printSquare(ChessBoard gameBoard, int i, int j) {
+        if (((i+j) % 2) != 0 ) {
+            System.out.print(SET_BG_COLOR_WHITE);
+        } else {
+            System.out.print(SET_BG_COLOR_BLACK);
+        }
+
+        ChessPiece chessPiece = gameBoard.getPiece(new ChessPosition(i, j));
+
+        ChessPiece.PieceType chessPieceType = null;
+        if (chessPiece != null) {
+            chessPieceType = chessPiece.getPieceType();
+            if (chessPiece.getTeamColor() == ChessGame.TeamColor.WHITE) {
+                System.out.print(SET_TEXT_COLOR_BLUE);
+            } else {
+                System.out.print(SET_TEXT_COLOR_GREEN);
+            }
+        }
+
+        switch (chessPieceType) {
+            case null -> {
+                System.out.print("   ");
+            }
+            case ROOK -> {
+                System.out.print(" R ");
+            }
+            case KNIGHT -> {
+                System.out.print(" N ");
+            }
+            case BISHOP -> {
+                System.out.print(" B ");
+            }
+            case QUEEN -> {
+                System.out.print(" Q ");
+            }
+            case KING -> {
+                System.out.print(" K ");
+            }
+            case PAWN -> {
+                System.out.print(" P ");
+            }
         }
     }
 }

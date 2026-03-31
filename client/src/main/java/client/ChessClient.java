@@ -4,11 +4,11 @@ import chess.ChessBoard;
 import chess.ChessGame;
 import chess.ChessPiece;
 import chess.ChessPosition;
-import com.google.gson.Gson;
-import model.AuthData;
 import serverfacade.ServerFacadeMain;
 import serverfacade.WebsocketFacade;
+import websocket.messages.ErrorMessage;
 import websocket.messages.LoadGameMessage;
+import websocket.messages.NotificationMessage;
 import websocket.messages.ServerMessage;
 
 import java.util.Arrays;
@@ -161,7 +161,6 @@ public class ChessClient implements ServerMessageObserver {
                     if (Objects.equals(response, "User joined successfully.")) {
                         websocketFacade.connect(server.getAuth().authToken(), server.getGameID(number), server.getAuth().username());
                         gameplayState = GameplayState.INGAMEPLAY;
-                        displayBoard("WHITE");
                     }
                     return response;
                 } else if (Objects.equals(color, "BLACK") || Objects.equals(color, "black")) {
@@ -170,7 +169,6 @@ public class ChessClient implements ServerMessageObserver {
                         websocketFacade.connect(server.getAuth().authToken(), server.getGameID(number), server.getAuth().username());
                         gameplayState = GameplayState.INGAMEPLAY;
                         teamColor = ChessGame.TeamColor.BLACK;
-                        displayBoard("BLACK");
                     }
                     return response;
                 } else {
@@ -192,7 +190,7 @@ public class ChessClient implements ServerMessageObserver {
                     int id = Integer.parseInt(params[0]);
                     String response = server.observeGame(id);
                     if (Objects.equals(response, "Game is being observed.")) {
-                        displayBoard("WHITE");
+                        //displayBoard("WHITE");
                         return "Observing game...";
                     } else {
                         return response;
@@ -237,96 +235,35 @@ public class ChessClient implements ServerMessageObserver {
                     - quit
                     - help - will list all available commands.
                     """;
-        } else { //fill in later with each command
+        } else {
             return """ 
-                    - quit
+                    - move <starting position> <end position> <optional:promotion piece (q,r,n,b)
+                    - leave
+                    - resign
                     - help - will list all available commands.
                     """;
         }
     }
 
-    private void displayBoard(String color) {
-        String[] rowLabels = {"a", "b", "c", "d", "e", "f", "g", "h"};
-        String[] pieces = {"R", "N", "B", "Q", "K", "B", "N", "R"};
-        String[] columnLabels = {" ", "1", "2", "3", "4", "5", "6", "7", "8", " "};
-        String opposingColor = "BLACK";
-
-        if (Objects.equals(color, "BLACK")) {
-            pieces = new String[]{"R", "N", "B", "K", "Q", "B", "N", "R"};
-            opposingColor = "WHITE";
-            rowLabels = new String[]{"h", "g", "f", "e", "d", "c", "b", "a"};
-            //columnLabels = new String[]{" ", "8", "7", "6", "5", "4", "3", "2", "1", " "};
-        }
-
-        if (Objects.equals(color, "WHITE")) {
-            columnLabels = new String[]{" ", "8", "7", "6", "5", "4", "3", "2", "1", " "};
-        }
-
-        String[] pawns = {"P","P","P","P","P","P","P","P"};
-        String[] empty = {" "," "," "," "," "," "," "," ",};
-
-        String[][] orderToPrint = new String[][]{rowLabels, pieces, pawns, empty, empty, empty, empty,
-                pawns, pieces, rowLabels};
-        String[] orderTeamColor = new String[]{"GRAY", opposingColor, opposingColor, "WHITE","WHITE",
-                "WHITE","WHITE", color, color, "GRAY"};
-
-        String startingColor = "GRAY";
-
-        for (int i = 0; i < 10; i ++) {
-            System.out.print("\u001b[30;100m");
-            System.out.printf(" %s ", columnLabels[i]);
-            if (i == 9) {
-                startingColor = "GRAY";
-            }
-            startingColor = displayLine(orderToPrint[i], startingColor, orderTeamColor[i]);
-            System.out.print("\u001b[30;100m");
-            System.out.printf(" %s ", columnLabels[i]);
-            System.out.println("\u001b[39;49m");
-        }
-        System.out.println("\u001b[39;49m");
-        //depends on the team. Could make it JSON compatible
+    @Override
+    public void notify(NotificationMessage notificationMessage) {
+        System.out.println();
+        System.out.println(notificationMessage.getNotification());
+        printPrompt();
     }
-
-    private String displayLine(String[] pieceSequence, String startingColor, String teamColor) {
-        String currentBackgroundColor = startingColor;
-        String nextLineStartingColor = "BLACK";
-        if (Objects.equals(startingColor, "GRAY")) {
-            nextLineStartingColor = "WHITE";
-        } else if (Objects.equals(startingColor, "BLACK")) {
-            nextLineStartingColor = "WHITE";
-        }
-        String displayColor;
-
-        if (Objects.equals(teamColor, "BLACK")) {
-            displayColor = "32";
-        } else if (Objects.equals(teamColor, "WHITE")){
-            displayColor = "34";
-        } else {
-            displayColor = "30";
-        }
-        for (int i = 0; i < 8; i++) {
-            if (Objects.equals(currentBackgroundColor, "WHITE")) {
-                System.out.printf("\u001b[%s;107m", displayColor);
-                System.out.printf(" %s ", pieceSequence[i]);
-                currentBackgroundColor = "BLACK";
-            } else if (Objects.equals(currentBackgroundColor, "BLACK")) {
-                System.out.printf("\u001b[%s;40m", displayColor);
-                System.out.printf(" %s ", pieceSequence[i]);
-                currentBackgroundColor = "WHITE";
-            } else {
-                System.out.printf("\u001b[%s;100m", displayColor);
-                System.out.printf(" %s ", pieceSequence[i]);
-            }
-        }
-        return nextLineStartingColor;
-    }
-
 
     @Override
-    public void notify(ServerMessage serverMessage) {
-        System.out.println(serverMessage);
+    public void notifyError(ErrorMessage errorMessage) {
+        System.out.println();
+        System.out.println(errorMessage.getMessage());
         printPrompt();
-        //maybe should change this later?
+    }
+
+    @Override
+    public void notifyDefault(ServerMessage serverMessage) {
+        System.out.println();
+        System.out.println("Something weird happened");
+        printPrompt();
     }
 
     @Override
@@ -345,6 +282,7 @@ public class ChessClient implements ServerMessageObserver {
             columnLabels = new String[]{"1", "2", "3", "4", "5", "6", "7", "8"};
         }
 
+        System.out.println();
         System.out.print(SET_BG_COLOR_LIGHT_GREY);
         System.out.print(SET_TEXT_COLOR_BLACK);
 
@@ -382,6 +320,8 @@ public class ChessClient implements ServerMessageObserver {
         }
         System.out.print("   ");
         System.out.println("\u001b[39;49m");
+
+        printPrompt();
     }
 
     private void printSquare(ChessBoard gameBoard, int i, int j) {
@@ -404,27 +344,13 @@ public class ChessClient implements ServerMessageObserver {
         }
 
         switch (chessPieceType) {
-            case null -> {
-                System.out.print("   ");
-            }
-            case ROOK -> {
-                System.out.print(" R ");
-            }
-            case KNIGHT -> {
-                System.out.print(" N ");
-            }
-            case BISHOP -> {
-                System.out.print(" B ");
-            }
-            case QUEEN -> {
-                System.out.print(" Q ");
-            }
-            case KING -> {
-                System.out.print(" K ");
-            }
-            case PAWN -> {
-                System.out.print(" P ");
-            }
+            case null -> System.out.print("   ");
+            case ROOK -> System.out.print(" R ");
+            case KNIGHT -> System.out.print(" N ");
+            case BISHOP -> System.out.print(" B ");
+            case QUEEN -> System.out.print(" Q ");
+            case KING -> System.out.print(" K ");
+            case PAWN -> System.out.print(" P ");
         }
     }
 }

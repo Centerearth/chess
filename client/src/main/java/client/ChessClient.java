@@ -96,7 +96,17 @@ public class ChessClient implements ServerMessageObserver {
                         case "redraw" -> {displayGameMechanics(game.getBoard(), null); yield "Here is the redrawn board";}
                         case "leave" -> leave();
                         case "move" -> makeMove(params);
-                        case "resign" -> resign();
+                        case "resign" -> {
+                            Scanner scanner = new Scanner(System.in);
+                            System.out.print("Are you sure you want to resign? Type y for yes: ");
+                            String confirm = scanner.nextLine();
+                            if (confirm != null && confirm.equals("y") || Objects.equals(confirm, "yes")) {
+                                System.out.println();
+                                yield resign();
+                            } else {
+                                yield "The user did not resign";
+                            }
+                        }
                         default -> help();
                     };
                 }

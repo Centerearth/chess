@@ -465,7 +465,8 @@ public class ChessClient implements ServerMessageObserver {
                 gameplayState = GameplayState.NOGAMEPLAY;
                 return "User stopped observing the game.";
             } else {
-                websocketFacade.leave(server.getAuth().authToken(), server.getGameID(this.number), server.getAuth().username(), teamColor.toString().toLowerCase());
+                websocketFacade.leave(server.getAuth().authToken(), server.getGameID(this.number),
+                        server.getAuth().username(), teamColor.toString().toLowerCase());
                 gameplayState = GameplayState.NOGAMEPLAY;
                 return "User has left the game";
             }
@@ -498,7 +499,8 @@ public class ChessClient implements ServerMessageObserver {
                         allEndPositions.add(move.getEndPosition());
                     }
 
-                    if (!allEndPositions.contains(endPosition)) {
+                    if (!allEndPositions.contains(endPosition) ||
+                            game.getBoard().getPiece(startPosition).getTeamColor() != teamColor) {
                         return "Not a valid move";
                     } else {
                         ChessMove chessMove = new ChessMove(startPosition, endPosition, promotionPiece);

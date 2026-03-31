@@ -101,7 +101,6 @@ public class SQLGameDataAccess implements GameDataAccess{
 
         GameData oldGame = getGame(gameID);
         GameData newGame;
-
         if (teamColor == ChessGame.TeamColor.BLACK) {
             newGame = new GameData(gameID,
                     oldGame.whiteUsername(), username, oldGame.gameName(), oldGame.game());

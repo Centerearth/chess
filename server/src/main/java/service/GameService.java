@@ -94,4 +94,8 @@ public class GameService {
             gameDataAccess.updateGame(joinGameRequest.teamColor(), joinGameRequest.gameID(), username);
         }
     }
+
+    public void updateGame(ChessGame.TeamColor teamColor, int gameID, String username) throws DataAccessException {
+        gameDataAccess.updateGame(teamColor, gameID, username);
+    }
 }

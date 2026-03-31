@@ -18,6 +18,7 @@ import websocket.messages.NotificationMessage;
 import websocket.messages.ServerMessage;
 
 import java.io.IOException;
+import java.util.Objects;
 
 import static websocket.messages.ServerMessage.ServerMessageType.*;
 
@@ -86,7 +87,15 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             NotificationMessage notificationMessage = new NotificationMessage(NOTIFICATION, notification);
 
             allConnections.broadcastSome(session, notificationMessage, userGameCommand.getGameID());
+
+            ChessGame.TeamColor teamColor = ChessGame.TeamColor.BLACK;
+            if (Objects.equals(userGameCommand.getColor(), "white")) {
+                teamColor = ChessGame.TeamColor.WHITE;
+            }
+
+            gameService.updateGame(teamColor, userGameCommand.getGameID(), null);
             allConnections.removeSession(userGameCommand.getGameID(), session);
+
         } catch (Exception e) {
             System.out.println(e.getMessage());
             allConnections.broadcastError(session, new ErrorMessage(ERROR,"Error: failed to leave"));

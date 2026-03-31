@@ -94,6 +94,7 @@ public class ChessClient implements ServerMessageObserver {
                     return switch (cmd) {
                         case "legalmoves" -> legalMoves(params);
                         case "redraw" -> {displayGameMechanics(game.getBoard(), null); yield "Here is the redrawn board";}
+                        case "leave" -> leave();
                         case "filler2" -> list();
                         case "logout" -> logout();
                         default -> help();
@@ -446,8 +447,12 @@ public class ChessClient implements ServerMessageObserver {
                 observingState = ObservingState.NOTOBSERVING;
                 gameplayState = GameplayState.NOGAMEPLAY;
                 return "User stopped observing the game.";
+            } else {
+                System.out.println(teamColor.toString().toLowerCase());
+                websocketFacade.leave(server.getAuth().authToken(), server.getGameID(this.number), server.getAuth().username(), teamColor.toString().toLowerCase());
+                gameplayState = GameplayState.NOGAMEPLAY;
+                return "User has left the game";
             }
-            return "";
         } catch (Exception e) {
             return "Failed to leave";
         }

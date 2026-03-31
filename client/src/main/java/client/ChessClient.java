@@ -286,11 +286,11 @@ public class ChessClient implements ServerMessageObserver {
         ChessBoard gameBoard = game.getBoard();
         this.game = game;
 
-        displayGameMechanics(gameBoard);
+        displayGameMechanics(gameBoard, null);
         printPrompt();
     }
 
-    public void displayGameMechanics (ChessBoard gameBoard) {
+    public void displayGameMechanics (ChessBoard gameBoard, ArrayList<ChessPosition> validPositions) {
         String[] rowLabels;
         String[] columnLabels;
 
@@ -320,9 +320,9 @@ public class ChessClient implements ServerMessageObserver {
 
             for (int j = 1; j <= 8; j++) {
                 if (teamColor == ChessGame.TeamColor.WHITE) {
-                    printSquare(gameBoard, 9-i, j);
+                    printSquare(gameBoard, 9-i, j, validPositions);
                 } else {
-                    printSquare(gameBoard, i, 9-j);
+                    printSquare(gameBoard, i, 9-j, validPositions);
                 }
             }
             System.out.print(SET_BG_COLOR_LIGHT_GREY);
@@ -343,8 +343,10 @@ public class ChessClient implements ServerMessageObserver {
 
     }
 
-    private void printSquare(ChessBoard gameBoard, int i, int j) {
-        if (((i+j) % 2) != 0 ) {
+    private void printSquare(ChessBoard gameBoard, int i, int j, ArrayList<ChessPosition> validPositions) {
+        if (validPositions != null && validPositions.contains(new ChessPosition(i, j))) {
+            System.out.print(SET_BG_COLOR_YELLOW);
+        } else if (((i+j) % 2) != 0 ) {
             System.out.print(SET_BG_COLOR_WHITE);
         } else {
             System.out.print(SET_BG_COLOR_BLACK);
@@ -377,13 +379,16 @@ public class ChessClient implements ServerMessageObserver {
         try {
             if (params.length == 1) {
                 try {
-                    int row = letterToNumber(params[0].substring(0,1));
-                    int column = Integer.parseInt(params[0].substring(1,2));
+                    int column = letterToNumber(params[0].substring(0,1));
+                    int row = Integer.parseInt(params[0].substring(1,2));
+                    System.out.println("" + row + column);
                     ArrayList<ChessPosition> allEndPositions = new ArrayList<>();
                     ArrayList<ChessMove> validMoves = (ArrayList<ChessMove>) game.validMoves(new ChessPosition(row, column));
                     for (ChessMove move : validMoves) {
                         allEndPositions.add(move.getEndPosition());
                     }
+
+                    displayGameMechanics(game.getBoard(), allEndPositions);
 
                     return "Here are the valid moves";
 

@@ -21,6 +21,7 @@ public class ChessClient implements ServerMessageObserver {
     private final ServerFacadeMain server;
     private State state = State.LOGGEDOUT;
     private GameplayState gameplayState = GameplayState.NOGAMEPLAY;
+    private ObservingState observingState = ObservingState.NOTOBSERVING;
     private final WebsocketFacade websocketFacade;
     private ChessGame.TeamColor teamColor = ChessGame.TeamColor.WHITE;
 
@@ -83,12 +84,18 @@ public class ChessClient implements ServerMessageObserver {
                     case "quit" -> "quit";
                     default -> help();
                 };
+                } else if (observingState == ObservingState.OBSERVING ){
+                    return switch (cmd) {
+                        case "filler" -> create(params);
+                        case "filler2" -> list();
+                        case "logout" -> logout(); //change these two here
+                        default -> help();
+                    };
                 } else {
                     return switch (cmd) {
                         case "filler" -> create(params);
                         case "filler2" -> list();
                         case "logout" -> logout();
-                        case "quit" -> "quit";
                         default -> help();
                     };
                 }
@@ -151,7 +158,6 @@ public class ChessClient implements ServerMessageObserver {
     }
 
     private String join(String... params) {
-        //should initiate the new UI
         try {
             if (params.length == 2) {
                 int number = Integer.parseInt(params[0]);
@@ -187,10 +193,15 @@ public class ChessClient implements ServerMessageObserver {
         try {
             if (params.length == 1) {
                 try {
-                    int id = Integer.parseInt(params[0]);
-                    String response = server.observeGame(id);
+
+                    int number = Integer.parseInt(params[0]);
+                    String response = server.observeGame(number);
+
                     if (Objects.equals(response, "Game is being observed.")) {
-                        //displayBoard("WHITE");
+                        websocketFacade.connect(server.getAuth().authToken(), server.getGameID(number), server.getAuth().username(), "observer");
+                        gameplayState = GameplayState.INGAMEPLAY;
+                        observingState = ObservingState.OBSERVING;
+                        teamColor = ChessGame.TeamColor.WHITE;
                         return "Observing game...";
                     } else {
                         return response;
@@ -225,6 +236,12 @@ public class ChessClient implements ServerMessageObserver {
                     - quit
                     - help - will list all available commands.
                     """;
+        } else if (observingState == ObservingState.OBSERVING) {
+            return """
+                    - legalmoves <position> - highlight all legal moves
+                    - leave
+                    - help - will list all available commands.
+                    """;
         } else if (gameplayState == GameplayState.NOGAMEPLAY) {
             return """
                     - create <NAME> - this will start a new game.
@@ -238,6 +255,7 @@ public class ChessClient implements ServerMessageObserver {
         } else {
             return """ 
                     - move <starting position> <end position> <optional:promotion piece (q,r,n,b)
+                    - legalmoves <position> - highlight all legal moves
                     - leave
                     - resign
                     - help - will list all available commands.

@@ -22,7 +22,7 @@ public class ChessClient implements ServerMessageObserver {
     private ChessGame game;
     private int number;
     private ChessGame.TeamColor whoseTurn;
-    private HashMap<Integer, Boolean> gamesOver = new HashMap<>();
+    private final HashMap<Integer, Boolean> gamesOver = new HashMap<>();
 
     public ChessClient(String serverUrl) throws Exception {
         server = new ServerFacadeMain(serverUrl);
@@ -178,6 +178,7 @@ public class ChessClient implements ServerMessageObserver {
                             return "Game has already ended";
                         }
                         gameplayState = GameplayState.INGAMEPLAY;
+                        teamColor = ChessGame.TeamColor.WHITE;
                     }
                     return response;
                 } else if (Objects.equals(color, "BLACK") || Objects.equals(color, "black")) {
@@ -314,11 +315,13 @@ public class ChessClient implements ServerMessageObserver {
         ChessBoard gameBoard = game.getBoard();
         this.game = game;
         this.whoseTurn = loadGameMessage.getWhoseTurn();
-        if (loadGameMessage.getGameOver()) {
-            this.gamesOver.put(number, true);
-        }
 
         displayGameMechanics(gameBoard, null);
+        if (loadGameMessage.getGameOver()) {
+            this.gamesOver.put(number, true);
+            observingState = ObservingState.NOTOBSERVING;
+            gameplayState = GameplayState.NOGAMEPLAY;
+        }
         printPrompt();
     }
 
@@ -535,6 +538,7 @@ public class ChessClient implements ServerMessageObserver {
                         ChessMove chessMove = new ChessMove(startPosition, endPosition, promotionPiece);
                         websocketFacade.makeMove(server.getAuth().authToken(), server.getGameID(this.number),
                                 server.getAuth().username(), teamColor.toString().toLowerCase(), chessMove);
+
                         return "Move successful";
                     }
 

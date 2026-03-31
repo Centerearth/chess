@@ -128,6 +128,17 @@ public class SQLGameDataAccess implements GameDataAccess{
         addGameData(newGame);
     }
 
+    public void updateTurn(int gameID, ChessGame.TeamColor whoseTurn) throws DataAccessException {
+        GameData oldGame = getGame(gameID);
+        GameData newGame;
+
+        newGame = new GameData(gameID, oldGame.whiteUsername(), oldGame.blackUsername(), oldGame.gameName(),
+                oldGame.game(), whoseTurn, oldGame.gameOver());
+
+        removeGameData(gameID);
+        addGameData(newGame);
+    }
+
     public void updateGameWin(int gameID) throws DataAccessException {
         GameData oldGame = getGame(gameID);
         GameData newGame;

@@ -15,11 +15,8 @@ import io.javalin.websocket.WsMessageHandler;
 import model.GameData;
 import org.eclipse.jetty.websocket.api.Session;
 import service.GameService;
-import websocket.commands.MakeMoveCommand;
-import websocket.commands.UserGameCommand;
-import websocket.messages.ErrorMessage;
-import websocket.messages.LoadGameMessage;
-import websocket.messages.NotificationMessage;
+import websocket.commands.*;
+import websocket.messages.*;
 import websocket.messages.ServerMessage;
 
 import java.io.IOException;
@@ -133,12 +130,42 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
 
             gameService.updateBoard(gameID, game);
 
+            //check and checkmate and stalemate
+            NotificationMessage notificationMessage2 = null;
+
+            if (game.isInCheckmate(ChessGame.TeamColor.WHITE)) {
+                String notification = String.format("%s has checkmated white", username);
+                notificationMessage2 = new NotificationMessage(NOTIFICATION, notification);
+                gameService.updateGameWin(gameID);
+            } else if (game.isInCheckmate(ChessGame.TeamColor.BLACK)) {
+                String notification = String.format("%s has checkmated black", username);
+                notificationMessage2 = new NotificationMessage(NOTIFICATION, notification);
+                gameService.updateGameWin(gameID);
+            } else if (game.isInCheck(ChessGame.TeamColor.WHITE)) {
+                String notification = String.format("%s has put black in check", username);
+                notificationMessage2 = new NotificationMessage(NOTIFICATION, notification);
+            } else if (game.isInCheck(ChessGame.TeamColor.BLACK)) {
+                String notification = String.format("%s has put white in check", username);
+                notificationMessage2 = new NotificationMessage(NOTIFICATION, notification);
+            } else if (game.isInStalemate(ChessGame.TeamColor.WHITE)) {
+                String notification = String.format("%s has put the game in stalemate", username);
+                notificationMessage2 = new NotificationMessage(NOTIFICATION, notification);
+            } else if (game.isInStalemate(ChessGame.TeamColor.BLACK)) {
+                String notification = String.format("%s has put the game in stalemate", username);
+                notificationMessage2 = new NotificationMessage(NOTIFICATION, notification);
+            }
+
+
+
             GameData gameData = gameService.getGame(gameID);
 
             ChessGame.TeamColor nextTurn = ChessGame.TeamColor.WHITE;
             if (gameData.whoseTurn() == ChessGame.TeamColor.WHITE) {
                 nextTurn = ChessGame.TeamColor.BLACK;
             }
+
+            gameService.updateTurn(gameID, nextTurn);
+            gameData = gameService.getGame(gameID);
 
             LoadGameMessage loadGameMessage = new LoadGameMessage(LOAD_GAME,
                     gameData.game(), nextTurn, gameData.gameOver());
@@ -147,6 +174,14 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             String notification = String.format("%s has made the move %s", username, makeMoveCommand.getMove().toString());
             NotificationMessage notificationMessage = new NotificationMessage(NOTIFICATION, notification);
             allConnections.broadcastSome(session, notificationMessage, gameID);
+
+            if (notificationMessage2 != null) {
+                allConnections.broadcastAll(notificationMessage2, gameID);
+            }
+
+            if (gameService.isGameWon(gameID)) {
+                allConnections.remove(gameID);
+            }
 
         } catch (Exception e) {
             System.out.println(e.getMessage());

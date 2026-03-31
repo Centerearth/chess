@@ -63,7 +63,6 @@ public class WebsocketFacade extends Endpoint {
     public void onOpen(Session session, EndpointConfig endpointConfig) {
     }
 
-    //have each of the different requests have a function here
 
     public void connect(String authToken, int gameID, String username, String color) throws Exception {
         try {

@@ -104,12 +104,15 @@ public class GameService {
         gameDataAccess.updateBoard(gameID, game);
     }
 
+    public void updateTurn(int gameID, ChessGame.TeamColor whoseTurn) throws DataAccessException {
+        gameDataAccess.updateTurn(gameID, whoseTurn);
+    }
+
     public void updateGameWin(int gameID) throws DataAccessException {
         gameDataAccess.updateGameWin(gameID);
     }
 
     public boolean isGameWon(int gameID) throws DataAccessException {
-        System.out.println(gameDataAccess.isGameWon(gameID));
         return gameDataAccess.isGameWon(gameID);
     }
 }

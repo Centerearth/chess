@@ -51,6 +51,19 @@ public class ConnectionManager {
         }
     }
 
+    public void broadcastOne(Session session, ServerMessage serverMessage, int gameID) throws IOException {
+        String messageJson = new Gson().toJson(serverMessage);
+        HashSet<Session> connections = allConnections.get(gameID);
+        for (Session s : connections) {
+            if (s.isOpen()) {
+                if (s.equals(session)) {
+                    System.out.println("I am in broadcastOne!");
+                    s.getRemote().sendString(messageJson);
+                }
+            }
+        }
+    }
+
     public void broadcastError(Session session, ErrorMessage errorMessage) throws IOException {
         String error = errorMessage.getMessage();
         if (session.isOpen()) {

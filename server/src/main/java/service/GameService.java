@@ -11,6 +11,7 @@ import recordandrequest.*;
 
 import javax.security.auth.login.FailedLoginException;
 import java.util.ArrayList;
+import java.util.Objects;
 import java.util.Random;
 
 public class GameService {
@@ -114,5 +115,13 @@ public class GameService {
 
     public boolean isGameWon(int gameID) throws DataAccessException {
         return gameDataAccess.isGameWon(gameID);
+    }
+
+    public ChessGame.TeamColor getColor(String username, int gameID) throws DataAccessException {
+        String color = gameDataAccess.giveColorGivenUsername(username, gameID);
+        if (Objects.equals(color, "black")) {
+            return ChessGame.TeamColor.BLACK;
+        }
+        return ChessGame.TeamColor.WHITE;
     }
 }

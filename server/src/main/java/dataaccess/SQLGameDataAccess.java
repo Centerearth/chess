@@ -4,6 +4,7 @@ import chess.ChessGame;
 import com.google.gson.Gson;
 import model.GameData;
 import java.util.ArrayList;
+import java.util.Objects;
 
 import static dataaccess.DatabaseManager.*;
 
@@ -152,5 +153,14 @@ public class SQLGameDataAccess implements GameDataAccess{
 
     public boolean isGameWon(int gameID) throws DataAccessException {
         return getGame(gameID).gameOver();
+    }
+
+    public String giveColorGivenUsername(String username, int gameID) throws DataAccessException {
+        GameData gameData = getGame(gameID);
+        System.out.println(gameData.whiteUsername() + " " + username);
+        if (Objects.equals(gameData.whiteUsername(), username)) {
+            return "WHITE";
+        }
+        return "BLACK";
     }
 }

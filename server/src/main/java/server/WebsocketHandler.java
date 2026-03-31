@@ -20,6 +20,7 @@ import websocket.messages.*;
 import websocket.messages.ServerMessage;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Objects;
 
 import static websocket.messages.ServerMessage.ServerMessageType.*;
@@ -60,11 +61,28 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
 
     @Override
     public void handleClose(WsCloseContext ctx) {
-        System.out.println("Websocket closed"); //same thing here? delete?
+        System.out.println("Websocket closed");
     }
 
     private void connect(UserGameCommand userGameCommand, Session session) throws IOException {
         try {
+
+            if (!gameService.authDataExists(userGameCommand.getAuthToken())) {
+                allConnections.add(userGameCommand.getGameID(), session);
+                String message = "ERROR: User is not authorized";
+                ErrorMessage errorMessage = new ErrorMessage(ERROR, message);
+                allConnections.broadcastError(session, errorMessage);
+                allConnections.removeSession(userGameCommand.getGameID(), session);
+                return;
+            }
+            if (gameService.getGame(userGameCommand.getGameID()) == null) {
+                allConnections.add(userGameCommand.getGameID(), session);
+                String message = "ERROR: Game ID is invalid";
+                ErrorMessage errorMessage = new ErrorMessage(ERROR, message);
+                allConnections.broadcastError(session, errorMessage);
+                allConnections.removeSession(userGameCommand.getGameID(), session);
+                return;
+            }
             if (gameService.isGameWon(userGameCommand.getGameID())) {
                 allConnections.add(userGameCommand.getGameID(), session);
 
@@ -112,6 +130,7 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             }
 
             String username = makeMoveCommand.getUsername();
+            System.out.println(username);
 
             ChessGame game = gameService.getGame(gameID).game();
 
@@ -119,6 +138,36 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             ChessPosition startPosition = move.getStartPosition();
             ChessPosition endPosition = move.getEndPosition();
             ChessPiece startingPiece = game.getBoard().getPiece(startPosition);
+
+            //validation check
+            ArrayList<ChessMove> validMoves = (ArrayList<ChessMove>) game.validMoves(startPosition);
+            ArrayList<ChessPosition> allEndPositions = new ArrayList<>();
+            for (ChessMove eachMove : validMoves) {
+                allEndPositions.add(eachMove.getEndPosition());
+            }
+
+            GameData gameData = gameService.getGame(gameID);
+            ChessGame.TeamColor teamColor = game.getBoard().getPiece(startPosition).getTeamColor();
+            if (teamColor != gameData.whoseTurn()) {
+                String message = "ERROR: Invalid";
+                ErrorMessage errorMessage = new ErrorMessage(ERROR, message);
+                allConnections.broadcastError(session, errorMessage);
+                return;
+            }
+            System.out.println(makeMoveCommand.getColor());
+            System.out.println(startPosition);
+            System.out.println(endPosition);
+            System.out.println(teamColor);
+            System.out.println(gameService.getColor(username, gameID));
+
+            if (!allEndPositions.contains(endPosition) ||
+                    game.getBoard().getPiece(startPosition).getTeamColor() != teamColor
+            || game.getBoard().getPiece(startPosition).getTeamColor() != gameService.getColor(username, gameID)) {
+                String message = "ERROR: Not a valid move";
+                ErrorMessage errorMessage = new ErrorMessage(ERROR, message);
+                allConnections.broadcastError(session, errorMessage);
+                return;
+            }
 
             if (move.getPromotionPiece() != null) {
                 game.getBoard().addPiece(endPosition,
@@ -157,7 +206,7 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
 
 
 
-            GameData gameData = gameService.getGame(gameID);
+            gameData = gameService.getGame(gameID);
 
             ChessGame.TeamColor nextTurn = ChessGame.TeamColor.WHITE;
             if (gameData.whoseTurn() == ChessGame.TeamColor.WHITE) {
@@ -218,12 +267,14 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
 
             gameService.updateGameWin(userGameCommand.getGameID());
 
+            allConnections.broadcastSome(session, notificationMessage, userGameCommand.getGameID());
+
             GameData gameData = gameService.getGame(userGameCommand.getGameID());
             LoadGameMessage loadGameMessage = new LoadGameMessage(LOAD_GAME,
                     gameData.game(), gameData.whoseTurn(), gameData.gameOver());
             allConnections.broadcastAll(loadGameMessage, userGameCommand.getGameID());
 
-            allConnections.broadcastSome(session, notificationMessage, userGameCommand.getGameID());
+
 
             allConnections.removeSession(userGameCommand.getGameID(), session);
 

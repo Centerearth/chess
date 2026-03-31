@@ -291,14 +291,14 @@ public class ChessClient implements ServerMessageObserver {
     @Override
     public void notify(NotificationMessage notificationMessage) {
         System.out.println();
-        System.out.println(notificationMessage.getNotification());
+        System.out.println(notificationMessage.getMessage());
         printPrompt();
     }
 
     @Override
     public void notifyError(ErrorMessage errorMessage) {
         System.out.println();
-        System.out.println(errorMessage.getMessage());
+        System.out.println(errorMessage.getErrorMessage());
         printPrompt();
     }
 
@@ -507,7 +507,7 @@ public class ChessClient implements ServerMessageObserver {
     public String makeMove (String... params) {
         try {
             if (this.teamColor != this.whoseTurn) {
-                return "Not your turn";
+                return "ERROR: Not your turn";
             }
             if (params.length == 2 || params.length == 3) {
                 try {
@@ -533,7 +533,7 @@ public class ChessClient implements ServerMessageObserver {
 
                     if (!allEndPositions.contains(endPosition) ||
                             game.getBoard().getPiece(startPosition).getTeamColor() != teamColor) {
-                        return "Not a valid move";
+                        return "ERROR: Not a valid move";
                     } else {
                         ChessMove chessMove = new ChessMove(startPosition, endPosition, promotionPiece);
                         websocketFacade.makeMove(server.getAuth().authToken(), server.getGameID(this.number),

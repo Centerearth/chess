@@ -157,10 +157,13 @@ public class SQLGameDataAccess implements GameDataAccess{
 
     public String giveColorGivenUsername(String username, int gameID) throws DataAccessException {
         GameData gameData = getGame(gameID);
-        System.out.println(gameData.whiteUsername() + " " + username);
         if (Objects.equals(gameData.whiteUsername(), username)) {
+            System.out.println("I am returning white");
             return "WHITE";
+        } else if (Objects.equals(gameData.blackUsername(), username)) {
+            System.out.println("I am returning black");
+            return "BLACK";
         }
-        return "BLACK";
+        return null;
     }
 }

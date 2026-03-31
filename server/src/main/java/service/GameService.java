@@ -5,6 +5,7 @@ import chess.ChessGame;
 import dataaccess.DataAccessException;
 import dataaccess.SQLAuthDataAccess;
 import dataaccess.SQLGameDataAccess;
+import model.AuthData;
 import model.GameData;
 import model.GameMetaData;
 import recordandrequest.*;
@@ -45,6 +46,11 @@ public class GameService {
             return false;
         }
     }
+
+    public AuthData getAuthData(String authToken) throws DataAccessException {
+        return (authDataAccess.getAuth(authToken));
+    }
+
 
     public CreateGameResult createGame(CreateGameRequest createGameRequest) throws FailedLoginException, DataAccessException {
         String authToken = createGameRequest.authToken();
@@ -119,7 +125,7 @@ public class GameService {
 
     public ChessGame.TeamColor getColor(String username, int gameID) throws DataAccessException {
         String color = gameDataAccess.giveColorGivenUsername(username, gameID);
-        if (Objects.equals(color, "black")) {
+        if (Objects.equals(color, "BLACK")) {
             return ChessGame.TeamColor.BLACK;
         }
         return ChessGame.TeamColor.WHITE;

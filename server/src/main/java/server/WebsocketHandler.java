@@ -129,8 +129,7 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                 return;
             }
 
-            String username = makeMoveCommand.getUsername();
-            System.out.println(username);
+            String username = gameService.getAuthData(makeMoveCommand.getAuthToken()).username();
 
             ChessGame game = gameService.getGame(gameID).game();
 
@@ -154,15 +153,11 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                 allConnections.broadcastError(session, errorMessage);
                 return;
             }
-            System.out.println(makeMoveCommand.getColor());
-            System.out.println(startPosition);
-            System.out.println(endPosition);
-            System.out.println(teamColor);
-            System.out.println(gameService.getColor(username, gameID));
 
             if (!allEndPositions.contains(endPosition) ||
                     game.getBoard().getPiece(startPosition).getTeamColor() != teamColor
             || game.getBoard().getPiece(startPosition).getTeamColor() != gameService.getColor(username, gameID)) {
+                System.out.println("I am here!!");
                 String message = "ERROR: Not a valid move";
                 ErrorMessage errorMessage = new ErrorMessage(ERROR, message);
                 allConnections.broadcastError(session, errorMessage);
@@ -260,14 +255,14 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
 
     private void resign(UserGameCommand userGameCommand, Session session) throws IOException {
         try {
+
             String notification = String.format("%s has resigned from the game (%s)", userGameCommand.getUsername(), userGameCommand.getColor());
             NotificationMessage notificationMessage = new NotificationMessage(NOTIFICATION, notification);
 
-            allConnections.broadcastSome(session, notificationMessage, userGameCommand.getGameID());
+            //allConnections.broadcastSome(session, notificationMessage, userGameCommand.getGameID());
+            allConnections.broadcastAll(notificationMessage, userGameCommand.getGameID());
 
             gameService.updateGameWin(userGameCommand.getGameID());
-
-            allConnections.broadcastSome(session, notificationMessage, userGameCommand.getGameID());
 
             GameData gameData = gameService.getGame(userGameCommand.getGameID());
             LoadGameMessage loadGameMessage = new LoadGameMessage(LOAD_GAME,

@@ -103,4 +103,12 @@ public class GameService {
     public void updateBoard(int gameID, ChessGame game) throws DataAccessException {
         gameDataAccess.updateBoard(gameID, game);
     }
+
+    public void updateGameWin(int gameID) throws DataAccessException {
+        gameDataAccess.updateGameWin(gameID);
+    }
+
+    public boolean isGameWon(int gameID) throws DataAccessException {
+        return gameDataAccess.isGameWon(gameID);
+    }
 }

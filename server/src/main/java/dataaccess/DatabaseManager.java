@@ -31,6 +31,7 @@ public class DatabaseManager {
             CREATE TABLE IF NOT EXISTS game (
                 gameID INT NOT NULL,
                 gameData longtext NOT NULL,
+                gameOver BOOL NOT NULL DEFAULT FALSE,
                 PRIMARY KEY (gameID)
             )""";
             try (var createTableStatement = conn.prepareStatement(createGameTable)) {

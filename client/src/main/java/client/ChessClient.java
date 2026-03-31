@@ -86,7 +86,6 @@ public class ChessClient implements ServerMessageObserver {
                         case "legalmoves" -> legalMoves(params);
                         case "redraw" -> {displayGameMechanics(game.getBoard(), null); yield "Here is the redrawn board";}
                         case "leave" -> leave();
-                        case "logout" -> logout(); //change these two here
                         default -> help();
                     };
                 } else {
@@ -95,7 +94,7 @@ public class ChessClient implements ServerMessageObserver {
                         case "redraw" -> {displayGameMechanics(game.getBoard(), null); yield "Here is the redrawn board";}
                         case "leave" -> leave();
                         case "move" -> makeMove(params);
-                        case "logout" -> logout();
+                        case "resign" -> resign();
                         default -> help();
                     };
                 }
@@ -517,6 +516,17 @@ public class ChessClient implements ServerMessageObserver {
             }
         } catch (Exception e) {
             return "Failed to make move";
+        }
+    }
+
+    public String resign() {
+        try {
+                websocketFacade.resign(server.getAuth().authToken(), server.getGameID(this.number),
+                        server.getAuth().username(), teamColor.toString().toLowerCase());
+                gameplayState = GameplayState.NOGAMEPLAY;
+                return "User has resigned from the game";
+        } catch (Exception e) {
+            return "Failed to resign";
         }
     }
 }

@@ -123,4 +123,35 @@ public class SQLGameDataAccess implements GameDataAccess{
         removeGameData(gameID);
         addGameData(newGame);
     }
+
+    public void updateGameWin(int gameID) throws DataAccessException {
+        System.out.println("I am in updateGameWin");
+        try (var conn = DatabaseManager.getConnection()) {
+            conn.setCatalog(databaseName);
+            try (var preparedStatement = conn.prepareStatement("UPDATE game SET gameOver = TRUE WHERE gameID=?")) {
+                preparedStatement.setInt(1, gameID);
+                preparedStatement.executeUpdate();
+            }
+        } catch (Exception e) {
+            throw new DataAccessException("Error: the game failed to finish", e);
+        }
+    }
+
+    public boolean isGameWon(int gameID) throws DataAccessException {
+        try (var conn = DatabaseManager.getConnection()) {
+            try (var preparedStatement = conn.prepareStatement("SELECT gameOver FROM game WHERE gameID=?")) {
+                conn.setCatalog(databaseName);
+                preparedStatement.setInt(1, gameID);
+
+                try (var rs = preparedStatement.executeQuery()) {
+                    while (rs.next()) {
+                        return rs.getBoolean("gameOver");
+                    }
+                    return false;
+                }
+            }
+        } catch (Exception e) {
+            throw new DataAccessException("Error: the game failed to finish", e);
+        }
+    }
 }

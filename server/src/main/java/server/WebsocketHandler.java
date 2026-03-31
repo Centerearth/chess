@@ -117,7 +117,7 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
 
         } catch (Exception e) {
             System.out.println(e.getMessage());
-            allConnections.broadcastError(session, new ErrorMessage(ERROR,"Error: failed to leave"));
+            allConnections.broadcastError(session, new ErrorMessage(ERROR,"Error: failed to make move"));
         }
     }
     private void leave(UserGameCommand userGameCommand, Session session) throws IOException {
@@ -141,8 +141,22 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         }
     }
 
-    private void resign(UserGameCommand userGameCommand, Session session) {
+    private void resign(UserGameCommand userGameCommand, Session session) throws IOException {
+        try {
+            String notification = String.format("%s has resigned from the game (%s)", userGameCommand.getUsername(), userGameCommand.getColor());
+            NotificationMessage notificationMessage = new NotificationMessage(NOTIFICATION, notification);
 
+            allConnections.broadcastSome(session, notificationMessage, userGameCommand.getGameID());
+
+            gameService.updateGameWin(userGameCommand.getGameID());
+
+            System.out.println(gameService.isGameWon(userGameCommand.getGameID()));
+            allConnections.remove(userGameCommand.getGameID());
+
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            allConnections.broadcastError(session, new ErrorMessage(ERROR,"Error: failed to resign"));
+        }
     }
 
 //    private void enter(String visitorName, Session session) throws IOException {

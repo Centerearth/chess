@@ -24,6 +24,7 @@ public class ChessClient implements ServerMessageObserver {
     private ObservingState observingState = ObservingState.NOTOBSERVING;
     private final WebsocketFacade websocketFacade;
     private ChessGame.TeamColor teamColor = ChessGame.TeamColor.WHITE;
+    private ChessBoard board;
 
     public ChessClient(String serverUrl) throws Exception {
         server = new ServerFacadeMain(serverUrl);
@@ -288,7 +289,13 @@ public class ChessClient implements ServerMessageObserver {
     public void displayGame (LoadGameMessage loadGameMessage) {
         ChessGame game = loadGameMessage.getGame();
         ChessBoard gameBoard = game.getBoard();
+        this.board = gameBoard;
 
+        displayGameMechanics(gameBoard);
+        printPrompt();
+    }
+
+    public void displayGameMechanics (ChessBoard gameBoard) {
         String[] rowLabels;
         String[] columnLabels;
 
@@ -339,7 +346,6 @@ public class ChessClient implements ServerMessageObserver {
         System.out.print("   ");
         System.out.println("\u001b[39;49m");
 
-        printPrompt();
     }
 
     private void printSquare(ChessBoard gameBoard, int i, int j) {

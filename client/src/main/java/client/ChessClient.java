@@ -1,9 +1,6 @@
 package client;
 
-import chess.ChessBoard;
-import chess.ChessGame;
-import chess.ChessPiece;
-import chess.ChessPosition;
+import chess.*;
 import serverfacade.ServerFacadeMain;
 import serverfacade.WebsocketFacade;
 import websocket.messages.ErrorMessage;
@@ -11,9 +8,7 @@ import websocket.messages.LoadGameMessage;
 import websocket.messages.NotificationMessage;
 import websocket.messages.ServerMessage;
 
-import java.util.Arrays;
-import java.util.Objects;
-import java.util.Scanner;
+import java.util.*;
 
 import static ui.EscapeSequences.*;
 
@@ -24,7 +19,7 @@ public class ChessClient implements ServerMessageObserver {
     private ObservingState observingState = ObservingState.NOTOBSERVING;
     private final WebsocketFacade websocketFacade;
     private ChessGame.TeamColor teamColor = ChessGame.TeamColor.WHITE;
-    private ChessBoard board;
+    private ChessGame game;
 
     public ChessClient(String serverUrl) throws Exception {
         server = new ServerFacadeMain(serverUrl);
@@ -87,14 +82,14 @@ public class ChessClient implements ServerMessageObserver {
                 };
                 } else if (observingState == ObservingState.OBSERVING ){
                     return switch (cmd) {
-                        case "filler" -> create(params);
+                        case "legalmoves" -> legalMoves(params);
                         case "filler2" -> list();
                         case "logout" -> logout(); //change these two here
                         default -> help();
                     };
                 } else {
                     return switch (cmd) {
-                        case "filler" -> create(params);
+                        case "legalmoves" -> legalMoves(params);
                         case "filler2" -> list();
                         case "logout" -> logout();
                         default -> help();
@@ -289,7 +284,7 @@ public class ChessClient implements ServerMessageObserver {
     public void displayGame (LoadGameMessage loadGameMessage) {
         ChessGame game = loadGameMessage.getGame();
         ChessBoard gameBoard = game.getBoard();
-        this.board = gameBoard;
+        this.game = game;
 
         displayGameMechanics(gameBoard);
         printPrompt();
@@ -375,6 +370,63 @@ public class ChessClient implements ServerMessageObserver {
             case QUEEN -> System.out.print(" Q ");
             case KING -> System.out.print(" K ");
             case PAWN -> System.out.print(" P ");
+        }
+    }
+
+    public String legalMoves (String... params) {
+        try {
+            if (params.length == 1) {
+                try {
+                    int row = letterToNumber(params[0].substring(0,1));
+                    int column = Integer.parseInt(params[0].substring(1,2));
+                    ArrayList<ChessPosition> allEndPositions = new ArrayList<>();
+                    ArrayList<ChessMove> validMoves = (ArrayList<ChessMove>) game.validMoves(new ChessPosition(row, column));
+                    for (ChessMove move : validMoves) {
+                        allEndPositions.add(move.getEndPosition());
+                    }
+
+                    return "Here are the valid moves";
+
+                } catch (Exception e) {
+                    return "Request is malformed";
+                }
+            } else {
+                return "Request is malformed";
+            }
+        } catch (Exception e) {
+            return "Failed to highlight legal moves";
+        }
+    }
+
+    private int letterToNumber(String letter) throws Exception {
+        switch (letter) {
+            case "a" -> {
+                return 1;
+            }
+            case "b" -> {
+                return 2;
+            }
+            case "c" -> {
+                return 3;
+            }
+            case "d" -> {
+                return 4;
+            }
+            case "e" -> {
+                return 5;
+            }
+            case "f" -> {
+                return 6;
+            }
+            case "g" -> {
+                return 7;
+            }
+            case "h" -> {
+                return 8;
+            }
+            default -> {
+                throw new Exception();
+            }
         }
     }
 }

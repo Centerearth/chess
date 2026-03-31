@@ -20,6 +20,7 @@ public class ChessClient implements ServerMessageObserver {
     private final WebsocketFacade websocketFacade;
     private ChessGame.TeamColor teamColor = ChessGame.TeamColor.WHITE;
     private ChessGame game;
+    private int number;
 
     public ChessClient(String serverUrl) throws Exception {
         server = new ServerFacadeMain(serverUrl);
@@ -84,6 +85,7 @@ public class ChessClient implements ServerMessageObserver {
                     return switch (cmd) {
                         case "legalmoves" -> legalMoves(params);
                         case "redraw" -> {displayGameMechanics(game.getBoard(), null); yield "Here is the redrawn board";}
+                        case "leave" -> leave();
                         case "filler2" -> list();
                         case "logout" -> logout(); //change these two here
                         default -> help();
@@ -159,6 +161,7 @@ public class ChessClient implements ServerMessageObserver {
         try {
             if (params.length == 2) {
                 int number = Integer.parseInt(params[0]);
+                this.number = number;
                 String color = params[1];
                 if (Objects.equals(color, "WHITE") || Objects.equals(color, "white")) {
                     String response = server.playGame(number, "WHITE");
@@ -182,7 +185,6 @@ public class ChessClient implements ServerMessageObserver {
                 return "Request is malformed";
             }
         } catch (Exception e) {
-            System.out.println(e.getMessage());
             return "Failed to join.";
         }
     }
@@ -191,8 +193,8 @@ public class ChessClient implements ServerMessageObserver {
         try {
             if (params.length == 1) {
                 try {
-
                     int number = Integer.parseInt(params[0]);
+                    this.number = number;
                     String response = server.observeGame(number);
 
                     if (Objects.equals(response, "Game is being observed.")) {
@@ -433,9 +435,21 @@ public class ChessClient implements ServerMessageObserver {
             case "h" -> {
                 return 8;
             }
-            default -> {
-                throw new Exception();
+            default -> throw new Exception();
+        }
+    }
+
+    public String leave() {
+        try {
+            if (observingState == ObservingState.OBSERVING) {
+                websocketFacade.leave(server.getAuth().authToken(), server.getGameID(this.number), server.getAuth().username(), "observer");
+                observingState = ObservingState.NOTOBSERVING;
+                gameplayState = GameplayState.NOGAMEPLAY;
+                return "User stopped observing the game.";
             }
+            return "";
+        } catch (Exception e) {
+            return "Failed to leave";
         }
     }
 }

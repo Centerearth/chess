@@ -27,6 +27,10 @@ public class ConnectionManager {
         allConnections.remove(gameID);
     }
 
+    public void removeSession(int gameID, Session session) {
+        allConnections.get(gameID).remove(session);
+    }
+
     public void broadcastAll(ServerMessage serverMessage, int gameID) throws IOException {
         String messageJson = new Gson().toJson(serverMessage);
         HashSet<Session> connections = allConnections.get(gameID);

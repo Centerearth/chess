@@ -36,7 +36,7 @@ public class ChessPosition {
 
     @Override
     public String toString() {
-        return String.format("[%d,%d]", row, col);
+        return String.format("[%s%d]", numberToLetter(col), row);
     }
 
     @Override
@@ -51,5 +51,37 @@ public class ChessPosition {
     @Override
     public int hashCode() {
         return Objects.hash(getRow(), col);
+    }
+
+    private String numberToLetter(int number) {
+        switch (number) {
+            case 1 -> {
+                return "a";
+            }
+            case 2 -> {
+                return "b";
+            }
+            case 3 -> {
+                return "c";
+            }
+            case 4 -> {
+                return "d";
+            }
+            case 5 -> {
+                return "e";
+            }
+            case 6 -> {
+                return "f";
+            }
+            case 7 -> {
+                return "g";
+            }
+            case 8 -> {
+                return "h";
+            }
+            default -> {
+                return "unknown";
+            }
+        }
     }
 }

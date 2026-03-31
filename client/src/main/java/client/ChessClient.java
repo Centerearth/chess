@@ -86,7 +86,6 @@ public class ChessClient implements ServerMessageObserver {
                         case "legalmoves" -> legalMoves(params);
                         case "redraw" -> {displayGameMechanics(game.getBoard(), null); yield "Here is the redrawn board";}
                         case "leave" -> leave();
-                        case "filler2" -> list();
                         case "logout" -> logout(); //change these two here
                         default -> help();
                     };
@@ -95,7 +94,7 @@ public class ChessClient implements ServerMessageObserver {
                         case "legalmoves" -> legalMoves(params);
                         case "redraw" -> {displayGameMechanics(game.getBoard(), null); yield "Here is the redrawn board";}
                         case "leave" -> leave();
-                        case "filler2" -> list();
+                        case "move" -> makeMove(params);
                         case "logout" -> logout();
                         default -> help();
                     };
@@ -440,6 +439,24 @@ public class ChessClient implements ServerMessageObserver {
         }
     }
 
+    private ChessPiece.PieceType letterToPromotion(String letter) throws Exception {
+        switch (letter) {
+            case "q" -> {
+                return ChessPiece.PieceType.QUEEN;
+            }
+            case "r" -> {
+                return ChessPiece.PieceType.ROOK;
+            }
+            case "b" -> {
+                return ChessPiece.PieceType.BISHOP;
+            }
+            case "n" -> {
+                return ChessPiece.PieceType.KNIGHT;
+            }
+            default -> throw new Exception();
+        }
+    }
+
     public String leave() {
         try {
             if (observingState == ObservingState.OBSERVING) {
@@ -448,13 +465,56 @@ public class ChessClient implements ServerMessageObserver {
                 gameplayState = GameplayState.NOGAMEPLAY;
                 return "User stopped observing the game.";
             } else {
-                System.out.println(teamColor.toString().toLowerCase());
                 websocketFacade.leave(server.getAuth().authToken(), server.getGameID(this.number), server.getAuth().username(), teamColor.toString().toLowerCase());
                 gameplayState = GameplayState.NOGAMEPLAY;
                 return "User has left the game";
             }
         } catch (Exception e) {
             return "Failed to leave";
+        }
+    }
+
+    public String makeMove (String... params) {
+        try {
+            if (params.length == 2 || params.length == 3) {
+                try {
+                    int column1 = letterToNumber(params[0].substring(0,1));
+                    int row1 = Integer.parseInt(params[0].substring(1,2));
+
+                    int column2 = letterToNumber(params[1].substring(0,1));
+                    int row2 = Integer.parseInt(params[1].substring(1,2));
+
+                    ChessPiece.PieceType promotionPiece = null;
+                    if (params.length == 3) {
+                        promotionPiece = letterToPromotion(params[2].substring(0,1));
+                    }
+
+                    ChessPosition startPosition = new ChessPosition(row1, column1);
+                    ChessPosition endPosition = new ChessPosition(row2, column2);
+
+                    ArrayList<ChessMove> validMoves = (ArrayList<ChessMove>) game.validMoves(startPosition);
+                    ArrayList<ChessPosition> allEndPositions = new ArrayList<>();
+                    for (ChessMove move : validMoves) {
+                        allEndPositions.add(move.getEndPosition());
+                    }
+
+                    if (!allEndPositions.contains(endPosition)) {
+                        return "Not a valid move";
+                    } else {
+                        ChessMove chessMove = new ChessMove(startPosition, endPosition, promotionPiece);
+                        websocketFacade.makeMove(server.getAuth().authToken(), server.getGameID(this.number),
+                                server.getAuth().username(), teamColor.toString().toLowerCase(), chessMove);
+                        return "Move successful";
+                    }
+
+                } catch (Exception e) {
+                    return "Request is malformed";
+                }
+            } else {
+                return "Request is malformed";
+            }
+        } catch (Exception e) {
+            return "Failed to make move";
         }
     }
 }

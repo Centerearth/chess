@@ -1,6 +1,9 @@
 package server;
 
 import chess.ChessGame;
+import chess.ChessMove;
+import chess.ChessPiece;
+import chess.ChessPosition;
 import com.google.gson.Gson;
 import dataaccess.DataAccessException;
 import io.javalin.websocket.WsCloseContext;
@@ -11,6 +14,7 @@ import io.javalin.websocket.WsMessageContext;
 import io.javalin.websocket.WsMessageHandler;
 import org.eclipse.jetty.websocket.api.Session;
 import service.GameService;
+import websocket.commands.MakeMoveCommand;
 import websocket.commands.UserGameCommand;
 import websocket.messages.ErrorMessage;
 import websocket.messages.LoadGameMessage;
@@ -40,13 +44,17 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     @Override
     public void handleMessage(WsMessageContext ctx) {
         try {
-            UserGameCommand userGameCommand = new Gson().fromJson(ctx.message(), UserGameCommand.class);
+        UserGameCommand userGameCommand = new Gson().fromJson(ctx.message(), UserGameCommand.class);
             switch (userGameCommand.getCommandType()) {
                 case CONNECT -> connect(userGameCommand, ctx.session);
-                case MAKE_MOVE -> makeMove(userGameCommand, ctx.session);
+                case MAKE_MOVE -> {
+                    MakeMoveCommand makeMoveCommand = new Gson().fromJson(ctx.message(), MakeMoveCommand.class);
+                    makeMove(makeMoveCommand, ctx.session);
+                }
                 case LEAVE -> leave(userGameCommand, ctx.session);
                 case RESIGN -> resign(userGameCommand, ctx.session);
             }
+
         } catch (IOException ex ) {
             ex.printStackTrace();
         }
@@ -78,8 +86,39 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
 
     }
 
-    private void makeMove(UserGameCommand userGameCommand, Session session) {
-        //authToken check
+    private void makeMove(MakeMoveCommand makeMoveCommand, Session session) throws IOException {
+        try {
+            String username = makeMoveCommand.getUsername();
+            String notification = String.format("%s has made the move %s", username, makeMoveCommand.getMove().toString());
+            NotificationMessage notificationMessage = new NotificationMessage(NOTIFICATION, notification);
+            int gameID = makeMoveCommand.getGameID();
+
+            allConnections.broadcastSome(session, notificationMessage, gameID);
+            ChessGame game = gameService.getGame(gameID).game();
+
+            ChessMove move = makeMoveCommand.getMove();
+            ChessPosition startPosition = move.getStartPosition();
+            ChessPosition endPosition = move.getEndPosition();
+            ChessPiece startingPiece = game.getBoard().getPiece(startPosition);
+
+            if (move.getPromotionPiece() != null) {
+                game.getBoard().addPiece(endPosition,
+                        new ChessPiece(game.getBoard().getPiece(startPosition).getTeamColor(), move.getPromotionPiece()));
+            } else {
+                game.getBoard().addPiece(endPosition, startingPiece);
+            }
+            game.getBoard().addPiece(startPosition, null);
+
+            gameService.updateBoard(gameID, game);
+
+            LoadGameMessage loadGameMessage = new LoadGameMessage(LOAD_GAME,
+                    gameService.getGame(gameID).game());
+            allConnections.broadcastAll(loadGameMessage, gameID);
+
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            allConnections.broadcastError(session, new ErrorMessage(ERROR,"Error: failed to leave"));
+        }
     }
     private void leave(UserGameCommand userGameCommand, Session session) throws IOException {
         try {

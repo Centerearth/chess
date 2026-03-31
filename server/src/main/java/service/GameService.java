@@ -1,5 +1,6 @@
 package service;
 
+import chess.ChessBoard;
 import chess.ChessGame;
 import dataaccess.DataAccessException;
 import dataaccess.SQLAuthDataAccess;
@@ -97,5 +98,9 @@ public class GameService {
 
     public void updateGame(ChessGame.TeamColor teamColor, int gameID, String username) throws DataAccessException {
         gameDataAccess.updateGame(teamColor, gameID, username);
+    }
+
+    public void updateBoard(int gameID, ChessGame game) throws DataAccessException {
+        gameDataAccess.updateBoard(gameID, game);
     }
 }

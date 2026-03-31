@@ -112,4 +112,15 @@ public class SQLGameDataAccess implements GameDataAccess{
         removeGameData(gameID);
         addGameData(newGame);
     }
+
+    public void updateBoard(int gameID, ChessGame game) throws DataAccessException {
+
+        GameData oldGame = getGame(gameID);
+        GameData newGame;
+
+        newGame = new GameData(gameID, oldGame.whiteUsername(), oldGame.blackUsername(), oldGame.gameName(), game);
+
+        removeGameData(gameID);
+        addGameData(newGame);
+    }
 }

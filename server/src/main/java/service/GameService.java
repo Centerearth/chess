@@ -127,7 +127,9 @@ public class GameService {
         String color = gameDataAccess.giveColorGivenUsername(username, gameID);
         if (Objects.equals(color, "BLACK")) {
             return ChessGame.TeamColor.BLACK;
+        } else if (Objects.equals(color, "WHITE")) {
+            return ChessGame.TeamColor.WHITE;
         }
-        return ChessGame.TeamColor.WHITE;
+        return null;
     }
 }

@@ -143,14 +143,19 @@ public class ServerFacadeMain {
         ListGameResult allGames = new Gson().fromJson(httpResponse.body(), ListGameResult.class);
 
         StringBuilder gameList = new StringBuilder();
-        idToNumber = new HashMap<>();
+        if (idToNumber == null || idToNumber.isEmpty()) {
+            idToNumber = new HashMap<>();
+        }
 
         if (allGames.games().isEmpty()) {
             return "No games to display.";
         }
+        for (int i = idToNumber.size(); i < allGames.games().size(); i++) {
+            idToNumber.put(i+1, allGames.games().get(i).gameID());
+        }
 
         for (int i = 0; i < allGames.games().size(); i++) {
-            idToNumber.put(i+1, allGames.games().get(i).gameID());
+            //idToNumber.put(i+1, allGames.games().get(i).gameID());
 
             gameList.append("Game: ");
             gameList.append(i+1);

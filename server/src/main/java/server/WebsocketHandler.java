@@ -123,9 +123,9 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             int gameID = makeMoveCommand.getGameID();
 
             if (gameService.isGameWon(gameID)) {
-                String notification = "This game has already ended";
-                NotificationMessage notificationMessage = new NotificationMessage(NOTIFICATION, notification);
-                allConnections.broadcastOne(session, notificationMessage, gameID);
+                String error = "This game has already ended";
+                ErrorMessage errorMessage = new ErrorMessage(ERROR, error);
+                allConnections.broadcastOne(session, errorMessage, gameID);
                 return;
             }
 
@@ -237,14 +237,19 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             String notification = String.format("%s has left the game (%s)", userGameCommand.getUsername(), userGameCommand.getColor());
             NotificationMessage notificationMessage = new NotificationMessage(NOTIFICATION, notification);
 
-            allConnections.broadcastSome(session, notificationMessage, userGameCommand.getGameID());
+            //allConnections.broadcastSome(session, notificationMessage, userGameCommand.getGameID());
 
-            ChessGame.TeamColor teamColor = ChessGame.TeamColor.BLACK;
-            if (Objects.equals(userGameCommand.getColor(), "white")) {
-                teamColor = ChessGame.TeamColor.WHITE;
+            String username = gameService.getAuthData(userGameCommand.getAuthToken()).username();
+            ChessGame.TeamColor teamColor = gameService.getColor(username, userGameCommand.getGameID());
+
+            if (Objects.equals(teamColor, ChessGame.TeamColor.WHITE)) {
+                gameService.updateGame(ChessGame.TeamColor.WHITE, userGameCommand.getGameID(), null);
+            } else if (Objects.equals(teamColor, ChessGame.TeamColor.BLACK)) {
+                gameService.updateGame(ChessGame.TeamColor.BLACK, userGameCommand.getGameID(), null);
             }
 
-            gameService.updateGame(teamColor, userGameCommand.getGameID(), null);
+            allConnections.broadcastSome(session, notificationMessage, userGameCommand.getGameID());
+
             allConnections.removeSession(userGameCommand.getGameID(), session);
 
         } catch (Exception e) {
@@ -255,6 +260,15 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
 
     private void resign(UserGameCommand userGameCommand, Session session) throws IOException {
         try {
+            String username = gameService.getAuthData(userGameCommand.getAuthToken()).username();
+            if (username == null || gameService.getColor(username, userGameCommand.getGameID()) == null) {
+                allConnections.broadcastError(session, new ErrorMessage(ERROR,"Error: cannot resign as observer"));
+                return;
+            }
+            if (gameService.isGameWon(userGameCommand.getGameID())) {
+                allConnections.broadcastError(session, new ErrorMessage(ERROR, "Error: game is already finished."));
+                return;
+            }
 
             String notification = String.format("%s has resigned from the game (%s)", userGameCommand.getUsername(), userGameCommand.getColor());
             NotificationMessage notificationMessage = new NotificationMessage(NOTIFICATION, notification);
@@ -263,13 +277,6 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             allConnections.broadcastAll(notificationMessage, userGameCommand.getGameID());
 
             gameService.updateGameWin(userGameCommand.getGameID());
-
-            GameData gameData = gameService.getGame(userGameCommand.getGameID());
-            LoadGameMessage loadGameMessage = new LoadGameMessage(LOAD_GAME,
-                    gameData.game(), gameData.whoseTurn(), gameData.gameOver());
-            allConnections.broadcastAll(loadGameMessage, userGameCommand.getGameID());
-
-
 
             allConnections.removeSession(userGameCommand.getGameID(), session);
 

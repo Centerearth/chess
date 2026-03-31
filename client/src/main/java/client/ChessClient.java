@@ -83,6 +83,7 @@ public class ChessClient implements ServerMessageObserver {
                 } else if (observingState == ObservingState.OBSERVING ){
                     return switch (cmd) {
                         case "legalmoves" -> legalMoves(params);
+                        case "redraw" -> {displayGameMechanics(game.getBoard(), null); yield "Here is the redrawn board";}
                         case "filler2" -> list();
                         case "logout" -> logout(); //change these two here
                         default -> help();
@@ -90,6 +91,7 @@ public class ChessClient implements ServerMessageObserver {
                 } else {
                     return switch (cmd) {
                         case "legalmoves" -> legalMoves(params);
+                        case "redraw" -> {displayGameMechanics(game.getBoard(), null); yield "Here is the redrawn board";}
                         case "filler2" -> list();
                         case "logout" -> logout();
                         default -> help();
@@ -236,6 +238,7 @@ public class ChessClient implements ServerMessageObserver {
             return """
                     - legalmoves <position> - highlight all legal moves
                     - leave
+                    - redraw
                     - help - will list all available commands.
                     """;
         } else if (gameplayState == GameplayState.NOGAMEPLAY) {
@@ -252,6 +255,7 @@ public class ChessClient implements ServerMessageObserver {
             return """ 
                     - move <starting position> <end position> <optional:promotion piece (q,r,n,b)
                     - legalmoves <position> - highlight all legal moves
+                    - redraw
                     - leave
                     - resign
                     - help - will list all available commands.

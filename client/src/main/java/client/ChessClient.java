@@ -159,14 +159,14 @@ public class ChessClient implements ServerMessageObserver {
                 if (Objects.equals(color, "WHITE") || Objects.equals(color, "white")) {
                     String response = server.playGame(number, "WHITE");
                     if (Objects.equals(response, "User joined successfully.")) {
-                        websocketFacade.connect(server.getAuth().authToken(), server.getGameID(number), server.getAuth().username());
+                        websocketFacade.connect(server.getAuth().authToken(), server.getGameID(number), server.getAuth().username(), color);
                         gameplayState = GameplayState.INGAMEPLAY;
                     }
                     return response;
                 } else if (Objects.equals(color, "BLACK") || Objects.equals(color, "black")) {
                     String response = server.playGame(number, "BLACK");
                     if (Objects.equals(response, "User joined successfully.")) {
-                        websocketFacade.connect(server.getAuth().authToken(), server.getGameID(number), server.getAuth().username());
+                        websocketFacade.connect(server.getAuth().authToken(), server.getGameID(number), server.getAuth().username(), color);
                         gameplayState = GameplayState.INGAMEPLAY;
                         teamColor = ChessGame.TeamColor.BLACK;
                     }

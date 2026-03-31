@@ -63,9 +63,9 @@ public class WebsocketFacade extends Endpoint {
 
     //have each of the different requests have a function here
 
-    public void connect(String authToken, int gameID, String username) throws Exception {
+    public void connect(String authToken, int gameID, String username, String color) throws Exception {
         try {
-            UserGameCommand userGameCommand = new UserGameCommand(CONNECT, authToken, gameID, username);
+            UserGameCommand userGameCommand = new UserGameCommand(CONNECT, authToken, gameID, username, color);
             this.session.getBasicRemote().sendText(new Gson().toJson(userGameCommand));
         } catch (IOException ex) {
             throw new Exception(ex.getMessage());

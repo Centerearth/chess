@@ -21,6 +21,8 @@ public class ChessClient implements ServerMessageObserver {
     private ChessGame.TeamColor teamColor = ChessGame.TeamColor.WHITE;
     private ChessGame game;
     private int number;
+    private ChessGame.TeamColor whoseTurn;
+    private HashMap<Integer, Boolean> gamesOver = new HashMap<>();
 
     public ChessClient(String serverUrl) throws Exception {
         server = new ServerFacadeMain(serverUrl);
@@ -160,19 +162,33 @@ public class ChessClient implements ServerMessageObserver {
         try {
             if (params.length == 2) {
                 int number = Integer.parseInt(params[0]);
+
+                if (gamesOver.get(number) != null && gamesOver.get(number)) {
+                    return "Game has already ended";
+                }
                 this.number = number;
                 String color = params[1];
                 if (Objects.equals(color, "WHITE") || Objects.equals(color, "white")) {
                     String response = server.playGame(number, "WHITE");
                     if (Objects.equals(response, "User joined successfully.")) {
-                        websocketFacade.connect(server.getAuth().authToken(), server.getGameID(number), server.getAuth().username(), color);
+                        websocketFacade.connect(server.getAuth().authToken(), server.getGameID(number),
+                                server.getAuth().username(), color);
+
+                        if (gamesOver.get(number) != null && gamesOver.get(number)) {
+                            return "Game has already ended";
+                        }
                         gameplayState = GameplayState.INGAMEPLAY;
                     }
                     return response;
                 } else if (Objects.equals(color, "BLACK") || Objects.equals(color, "black")) {
                     String response = server.playGame(number, "BLACK");
                     if (Objects.equals(response, "User joined successfully.")) {
-                        websocketFacade.connect(server.getAuth().authToken(), server.getGameID(number), server.getAuth().username(), color);
+                        websocketFacade.connect(server.getAuth().authToken(), server.getGameID(number),
+                                server.getAuth().username(), color);
+
+                        if (gamesOver.get(number) != null && gamesOver.get(number)) {
+                            return "Game has already ended";
+                        }
                         gameplayState = GameplayState.INGAMEPLAY;
                         teamColor = ChessGame.TeamColor.BLACK;
                     }
@@ -193,11 +209,18 @@ public class ChessClient implements ServerMessageObserver {
             if (params.length == 1) {
                 try {
                     int number = Integer.parseInt(params[0]);
+                    if (gamesOver.get(number) != null && gamesOver.get(number)) {
+                        return "Game has already ended";
+                    }
                     this.number = number;
                     String response = server.observeGame(number);
 
                     if (Objects.equals(response, "Game is being observed.")) {
                         websocketFacade.connect(server.getAuth().authToken(), server.getGameID(number), server.getAuth().username(), "observer");
+
+                        if (gamesOver.get(number) != null && gamesOver.get(number)) {
+                            return "Game has already ended";
+                        }
                         gameplayState = GameplayState.INGAMEPLAY;
                         observingState = ObservingState.OBSERVING;
                         teamColor = ChessGame.TeamColor.WHITE;
@@ -290,6 +313,10 @@ public class ChessClient implements ServerMessageObserver {
         ChessGame game = loadGameMessage.getGame();
         ChessBoard gameBoard = game.getBoard();
         this.game = game;
+        this.whoseTurn = loadGameMessage.getWhoseTurn();
+        if (loadGameMessage.getGameOver()) {
+            this.gamesOver.put(number, true);
+        }
 
         displayGameMechanics(gameBoard, null);
         printPrompt();
@@ -476,6 +503,9 @@ public class ChessClient implements ServerMessageObserver {
 
     public String makeMove (String... params) {
         try {
+            if (this.teamColor != this.whoseTurn) {
+                return "Not your turn";
+            }
             if (params.length == 2 || params.length == 3) {
                 try {
                     int column1 = letterToNumber(params[0].substring(0,1));

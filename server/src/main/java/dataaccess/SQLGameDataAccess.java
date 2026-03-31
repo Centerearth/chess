@@ -18,7 +18,8 @@ public class SQLGameDataAccess implements GameDataAccess{
             var serializer = new Gson();
             var gameJSON = serializer.toJson(newGame);
 
-            try (var preparedStatement = conn.prepareStatement("INSERT INTO game (gameID, gameData) VALUES(?, ?)")) {
+            try (var preparedStatement = conn.prepareStatement(
+                    "INSERT INTO game (gameID, gameData) VALUES(?, ?)")) {
                 conn.setCatalog(databaseName);
                 preparedStatement.setInt(1, newGame.gameID());
                 preparedStatement.setString(2, gameJSON);
@@ -103,10 +104,12 @@ public class SQLGameDataAccess implements GameDataAccess{
         GameData newGame;
         if (teamColor == ChessGame.TeamColor.BLACK) {
             newGame = new GameData(gameID,
-                    oldGame.whiteUsername(), username, oldGame.gameName(), oldGame.game());
+                    oldGame.whiteUsername(), username, oldGame.gameName(), oldGame.game(),
+                    oldGame.whoseTurn(), oldGame.gameOver());
         } else {
             newGame = new GameData(gameID,
-                    username, oldGame.blackUsername(), oldGame.gameName(), oldGame.game());
+                    username, oldGame.blackUsername(), oldGame.gameName(), oldGame.game(),
+                    oldGame.whoseTurn(), oldGame.gameOver());
         }
 
         removeGameData(gameID);
@@ -118,40 +121,25 @@ public class SQLGameDataAccess implements GameDataAccess{
         GameData oldGame = getGame(gameID);
         GameData newGame;
 
-        newGame = new GameData(gameID, oldGame.whiteUsername(), oldGame.blackUsername(), oldGame.gameName(), game);
+        newGame = new GameData(gameID, oldGame.whiteUsername(), oldGame.blackUsername(), oldGame.gameName(),
+                game, oldGame.whoseTurn(), oldGame.gameOver());
 
         removeGameData(gameID);
         addGameData(newGame);
     }
 
     public void updateGameWin(int gameID) throws DataAccessException {
-        System.out.println("I am in updateGameWin");
-        try (var conn = DatabaseManager.getConnection()) {
-            conn.setCatalog(databaseName);
-            try (var preparedStatement = conn.prepareStatement("UPDATE game SET gameOver = TRUE WHERE gameID=?")) {
-                preparedStatement.setInt(1, gameID);
-                preparedStatement.executeUpdate();
-            }
-        } catch (Exception e) {
-            throw new DataAccessException("Error: the game failed to finish", e);
-        }
+        GameData oldGame = getGame(gameID);
+        GameData newGame;
+
+        newGame = new GameData(gameID, oldGame.whiteUsername(), oldGame.blackUsername(), oldGame.gameName(),
+                oldGame.game(), oldGame.whoseTurn(), true);
+
+        removeGameData(gameID);
+        addGameData(newGame);
     }
 
     public boolean isGameWon(int gameID) throws DataAccessException {
-        try (var conn = DatabaseManager.getConnection()) {
-            try (var preparedStatement = conn.prepareStatement("SELECT gameOver FROM game WHERE gameID=?")) {
-                conn.setCatalog(databaseName);
-                preparedStatement.setInt(1, gameID);
-
-                try (var rs = preparedStatement.executeQuery()) {
-                    while (rs.next()) {
-                        return rs.getBoolean("gameOver");
-                    }
-                    return false;
-                }
-            }
-        } catch (Exception e) {
-            throw new DataAccessException("Error: the game failed to finish", e);
-        }
+        return getGame(gameID).gameOver();
     }
 }

@@ -12,6 +12,7 @@ import io.javalin.websocket.WsConnectContext;
 import io.javalin.websocket.WsConnectHandler;
 import io.javalin.websocket.WsMessageContext;
 import io.javalin.websocket.WsMessageHandler;
+import model.GameData;
 import org.eclipse.jetty.websocket.api.Session;
 import service.GameService;
 import websocket.commands.MakeMoveCommand;
@@ -67,10 +68,26 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
 
     private void connect(UserGameCommand userGameCommand, Session session) throws IOException {
         try {
+            if (gameService.isGameWon(userGameCommand.getGameID())) {
+                allConnections.add(userGameCommand.getGameID(), session);
+
+                GameData gameData = gameService.getGame(userGameCommand.getGameID());
+                LoadGameMessage loadGameMessage = new LoadGameMessage(LOAD_GAME, gameData.game(),
+                        gameData.whoseTurn(), gameData.gameOver());
+                allConnections.broadcastOne(session, loadGameMessage, gameData.gameID());
+
+                String notification = "This game has already ended";
+                NotificationMessage notificationMessage = new NotificationMessage(NOTIFICATION, notification);
+                allConnections.broadcastOne(session, notificationMessage, userGameCommand.getGameID());
+                allConnections.removeSession(userGameCommand.getGameID(), session);
+                return;
+            }
         allConnections.add(userGameCommand.getGameID(), session);
 
-        ChessGame game = gameService.getGame(userGameCommand.getGameID()).game();
-        LoadGameMessage loadGameMessage = new LoadGameMessage(LOAD_GAME, game);
+        GameData gameData = gameService.getGame(userGameCommand.getGameID());
+        ChessGame game = gameData.game();
+        LoadGameMessage loadGameMessage = new LoadGameMessage(LOAD_GAME, game,
+                gameData.whoseTurn(), gameData.gameOver());
 
         String notification = String.format("%s has joined the game as %s", userGameCommand.getUsername(), userGameCommand.getColor());
 
@@ -88,12 +105,17 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
 
     private void makeMove(MakeMoveCommand makeMoveCommand, Session session) throws IOException {
         try {
-            String username = makeMoveCommand.getUsername();
-            String notification = String.format("%s has made the move %s", username, makeMoveCommand.getMove().toString());
-            NotificationMessage notificationMessage = new NotificationMessage(NOTIFICATION, notification);
             int gameID = makeMoveCommand.getGameID();
 
-            allConnections.broadcastSome(session, notificationMessage, gameID);
+            if (gameService.isGameWon(gameID)) {
+                String notification = "This game has already ended";
+                NotificationMessage notificationMessage = new NotificationMessage(NOTIFICATION, notification);
+                allConnections.broadcastOne(session, notificationMessage, gameID);
+                return;
+            }
+
+            String username = makeMoveCommand.getUsername();
+
             ChessGame game = gameService.getGame(gameID).game();
 
             ChessMove move = makeMoveCommand.getMove();
@@ -111,9 +133,20 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
 
             gameService.updateBoard(gameID, game);
 
+            GameData gameData = gameService.getGame(gameID);
+
+            ChessGame.TeamColor nextTurn = ChessGame.TeamColor.WHITE;
+            if (gameData.whoseTurn() == ChessGame.TeamColor.WHITE) {
+                nextTurn = ChessGame.TeamColor.BLACK;
+            }
+
             LoadGameMessage loadGameMessage = new LoadGameMessage(LOAD_GAME,
-                    gameService.getGame(gameID).game());
+                    gameData.game(), nextTurn, gameData.gameOver());
             allConnections.broadcastAll(loadGameMessage, gameID);
+
+            String notification = String.format("%s has made the move %s", username, makeMoveCommand.getMove().toString());
+            NotificationMessage notificationMessage = new NotificationMessage(NOTIFICATION, notification);
+            allConnections.broadcastSome(session, notificationMessage, gameID);
 
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -150,36 +183,18 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
 
             gameService.updateGameWin(userGameCommand.getGameID());
 
-            System.out.println(gameService.isGameWon(userGameCommand.getGameID()));
-            allConnections.remove(userGameCommand.getGameID());
+            GameData gameData = gameService.getGame(userGameCommand.getGameID());
+            LoadGameMessage loadGameMessage = new LoadGameMessage(LOAD_GAME,
+                    gameData.game(), gameData.whoseTurn(), gameData.gameOver());
+            allConnections.broadcastAll(loadGameMessage, userGameCommand.getGameID());
+
+            allConnections.broadcastSome(session, notificationMessage, userGameCommand.getGameID());
+
+            allConnections.removeSession(userGameCommand.getGameID(), session);
 
         } catch (Exception e) {
             System.out.println(e.getMessage());
             allConnections.broadcastError(session, new ErrorMessage(ERROR,"Error: failed to resign"));
         }
     }
-
-//    private void enter(String visitorName, Session session) throws IOException {
-//        connections.add(session);
-//        var message = String.format("%s is in the shop", visitorName);
-//        var notification = new Notification(Notification.Type.ARRIVAL, message);
-//        connections.broadcast(session, notification);
-//    }
-//
-//    private void exit(String visitorName, Session session) throws IOException {
-//        var message = String.format("%s left the shop", visitorName);
-//        var notification = new Notification(Notification.Type.DEPARTURE, message);
-//        connections.broadcast(session, notification);
-//        connections.remove(session);
-//    }
-//
-//    public void makeNoise(String petName, String sound) throws ResponseException {
-//        try {
-//            var message = String.format("%s says %s", petName, sound);
-//            var notification = new Notification(Notification.Type.NOISE, message);
-//            connections.broadcast(null, notification);
-//        } catch (Exception ex) {
-//            throw new ResponseException(ResponseException.Code.ServerError, ex.getMessage());
-//        }
-//    }
 }

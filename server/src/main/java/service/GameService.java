@@ -25,7 +25,6 @@ public class GameService {
         return r.nextInt(500);
     }
 
-    //for testing purposes
     public GameData getGame(int gameID) throws DataAccessException {
         return gameDataAccess.getGame(gameID);
     }
@@ -55,7 +54,8 @@ public class GameService {
         } else {
             GameData newGameData = new GameData(generateID(), null, null,
                     createGameRequest.gameName(),
-                    new ChessGame());
+                    new ChessGame(),
+                    ChessGame.TeamColor.WHITE, false);
             gameDataAccess.addGameData(newGameData);
             return new CreateGameResult(newGameData.gameID());
         }
@@ -109,6 +109,7 @@ public class GameService {
     }
 
     public boolean isGameWon(int gameID) throws DataAccessException {
+        System.out.println(gameDataAccess.isGameWon(gameID));
         return gameDataAccess.isGameWon(gameID);
     }
 }

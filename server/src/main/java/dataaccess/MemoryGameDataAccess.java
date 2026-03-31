@@ -32,10 +32,12 @@ public class MemoryGameDataAccess implements GameDataAccess{
         GameData updatedGame;
         if (teamColor == ChessGame.TeamColor.WHITE) {
             updatedGame = new GameData(gameID,
-                    username, oldGame.blackUsername(), oldGame.gameName(), oldGame.game());
+                    username, oldGame.blackUsername(), oldGame.gameName(), oldGame.game(),
+                    oldGame.whoseTurn(), oldGame.gameOver());
         } else {
             updatedGame = new GameData(gameID,
-                    oldGame.whiteUsername(), username, oldGame.gameName(), oldGame.game());
+                    oldGame.whiteUsername(), username, oldGame.gameName(), oldGame.game(),
+                    oldGame.whoseTurn(), oldGame.gameOver());
         }
         removeGameData(gameID);
         addGameData(updatedGame);

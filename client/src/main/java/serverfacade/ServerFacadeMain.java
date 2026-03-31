@@ -97,7 +97,6 @@ public class ServerFacadeMain {
         if (authData == null) {
             return "User is not logged in.";
         }
-        //this will be implemented later
         if (idToNumber == null || !idToNumber.containsKey(gameIndex)) {
             return "Game does not exist.";
         }

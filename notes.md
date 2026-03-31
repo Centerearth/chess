@@ -11,6 +11,7 @@ Take down
 Write a website that provides a GUI for the chess game
 Redeploy
 
+Some of the games are going back to false after having been won.
 
 
 

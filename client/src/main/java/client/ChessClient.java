@@ -226,29 +226,25 @@ public class ChessClient implements ServerMessageObserver {
     private String observe(String... params) {
         try {
             if (params.length == 1) {
-                try {
-                    int number = Integer.parseInt(params[0]);
+                int number = Integer.parseInt(params[0]);
+                if (gamesOver.get(number) != null && gamesOver.get(number)) {
+                    return "Game has already ended";
+                }
+                this.number = number;
+                String response = server.observeGame(number);
+
+                if (Objects.equals(response, "Game is being observed.")) {
+                    websocketFacade.connect(server.getAuth().authToken(), server.getGameID(number), server.getAuth().username(), "observer");
+
                     if (gamesOver.get(number) != null && gamesOver.get(number)) {
                         return "Game has already ended";
                     }
-                    this.number = number;
-                    String response = server.observeGame(number);
-
-                    if (Objects.equals(response, "Game is being observed.")) {
-                        websocketFacade.connect(server.getAuth().authToken(), server.getGameID(number), server.getAuth().username(), "observer");
-
-                        if (gamesOver.get(number) != null && gamesOver.get(number)) {
-                            return "Game has already ended";
-                        }
-                        gameplayState = GameplayState.INGAMEPLAY;
-                        observingState = ObservingState.OBSERVING;
-                        teamColor = ChessGame.TeamColor.WHITE;
-                        return "Observing game...";
-                    } else {
-                        return response;
-                    }
-                } catch (Exception e) {
-                    return "Request is malformed";
+                    gameplayState = GameplayState.INGAMEPLAY;
+                    observingState = ObservingState.OBSERVING;
+                    teamColor = ChessGame.TeamColor.WHITE;
+                    return "Observing game...";
+                } else {
+                    return response;
                 }
             } else {
                 return "Request is malformed";

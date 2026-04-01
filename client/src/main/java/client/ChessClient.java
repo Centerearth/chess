@@ -267,7 +267,7 @@ public class ChessClient implements ServerMessageObserver {
     }
 
     public String help() {
-        return helperFunctions.help(state, observingState, gameplayState);
+        return HelperFunctions.help(state, observingState, gameplayState);
     }
 
     @Override
@@ -414,10 +414,10 @@ public class ChessClient implements ServerMessageObserver {
     }
 
     private int letterToNumber(String letter) throws Exception {
-        return helperFunctions.letterToNumber(letter);
+        return HelperFunctions.letterToNumber(letter);
     }
     private ChessPiece.PieceType letterToPromotion(String letter) throws Exception {
-        return helperFunctions.letterToPromotion(letter);
+        return HelperFunctions.letterToPromotion(letter);
     }
 
     public String leave() {

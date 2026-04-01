@@ -2,7 +2,7 @@ package client;
 
 import chess.ChessPiece;
 
-public class helperFunctions {
+public class HelperFunctions {
     public static String help(State state, ObservingState observingState, GameplayState gameplayState) {
         if (state == State.LOGGEDOUT) {
             return """

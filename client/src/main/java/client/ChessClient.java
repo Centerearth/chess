@@ -391,7 +391,6 @@ public class ChessClient implements ServerMessageObserver {
                 try {
                     int column = letterToNumber(params[0].substring(0,1));
                     int row = Integer.parseInt(params[0].substring(1,2));
-                    System.out.println("" + row + column);
                     ArrayList<ChessPosition> allEndPositions = new ArrayList<>();
                     ArrayList<ChessMove> validMoves = (ArrayList<ChessMove>) game.validMoves(new ChessPosition(row, column));
                     for (ChessMove move : validMoves) {

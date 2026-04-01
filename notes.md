@@ -2,7 +2,7 @@ Plan for phase 6:
 ~add logging~
 Read through and figure this out
 
-
+joining after game has ended doesn't always work
 After:
 implement castling and en passant
 Protect against races

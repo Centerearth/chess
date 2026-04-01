@@ -7,9 +7,7 @@ import websocket.messages.ErrorMessage;
 import websocket.messages.LoadGameMessage;
 import websocket.messages.NotificationMessage;
 import websocket.messages.ServerMessage;
-
 import java.util.*;
-
 import static ui.EscapeSequences.*;
 
 public class ChessClient implements ServerMessageObserver {
@@ -36,7 +34,6 @@ public class ChessClient implements ServerMessageObserver {
 
         Scanner scanner = new Scanner(System.in);
         var result = "";
-
         while (!result.equals("quit")) {
             printPrompt();
             String line = scanner.nextLine();
@@ -86,14 +83,14 @@ public class ChessClient implements ServerMessageObserver {
                 } else if (observingState == ObservingState.OBSERVING ){
                     return switch (cmd) {
                         case "legalmoves" -> legalMoves(params);
-                        case "redraw" -> {displayGameMechanics(game.getBoard(), null); yield "Here is the redrawn board";}
+                        case "redraw" -> reDraw();
                         case "leave" -> leave();
                         default -> help();
                     };
                 } else {
                     return switch (cmd) {
                         case "legalmoves" -> legalMoves(params);
-                        case "redraw" -> {displayGameMechanics(game.getBoard(), null); yield "Here is the redrawn board";}
+                        case "redraw" -> reDraw();
                         case "leave" -> leave();
                         case "move" -> makeMove(params);
                         case "resign" -> {
@@ -114,6 +111,11 @@ public class ChessClient implements ServerMessageObserver {
         } catch (Exception ex) {
             return ex.getMessage();
         }
+    }
+
+    private String reDraw() {
+        displayGameMechanics(game.getBoard(), null);
+        return "Here is the redrawn board";
     }
 
     private String register(String... params) {
@@ -178,40 +180,44 @@ public class ChessClient implements ServerMessageObserver {
                 }
                 this.number = number;
                 String color = params[1];
-                if (Objects.equals(color, "WHITE") || Objects.equals(color, "white")) {
-                    String response = server.playGame(number, "WHITE");
-                    if (Objects.equals(response, "User joined successfully.")) {
-                        websocketFacade.connect(server.getAuth().authToken(), server.getGameID(number),
-                                server.getAuth().username(), color);
-
-                        if (gamesOver.get(number) != null && gamesOver.get(number)) {
-                            return "Game has already ended";
-                        }
-                        gameplayState = GameplayState.INGAMEPLAY;
-                        teamColor = ChessGame.TeamColor.WHITE;
-                    }
-                    return response;
-                } else if (Objects.equals(color, "BLACK") || Objects.equals(color, "black")) {
-                    String response = server.playGame(number, "BLACK");
-                    if (Objects.equals(response, "User joined successfully.")) {
-                        websocketFacade.connect(server.getAuth().authToken(), server.getGameID(number),
-                                server.getAuth().username(), color);
-
-                        if (gamesOver.get(number) != null && gamesOver.get(number)) {
-                            return "Game has already ended";
-                        }
-                        gameplayState = GameplayState.INGAMEPLAY;
-                        teamColor = ChessGame.TeamColor.BLACK;
-                    }
-                    return response;
-                } else {
-                    return "Request is malformed";
-                }
+                return tryConnection(color);
             } else {
                 return "Request is malformed";
             }
         } catch (Exception e) {
             return "Failed to join.";
+        }
+    }
+
+    private String tryConnection(String color) throws Exception {
+        if (Objects.equals(color, "WHITE") || Objects.equals(color, "white")) {
+            String response = server.playGame(number, "WHITE");
+            if (Objects.equals(response, "User joined successfully.")) {
+                websocketFacade.connect(server.getAuth().authToken(), server.getGameID(number),
+                        server.getAuth().username(), color);
+
+                if (gamesOver.get(number) != null && gamesOver.get(number)) {
+                    return "Game has already ended";
+                }
+                gameplayState = GameplayState.INGAMEPLAY;
+                teamColor = ChessGame.TeamColor.WHITE;
+            }
+            return response;
+        } else if (Objects.equals(color, "BLACK") || Objects.equals(color, "black")) {
+            String response = server.playGame(number, "BLACK");
+            if (Objects.equals(response, "User joined successfully.")) {
+                websocketFacade.connect(server.getAuth().authToken(), server.getGameID(number),
+                        server.getAuth().username(), color);
+
+                if (gamesOver.get(number) != null && gamesOver.get(number)) {
+                    return "Game has already ended";
+                }
+                gameplayState = GameplayState.INGAMEPLAY;
+                teamColor = ChessGame.TeamColor.BLACK;
+            }
+            return response;
+        } else {
+            return "Request is malformed";
         }
     }
 
@@ -260,42 +266,8 @@ public class ChessClient implements ServerMessageObserver {
         }
     }
 
-
     public String help() {
-        if (state == State.LOGGEDOUT) {
-            return """
-                    - register <USERNAME> <PASSWORD> <EMAIL> - this will create your account.
-                    - login <USERNAME> <PASSWORD>
-                    - quit
-                    - help - will list all available commands.
-                    """;
-        } else if (observingState == ObservingState.OBSERVING) {
-            return """
-                    - legalmoves <position> - highlight all legal moves
-                    - leave
-                    - redraw
-                    - help - will list all available commands.
-                    """;
-        } else if (gameplayState == GameplayState.NOGAMEPLAY) {
-            return """
-                    - create <NAME> - this will start a new game.
-                    - list - this will list all games.
-                    - join <ID> [WHITE|BLACK]
-                    - observe <ID>
-                    - logout
-                    - quit
-                    - help - will list all available commands.
-                    """;
-        } else {
-            return """ 
-                    - move <starting position> <end position> <optional:promotion piece (q,r,n,b)
-                    - legalmoves <position> - highlight all legal moves
-                    - redraw
-                    - leave
-                    - resign
-                    - help - will list all available commands.
-                    """;
-        }
+        return helperFunctions.help(state, observingState, gameplayState);
     }
 
     @Override
@@ -325,7 +297,6 @@ public class ChessClient implements ServerMessageObserver {
         ChessBoard gameBoard = game.getBoard();
         this.game = game;
         this.whoseTurn = loadGameMessage.getWhoseTurn();
-
         displayGameMechanics(gameBoard, null);
         if (loadGameMessage.getGameOver()) {
             this.gamesOver.put(number, true);
@@ -346,7 +317,6 @@ public class ChessClient implements ServerMessageObserver {
             rowLabels = new String[]{"h", "g", "f", "e", "d", "c", "b", "a"};
             columnLabels = new String[]{"1", "2", "3", "4", "5", "6", "7", "8"};
         }
-
         System.out.println();
         System.out.print(SET_BG_COLOR_LIGHT_GREY);
         System.out.print(SET_TEXT_COLOR_BLACK);
@@ -376,7 +346,6 @@ public class ChessClient implements ServerMessageObserver {
 
             System.out.println("\u001b[39;49m");
         }
-
         System.out.print(SET_BG_COLOR_LIGHT_GREY);
         System.out.print(SET_TEXT_COLOR_BLACK);
         System.out.print("   ");
@@ -398,7 +367,6 @@ public class ChessClient implements ServerMessageObserver {
         }
 
         ChessPiece chessPiece = gameBoard.getPiece(new ChessPosition(i, j));
-
         ChessPiece.PieceType chessPieceType = null;
         if (chessPiece != null) {
             chessPieceType = chessPiece.getPieceType();
@@ -408,7 +376,6 @@ public class ChessClient implements ServerMessageObserver {
                 System.out.print(SET_TEXT_COLOR_GREEN);
             }
         }
-
         switch (chessPieceType) {
             case null -> System.out.print("   ");
             case ROOK -> System.out.print(" R ");
@@ -432,9 +399,7 @@ public class ChessClient implements ServerMessageObserver {
                     for (ChessMove move : validMoves) {
                         allEndPositions.add(move.getEndPosition());
                     }
-
                     displayGameMechanics(game.getBoard(), allEndPositions);
-
                     return "Here are the valid moves";
 
                 } catch (Exception e) {
@@ -449,51 +414,10 @@ public class ChessClient implements ServerMessageObserver {
     }
 
     private int letterToNumber(String letter) throws Exception {
-        switch (letter) {
-            case "a" -> {
-                return 1;
-            }
-            case "b" -> {
-                return 2;
-            }
-            case "c" -> {
-                return 3;
-            }
-            case "d" -> {
-                return 4;
-            }
-            case "e" -> {
-                return 5;
-            }
-            case "f" -> {
-                return 6;
-            }
-            case "g" -> {
-                return 7;
-            }
-            case "h" -> {
-                return 8;
-            }
-            default -> throw new Exception();
-        }
+        return helperFunctions.letterToNumber(letter);
     }
-
     private ChessPiece.PieceType letterToPromotion(String letter) throws Exception {
-        switch (letter) {
-            case "q" -> {
-                return ChessPiece.PieceType.QUEEN;
-            }
-            case "r" -> {
-                return ChessPiece.PieceType.ROOK;
-            }
-            case "b" -> {
-                return ChessPiece.PieceType.BISHOP;
-            }
-            case "n" -> {
-                return ChessPiece.PieceType.KNIGHT;
-            }
-            default -> throw new Exception();
-        }
+        return helperFunctions.letterToPromotion(letter);
     }
 
     public String leave() {
@@ -513,7 +437,6 @@ public class ChessClient implements ServerMessageObserver {
             return "Failed to leave";
         }
     }
-
     public String makeMove (String... params) {
         try {
             if (this.teamColor != this.whoseTurn) {
@@ -562,7 +485,6 @@ public class ChessClient implements ServerMessageObserver {
             return "Failed to make move";
         }
     }
-
     public String resign() {
         try {
                 websocketFacade.resign(server.getAuth().authToken(), server.getGameID(this.number),

@@ -123,22 +123,17 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             int gameID = makeMoveCommand.getGameID();
 
             if (gameService.isGameWon(gameID)) {
-                String error = "This game has already ended";
-                ErrorMessage errorMessage = new ErrorMessage(ERROR, error);
+                ErrorMessage errorMessage = new ErrorMessage(ERROR, "This game has already ended.");
                 allConnections.broadcastOne(session, errorMessage, gameID);
                 return;
             }
 
             String username = gameService.getAuthData(makeMoveCommand.getAuthToken()).username();
-
             ChessGame game = gameService.getGame(gameID).game();
-
             ChessMove move = makeMoveCommand.getMove();
             ChessPosition startPosition = move.getStartPosition();
             ChessPosition endPosition = move.getEndPosition();
             ChessPiece startingPiece = game.getBoard().getPiece(startPosition);
-
-            //validation check
             ArrayList<ChessMove> validMoves = (ArrayList<ChessMove>) game.validMoves(startPosition);
             ArrayList<ChessPosition> allEndPositions = new ArrayList<>();
             for (ChessMove eachMove : validMoves) {
@@ -148,18 +143,14 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             GameData gameData = gameService.getGame(gameID);
             ChessGame.TeamColor teamColor = game.getBoard().getPiece(startPosition).getTeamColor();
             if (teamColor != gameData.whoseTurn()) {
-                String message = "ERROR: Invalid";
-                ErrorMessage errorMessage = new ErrorMessage(ERROR, message);
+                ErrorMessage errorMessage = new ErrorMessage(ERROR, "ERROR: Invalid");
                 allConnections.broadcastError(session, errorMessage);
                 return;
             }
-
             if (!allEndPositions.contains(endPosition) ||
                     game.getBoard().getPiece(startPosition).getTeamColor() != teamColor
             || game.getBoard().getPiece(startPosition).getTeamColor() != gameService.getColor(username, gameID)) {
-                System.out.println("I am here!!");
-                String message = "ERROR: Not a valid move";
-                ErrorMessage errorMessage = new ErrorMessage(ERROR, message);
+                ErrorMessage errorMessage = new ErrorMessage(ERROR, "ERROR: Not a valid move");
                 allConnections.broadcastError(session, errorMessage);
                 return;
             }
@@ -171,12 +162,10 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                 game.getBoard().addPiece(endPosition, startingPiece);
             }
             game.getBoard().addPiece(startPosition, null);
-
             gameService.updateBoard(gameID, game);
 
             //check and checkmate and stalemate
             NotificationMessage notificationMessage2 = null;
-
             if (game.isInCheckmate(ChessGame.TeamColor.WHITE)) {
                 String notification = String.format("%s has checkmated white", username);
                 notificationMessage2 = new NotificationMessage(NOTIFICATION, notification);
@@ -198,9 +187,6 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                 String notification = String.format("%s has put the game in stalemate", username);
                 notificationMessage2 = new NotificationMessage(NOTIFICATION, notification);
             }
-
-
-
             gameData = gameService.getGame(gameID);
 
             ChessGame.TeamColor nextTurn = ChessGame.TeamColor.WHITE;
@@ -222,13 +208,11 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             if (notificationMessage2 != null) {
                 allConnections.broadcastAll(notificationMessage2, gameID);
             }
-
             if (gameService.isGameWon(gameID)) {
                 allConnections.remove(gameID);
             }
 
         } catch (Exception e) {
-            System.out.println(e.getMessage());
             allConnections.broadcastError(session, new ErrorMessage(ERROR,"Error: failed to make move"));
         }
     }

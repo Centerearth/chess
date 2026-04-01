@@ -93,23 +93,25 @@ public class ChessClient implements ServerMessageObserver {
                         case "redraw" -> reDraw();
                         case "leave" -> leave();
                         case "move" -> makeMove(params);
-                        case "resign" -> {
-                            Scanner scanner = new Scanner(System.in);
-                            System.out.print("Are you sure you want to resign? Type y for yes: ");
-                            String confirm = scanner.nextLine();
-                            if (confirm != null && confirm.equals("y") || Objects.equals(confirm, "yes")) {
-                                System.out.println();
-                                yield resign();
-                            } else {
-                                yield "The user did not resign";
-                            }
-                        }
+                        case "resign" -> resignHelper();
                         default -> help();
                     };
                 }
             }
         } catch (Exception ex) {
             return ex.getMessage();
+        }
+    }
+
+    private String resignHelper() {
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Are you sure you want to resign? Type y for yes: ");
+        String confirm = scanner.nextLine();
+        if (confirm != null && confirm.equals("y") || Objects.equals(confirm, "yes")) {
+            System.out.println();
+            return resign();
+        } else {
+            return "The user did not resign";
         }
     }
 

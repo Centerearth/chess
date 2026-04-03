@@ -17,7 +17,6 @@ import org.eclipse.jetty.websocket.api.Session;
 import service.GameService;
 import websocket.commands.*;
 import websocket.messages.*;
-import websocket.messages.ServerMessage;
 
 import java.io.IOException;
 import java.util.ArrayList;

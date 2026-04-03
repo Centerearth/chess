@@ -1,6 +1,5 @@
 package service;
 
-import chess.ChessBoard;
 import chess.ChessGame;
 import dataaccess.DataAccessException;
 import dataaccess.SQLAuthDataAccess;

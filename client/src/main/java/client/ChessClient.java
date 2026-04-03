@@ -46,6 +46,7 @@ public class ChessClient implements ServerMessageObserver {
                 System.out.print(msg);
             }
         }
+        scanner.close();
         System.out.println();
     }
 
@@ -109,8 +110,10 @@ public class ChessClient implements ServerMessageObserver {
         String confirm = scanner.nextLine();
         if (confirm != null && confirm.equals("y") || Objects.equals(confirm, "yes")) {
             System.out.println();
+            scanner.close();
             return resign();
         } else {
+            scanner.close();
             return "The user did not resign";
         }
     }

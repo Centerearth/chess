@@ -55,6 +55,7 @@ public class Server {
         }
     }
 
+    @SuppressWarnings("unchecked")
     private void createNewUser(Context context) {
         try {
             HashMap<String, String> bodyObject = getBodyObject(context, HashMap.class);
@@ -77,6 +78,7 @@ public class Server {
 
     }
 
+    @SuppressWarnings("unchecked")
     private void loginUser(Context context) {
         try {
             HashMap<String, String> bodyObject = getBodyObject(context, HashMap.class);
@@ -109,6 +111,7 @@ public class Server {
         }
     }
 
+    @SuppressWarnings("unchecked")
     private void createNewGame(Context context) {
         try {
             HashMap<String, String> bodyObject = getBodyObject(context, HashMap.class);
@@ -128,6 +131,7 @@ public class Server {
 
     }
 
+    @SuppressWarnings("unchecked")
     private void joinGame(Context context) {
         try {
             HashMap<String, Object> bodyObject = getBodyObject(context, HashMap.class);

@@ -206,7 +206,7 @@ public class ServerFacadeMain {
         }
     }
 
-    private String responseHandler(String defaultMessage, HttpResponse httpResponse) {
+    private String responseHandler(String defaultMessage, HttpResponse<String> httpResponse) {
         if (httpResponse.statusCode() >= 200 && httpResponse.statusCode() < 300) {
             return defaultMessage;
         } else if (httpResponse.statusCode() == 400) {

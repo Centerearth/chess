@@ -182,9 +182,11 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             } else if (game.isInStalemate(ChessGame.TeamColor.WHITE)) {
                 String notification = String.format("%s has put the game in stalemate", username);
                 notificationMessage2 = new NotificationMessage(NOTIFICATION, notification);
+                gameService.updateGameWin(gameID);
             } else if (game.isInStalemate(ChessGame.TeamColor.BLACK)) {
                 String notification = String.format("%s has put the game in stalemate", username);
                 notificationMessage2 = new NotificationMessage(NOTIFICATION, notification);
+                gameService.updateGameWin(gameID);
             }
             gameData = gameService.getGame(gameID);
 

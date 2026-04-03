@@ -23,7 +23,7 @@ public class GameService {
 
     public static int generateID() {
         Random r= new Random();
-        return r.nextInt(500);
+        return r.nextInt(Integer.MAX_VALUE);
     }
 
     public GameData getGame(int gameID) throws DataAccessException {

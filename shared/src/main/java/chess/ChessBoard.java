@@ -56,12 +56,12 @@ public class ChessBoard {
         addPiece(new ChessPosition(1, 8), new ChessPiece(WHITE, ROOK));
         addPiece(new ChessPosition(8, 1), new ChessPiece(BLACK, ROOK));
         addPiece(new ChessPosition(8, 8), new ChessPiece(BLACK, ROOK));
-        //adding bishops
+        //adding knights
         addPiece(new ChessPosition(1, 2), new ChessPiece(WHITE, KNIGHT));
         addPiece(new ChessPosition(1, 7), new ChessPiece(WHITE, KNIGHT));
         addPiece(new ChessPosition(8, 2), new ChessPiece(BLACK, KNIGHT));
         addPiece(new ChessPosition(8, 7), new ChessPiece(BLACK, KNIGHT));
-        //adding knights
+        //adding bishops
         addPiece(new ChessPosition(1, 3), new ChessPiece(WHITE, BISHOP));
         addPiece(new ChessPosition(1, 6), new ChessPiece(WHITE, BISHOP));
         addPiece(new ChessPosition(8, 3), new ChessPiece(BLACK, BISHOP));

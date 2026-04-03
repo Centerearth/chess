@@ -1,7 +1,7 @@
 Plan for phase 6:
 
-go through "problems"
 joining after game has ended doesn't always work
+
 After:
 implement castling and en passant
 Protect against races
@@ -23,12 +23,6 @@ Redeploy
 ---
 
 ### Critical Issues
-
-1. **Board initialization bug** (ChessBoard.java:60-74)
-   Comments say "adding bishops" but code places KNIGHTs, and vice versa. Every game starts with illegal piece positions.
-
-2. **Weak game ID generation** (GameService.java:25-28)
-   Uses `Random.nextInt(500)` — collisions after ~30 games. Should use UUID or DB auto-increment.
 
 3. **Race condition in client state** (ChessClient.java:15-24)
    Fields like `whoseTurn`, `teamColor`, `gameplayState`, `gamesOver` are mutated by the WebSocket thread and read by the REPL thread with no synchronization. Need `volatile` or `synchronized`.
@@ -73,7 +67,6 @@ Redeploy
 14. Magic numbers throughout move calculators and board scanning — define `BOARD_MIN = 1`, `BOARD_MAX = 8` constants.
 15. `(int)(double)` cast hack for Gson JSON numbers (ServerFacadeMain.java:148) — use `((Number) obj).intValue()`.
 16. Test helper methods `resetAuth()` / `resetIds()` exposed in public API (ServerFacadeMain.java:36-42).
-17. Stray question comment in production code (ChessGame.java:260): `// why did IntelliJ say to put this in ?`
 18. `idToNumber` mapping is fragile — list positions shift when games are added; downstream code that relies on stable positions will misbehave.
 
 ---
@@ -119,18 +112,12 @@ Redeploy
 1. **Check notifications backwards** (WebsocketHandler.java:177-182)
    `isInCheck(WHITE)` means WHITE's king is threatened, but the notification says "put black in check." Both branches have the color flipped. Simple string fix.
 
-2. **Stalemate doesn't end the game** (WebsocketHandler.java:183-188)
-   Checkmate calls `gameService.updateGameWin(gameID)`. Stalemate sends the notification but never calls it — the game stays open and players can keep making moves after stalemate.
-
 3. **NPE when moving from empty square** (WebsocketHandler.java:137-140)
    `game.validMoves()` returns `null` when there's no piece at the start position (ChessGame.java:56-58). The server then iterates over `null` → NullPointerException, swallowed by the catch block into a generic error.
 
 ---
 
 ### Prioritized Fix List
-1. Fix board init bug (ChessBoard.java:60-74)
-2. Fix game ID generation (GameService.java:25-28)
-3. Fix stalemate not ending game (WebsocketHandler.java:183-188) — add `updateGameWin` call
 4. Fix check notification strings being backwards (WebsocketHandler.java:177-182)
 5. Fix `gamesOver` keying bug (ChessClient.java) — use actual game ID as key
 6. Guard against null from `validMoves()` before iterating (WebsocketHandler.java:137)

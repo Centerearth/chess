@@ -24,7 +24,7 @@ public class Server {
         try {
             userService = new UserService();
             gameService = new GameService();
-            websocketHandler = new WebsocketHandler();
+            websocketHandler = new WebsocketHandler(gameService);
 
             javalin = Javalin.create(config -> {config.staticFiles.add("web");
                 config.bundledPlugins.enableDevLogging();})

@@ -30,9 +30,10 @@ import static websocket.messages.ServerMessage.ServerMessageType.*;
 public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsCloseHandler {
 
     private final ConnectionManager allConnections = new ConnectionManager();
-    private final GameService gameService = new GameService();
+    private GameService gameService;
 
-    public WebsocketHandler() throws DataAccessException {
+    public WebsocketHandler(GameService gameService) throws DataAccessException {
+        this.gameService = gameService;
     }
 
     @Override

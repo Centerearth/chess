@@ -9,15 +9,16 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.HashMap;
+import java.util.ArrayList;
 
 public class ServerFacadeMain {
     private static final HttpClient HTTPCLIENT = HttpClient.newHttpClient();
     private final String serverUrl;
     private static AuthData authData;
-    private static HashMap<Integer, Integer> idToNumber;
+    public ArrayList<Integer> currentGames = new ArrayList<>();
 
-    public int getGameID (int number) {
-        return idToNumber.get(number);
+    public boolean isGameCurrent (int id) {
+        return currentGames.contains(id);
     }
 
     public ServerFacadeMain(String url) {
@@ -32,14 +33,14 @@ public class ServerFacadeMain {
         authData = new AuthData(token, username);
     }
 
+    public void resetCurrentGames() {
+        //for testing purposes
+        currentGames = new ArrayList<Integer>();
+    }
+
     public void resetAuth() {
         //for testing purposes
         authData = null;
-    }
-
-    public void resetIds() {
-        //for testing purposes
-        idToNumber = null;
     }
 
     public void clearEverything() throws IOException, InterruptedException {
@@ -77,16 +78,17 @@ public class ServerFacadeMain {
         if (authData == null) {
             return "User is not logged in.";
         }
+
+        if (currentGames == null || !currentGames.contains(gameIndex)) {
+            return "Game does not exist.";
+        }
+
         String authToken = authData.authToken();
         HashMap<String, String> headers = new HashMap<>();
         headers.put("authorization", authToken);
 
-        if (idToNumber == null || !idToNumber.containsKey(gameIndex)) {
-            return "Game does not exist.";
-        }
-
         HashMap<String, Object> bodyObject = new HashMap<>();
-        bodyObject.put("gameID", idToNumber.get(gameIndex));
+        bodyObject.put("gameID", gameIndex);
         bodyObject.put("playerColor", color);
         String jsonBody = new Gson().toJson(bodyObject);
         HttpResponse<String> httpResponse = buildAndReceiveRequest("PUT", "/game", jsonBody, headers);
@@ -94,12 +96,15 @@ public class ServerFacadeMain {
     }
 
     public String observeGame(int gameIndex) {
+        //this function doesn't really do anything ?
         if (authData == null) {
             return "User is not logged in.";
         }
-        if (idToNumber == null || !idToNumber.containsKey(gameIndex)) {
+
+        if (currentGames == null || !currentGames.contains(gameIndex)) {
             return "Game does not exist.";
         }
+        
         return "Game is being observed.";
     }
 
@@ -143,22 +148,18 @@ public class ServerFacadeMain {
         ListGameResult allGames = new Gson().fromJson(httpResponse.body(), ListGameResult.class);
 
         StringBuilder gameList = new StringBuilder();
-        if (idToNumber == null || idToNumber.isEmpty()) {
-            idToNumber = new HashMap<>();
-        }
-
+        currentGames = new ArrayList<Integer>();
+        
         if (allGames.games().isEmpty()) {
             return "No games to display.";
         }
-        for (int i = idToNumber.size(); i < allGames.games().size(); i++) {
-            idToNumber.put(i+1, allGames.games().get(i).gameID());
-        }
+
 
         for (int i = 0; i < allGames.games().size(); i++) {
-            //idToNumber.put(i+1, allGames.games().get(i).gameID());
+            currentGames.add(allGames.games().get(i).gameID());
 
             gameList.append("Game: ");
-            gameList.append(i+1);
+            gameList.append(allGames.games().get(i).gameID());
             gameList.append(", Game Name: ");
             gameList.append(allGames.games().get(i).gameName());
             gameList.append(", White Player: ");

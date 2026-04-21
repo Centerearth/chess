@@ -24,14 +24,12 @@ public class ServerFacadeTests {
     public void clearDatabase() throws IOException, InterruptedException {
         serverFacade.clearEverything();
         serverFacade.resetAuth();
-        serverFacade.resetIds();
     }
 
     @AfterAll
     static void stopServer() throws IOException, InterruptedException {
         serverFacade.clearEverything();
         serverFacade.resetAuth();
-        serverFacade.resetIds();
         server.stop();
     }
 
@@ -110,7 +108,8 @@ public class ServerFacadeTests {
         serverFacade.registerUser("user1", "pswd", "abcd@yahoo.com");
         serverFacade.createGame("game1");
         serverFacade.listGames();
-        Assertions.assertEquals("User joined successfully.", serverFacade.playGame(1, "WHITE"));
+        Assertions.assertEquals("User joined successfully.", serverFacade.playGame(
+            serverFacade.currentGames.get(0), "WHITE"));
     }
 
     @Test
@@ -127,7 +126,9 @@ public class ServerFacadeTests {
         serverFacade.registerUser("user1", "pswd", "abcd@yahoo.com");
         serverFacade.createGame("game1");
         serverFacade.listGames();
-        Assertions.assertEquals("Game is being observed.", serverFacade.observeGame(1));
+        Assertions.assertEquals("Game is being observed.", serverFacade.observeGame(
+            serverFacade.currentGames.get(0)
+        ));
     }
 
     @Test
@@ -135,7 +136,9 @@ public class ServerFacadeTests {
         //games haven't been listed yet
         serverFacade.registerUser("user1", "pswd", "abcd@yahoo.com");
         serverFacade.createGame("game1");
-        Assertions.assertEquals("Game does not exist.", serverFacade.observeGame(1));
+        Assertions.assertEquals("Game does not exist.", serverFacade.observeGame(
+            0
+        ));
     }
 
 }

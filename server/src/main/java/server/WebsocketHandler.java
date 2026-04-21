@@ -4,6 +4,8 @@ import chess.ChessGame;
 import chess.ChessMove;
 import chess.ChessPiece;
 import chess.ChessPosition;
+import chess.ChessPiece.PieceType;
+
 import com.google.gson.Gson;
 import dataaccess.DataAccessException;
 import io.javalin.websocket.WsCloseContext;
@@ -154,7 +156,8 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                 return;
             }
 
-            if (move.getPromotionPiece() != null) {
+            PieceType promotion = move.getPromotionPiece();
+            if (promotion != null && promotion != PieceType.KING) {
                 game.getBoard().addPiece(endPosition,
                         new ChessPiece(game.getBoard().getPiece(startPosition).getTeamColor(), move.getPromotionPiece()));
             } else {

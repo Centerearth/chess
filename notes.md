@@ -44,9 +44,6 @@ Redeploy
    `gamesOver` maps list position → true when a game ends. List positions are not stable across `list` calls. A new game appearing at the same list slot incorrectly shows as "already ended."
    Fix: key by actual game ID (`server.getGameID(this.number)`) on both the write side (displayGame) and read side (join/observe).
 
-8. **Unvalidated user input crashes client** (ChessClient.java:392-393)
-   `substring(0,1)` and `substring(1,2)` with no length check — typing a short string throws `StringIndexOutOfBoundsException`.
-
 9. **Pawn promotion not validated** (WebsocketHandler.java:160)
    `move.getPromotionPiece()` passed through unchecked — client could send KING or PAWN as promotion piece.
 

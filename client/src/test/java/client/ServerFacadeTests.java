@@ -109,7 +109,7 @@ public class ServerFacadeTests {
         serverFacade.createGame("game1");
         serverFacade.listGames();
         Assertions.assertEquals("User joined successfully.", serverFacade.playGame(
-            serverFacade.currentGames.get(0), "WHITE"));
+            serverFacade.getCurrentGames().get(0), "WHITE"));
     }
 
     @Test
@@ -127,7 +127,7 @@ public class ServerFacadeTests {
         serverFacade.createGame("game1");
         serverFacade.listGames();
         Assertions.assertEquals("Game is being observed.", serverFacade.observeGame(
-            serverFacade.currentGames.get(0)
+            serverFacade.getCurrentGames().get(0)
         ));
     }
 

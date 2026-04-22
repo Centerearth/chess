@@ -30,7 +30,7 @@ import static websocket.messages.ServerMessage.ServerMessageType.*;
 public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsCloseHandler {
 
     private final ConnectionManager allConnections = new ConnectionManager();
-    private GameService gameService;
+    private final GameService gameService;
 
     public WebsocketHandler(GameService gameService) throws DataAccessException {
         this.gameService = gameService;
@@ -158,9 +158,13 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             }
 
             PieceType promotion = move.getPromotionPiece();
-            if (promotion != null && promotion != PieceType.KING) {
+            if (promotion == PieceType.KING || promotion == PieceType.PAWN) {
+                allConnections.broadcastError(session, new ErrorMessage(ERROR, "ERROR: Invalid promotion piece"));
+                return;
+            }
+            if (promotion != null) {
                 game.getBoard().addPiece(endPosition,
-                        new ChessPiece(game.getBoard().getPiece(startPosition).getTeamColor(), move.getPromotionPiece()));
+                        new ChessPiece(game.getBoard().getPiece(startPosition).getTeamColor(), promotion));
             } else {
                 game.getBoard().addPiece(endPosition, startingPiece);
             }

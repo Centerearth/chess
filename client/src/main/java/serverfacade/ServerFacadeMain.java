@@ -15,7 +15,11 @@ public class ServerFacadeMain {
     private static final HttpClient HTTPCLIENT = HttpClient.newHttpClient();
     private final String serverUrl;
     private static AuthData authData;
-    public ArrayList<Integer> currentGames = new ArrayList<>();
+    private ArrayList<Integer> currentGames = new ArrayList<>();
+
+    public ArrayList<Integer> getCurrentGames() {
+        return currentGames;
+    }
 
     public boolean isGameCurrent (int id) {
         return currentGames.contains(id);
@@ -79,7 +83,7 @@ public class ServerFacadeMain {
             return "User is not logged in.";
         }
 
-        if (currentGames == null || !currentGames.contains(gameIndex)) {
+        if (currentGames == null || !isGameCurrent(gameIndex)) {
             return "Game does not exist.";
         }
 
@@ -101,7 +105,7 @@ public class ServerFacadeMain {
             return "User is not logged in.";
         }
 
-        if (currentGames == null || !currentGames.contains(gameIndex)) {
+        if (currentGames == null || !isGameCurrent(gameIndex)) {
             return "Game does not exist.";
         }
         

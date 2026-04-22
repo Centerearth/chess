@@ -14,7 +14,7 @@ import java.util.ArrayList;
 public class ServerFacadeMain {
     private static final HttpClient HTTPCLIENT = HttpClient.newHttpClient();
     private final String serverUrl;
-    private static AuthData authData;
+    private AuthData authData;
     private ArrayList<Integer> currentGames = new ArrayList<>();
 
     public ArrayList<Integer> getCurrentGames() {

@@ -12,14 +12,14 @@ import static ui.EscapeSequences.*;
 
 public class ChessClient implements ServerMessageObserver {
     private final ServerFacadeMain server;
-    private State state = State.LOGGEDOUT;
-    private GameplayState gameplayState = GameplayState.NOGAMEPLAY;
-    private ObservingState observingState = ObservingState.NOTOBSERVING;
+    private volatile State state = State.LOGGEDOUT;
+    private volatile GameplayState gameplayState = GameplayState.NOGAMEPLAY;
+    private volatile ObservingState observingState = ObservingState.NOTOBSERVING;
     private final WebsocketFacade websocketFacade;
-    private ChessGame.TeamColor teamColor = ChessGame.TeamColor.WHITE;
-    private ChessGame game;
-    private int currentId;
-    private ChessGame.TeamColor whoseTurn;
+    private volatile ChessGame.TeamColor teamColor = ChessGame.TeamColor.WHITE;
+    private volatile ChessGame game;
+    private volatile int currentId;
+    private volatile ChessGame.TeamColor whoseTurn;
     private final HashMap<Integer, Boolean> gamesOver = new HashMap<>();
 
     public ChessClient(String serverUrl) throws Exception {

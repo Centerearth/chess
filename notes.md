@@ -20,42 +20,14 @@ Redeploy
 - REST for auth/game management, WebSocket for real-time gameplay
 - Java 21, Javalin 6, Gson, BCrypt, Jakarta WebSocket, MySQL
 
----
-
-### Critical Issues
-
-3. **Race condition in client state** (ChessClient.java:15-24)
-   Fields like `whoseTurn`, `teamColor`, `gameplayState`, `gamesOver` are mutated by the WebSocket thread and read by the REPL thread with no synchronization. Need `volatile` or `synchronized`.
-
-4. **SQL result set not checked** (all SQL*DataAccess files)
-   `rs.next()` is never checked before reading — silent `SQLException` if no row found. Should return `Optional` or check the result.
-
-5. **Inefficient game updates** (SQLGameDataAccess.java:102-141)
-   Every move does read → deserialize → delete → re-insert (3 DB round trips). Should use SQL UPDATE instead.
-
-
----
-
-### Major Issues
-
-10. **`printStackTrace()` swallows errors** (WebsocketHandler.java:115, ConnectionManager.java:71, others)
-    No error is sent back to the client; silent failures. Should send `ErrorMessage` over WebSocket.
-
-11. **`ServerFacadeMain` uses static mutable state** (ServerFacadeMain.java:16-17)
-    `static AuthData authData` and `static HashMap<Integer, Integer> idToNumber` — instance fields are the right tool.
-
-12. **Redundant/broken move validation** (WebsocketHandler.java:144-152)
-    Checks `piece.getTeamColor() != teamColor` twice. One is dead code. Also `gameService.getColor()` can return null with no null check.
 
 ---
 
 ### Minor Issues
 
-13. Debug `System.out.println` in production (SQLGameDataAccess.java:161,164; WebsocketHandler.java:39,64) — should use SLF4J (already a dependency).
 14. Magic numbers throughout move calculators and board scanning — define `BOARD_MIN = 1`, `BOARD_MAX = 8` constants.
 15. `(int)(double)` cast hack for Gson JSON numbers (ServerFacadeMain.java:148) — use `((Number) obj).intValue()`.
 16. Test helper methods `resetAuth()` / `resetIds()` exposed in public API (ServerFacadeMain.java:36-42).
-18. `idToNumber` mapping is fragile — list positions shift when games are added; downstream code that relies on stable positions will misbehave.
 
 ---
 
@@ -81,7 +53,6 @@ Redeploy
 - `displayGameMechanics()` mixes board orientation logic with rendering — two separate concerns.
 
 **Dead / Leftover Code**
-- `notes.md` contains old `displayBoard()` / `displayLine()` code that was replaced and never removed.
 - `resetAuth()` and `resetIds()` in ServerFacadeMain are labeled "for testing" but ship in the production class.
 - Comment at ChessGame.java:260: `// why did IntelliJ say to put this in?` — unresolved, should be removed.
 
@@ -107,13 +78,8 @@ Redeploy
 
 ### Prioritized Fix List
 4. Fix check notification strings being backwards (WebsocketHandler.java:177-182)
-5. Fix `gamesOver` keying bug (ChessClient.java) — use actual game ID as key
 6. Guard against null from `validMoves()` before iterating (WebsocketHandler.java:137)
-7. Add `rs.next()` checks in all SQL getX() methods
-8. Synchronize shared client state
-9. Consolidate GameService to one shared instance
-10. Validate user input before substring() calls
-11. Clean up println/printStackTrace, magic numbers, dead code
+
 
 
 

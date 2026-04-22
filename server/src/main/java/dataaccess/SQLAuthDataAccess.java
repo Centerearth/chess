@@ -35,9 +35,11 @@ public class SQLAuthDataAccess implements AuthDataAccess {
                 conn.setCatalog(databaseName);
 
                 try (var rs = preparedStatement.executeQuery()) {
-                    rs.next();
-                    var authDataString = rs.getString("authData");
-                    return new Gson().fromJson(authDataString, AuthData.class);
+                    if (rs.next()) {
+                        var authDataString = rs.getString("authData");
+                        return new Gson().fromJson(authDataString, AuthData.class);
+                    }
+                    return null;
                 }
             }
 

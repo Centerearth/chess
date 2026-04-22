@@ -36,9 +36,11 @@ public class SQLUserDataAccess implements UserDataAccess{
                 conn.setCatalog(databaseName);
 
                 try (var rs = preparedStatement.executeQuery()) {
-                    rs.next();
-                    var userDataString = rs.getString("userData");
-                    return new Gson().fromJson(userDataString, UserData.class);
+                    if (rs.next()) {
+                        var userDataString = rs.getString("userData");
+                        return new Gson().fromJson(userDataString, UserData.class);
+                    }
+                    return null;
                 }
             }
 

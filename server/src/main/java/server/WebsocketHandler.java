@@ -148,17 +148,18 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             }
 
             GameData gameData = gameService.getGame(gameID);
-            ChessGame.TeamColor teamColor = game.getBoard().getPiece(startPosition).getTeamColor();
-            if (teamColor != gameData.whoseTurn()) {
-                ErrorMessage errorMessage = new ErrorMessage(ERROR, "ERROR: Invalid");
-                allConnections.broadcastError(session, errorMessage);
+            ChessGame.TeamColor playerColor = gameService.getColor(username, gameID);
+            if (playerColor == null) {
+                allConnections.broadcastError(session, new ErrorMessage(ERROR, "ERROR: Observers cannot make moves"));
                 return;
             }
-            if (!allEndPositions.contains(endPosition) ||
-                    game.getBoard().getPiece(startPosition).getTeamColor() != teamColor
-            || game.getBoard().getPiece(startPosition).getTeamColor() != gameService.getColor(username, gameID)) {
-                ErrorMessage errorMessage = new ErrorMessage(ERROR, "ERROR: Not a valid move");
-                allConnections.broadcastError(session, errorMessage);
+            ChessGame.TeamColor teamColor = game.getBoard().getPiece(startPosition).getTeamColor();
+            if (teamColor != gameData.whoseTurn()) {
+                allConnections.broadcastError(session, new ErrorMessage(ERROR, "ERROR: Not your turn"));
+                return;
+            }
+            if (!allEndPositions.contains(endPosition) || teamColor != playerColor) {
+                allConnections.broadcastError(session, new ErrorMessage(ERROR, "ERROR: Not a valid move"));
                 return;
             }
 

@@ -7,7 +7,10 @@ import websocket.messages.ErrorMessage;
 import websocket.messages.LoadGameMessage;
 import websocket.messages.NotificationMessage;
 import websocket.messages.ServerMessage;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Scanner;
 import static ui.EscapeSequences.*;
 
 public class ChessClient implements ServerMessageObserver {
@@ -107,7 +110,7 @@ public class ChessClient implements ServerMessageObserver {
     private String resignHelper() {
         System.out.print("Are you sure you want to resign? Type y for yes: ");
         String confirm = scanner.nextLine();
-        if (confirm != null && confirm.equals("y") || Objects.equals(confirm, "yes")) {
+        if (confirm.equals("y") || confirm.equals("yes")) {
             System.out.println();
             return resign();
         } else {
@@ -124,7 +127,7 @@ public class ChessClient implements ServerMessageObserver {
         try {
             if (params.length == 3) {
                 String response = server.registerUser(params[0], params[1], params[2]);
-                if (Objects.equals(response, "User was registered successfully. User was logged in successfully.")) {
+                if (response.equals("User was registered successfully. User was logged in successfully.")) {
                     state = State.LOGGEDIN;
                 }
                 return response;
@@ -140,7 +143,7 @@ public class ChessClient implements ServerMessageObserver {
         try {
             if (params.length == 2) {
                 String response = server.loginUser(params[0], params[1]);
-                if (Objects.equals(response, "User was logged in successfully.")) {
+                if (response.equals("User was logged in successfully.")) {
                     state = State.LOGGEDIN;
                 }
                 return response;
@@ -192,9 +195,9 @@ public class ChessClient implements ServerMessageObserver {
     }
 
     private String tryConnection(String color) throws Exception {
-        if (Objects.equals(color, "WHITE") || Objects.equals(color, "white")) {
+        if (color.equals("WHITE") || color.equals("white")) {
             String response = server.playGame(currentId, "WHITE");
-            if (Objects.equals(response, "User joined successfully.")) {
+            if (response.equals("User joined successfully.")) {
                 websocketFacade.connect(server.getAuth().authToken(), currentId,
                         server.getAuth().username(), color);
 
@@ -205,9 +208,9 @@ public class ChessClient implements ServerMessageObserver {
                 teamColor = ChessGame.TeamColor.WHITE;
             }
             return response;
-        } else if (Objects.equals(color, "BLACK") || Objects.equals(color, "black")) {
+        } else if (color.equals("BLACK") || color.equals("black")) {
             String response = server.playGame(currentId, "BLACK");
-            if (Objects.equals(response, "User joined successfully.")) {
+            if (response.equals("User joined successfully.")) {
                 websocketFacade.connect(server.getAuth().authToken(), currentId,
                         server.getAuth().username(), color);
 
@@ -233,7 +236,7 @@ public class ChessClient implements ServerMessageObserver {
                 this.currentId = currentId;
                 String response = server.observeGame(currentId);
 
-                if (Objects.equals(response, "Game is being observed.")) {
+                if (response.equals("Game is being observed.")) {
                     websocketFacade.connect(server.getAuth().authToken(), currentId, server.getAuth().username(), "observer");
 
                     if (gamesOver.get(currentId) != null && gamesOver.get(currentId)) {

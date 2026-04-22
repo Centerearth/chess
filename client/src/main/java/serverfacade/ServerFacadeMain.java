@@ -39,16 +39,6 @@ public class ServerFacadeMain {
         authData = new AuthData(token, username);
     }
 
-    public void resetCurrentGames() {
-        //for testing purposes
-        currentGames = new ArrayList<Integer>();
-    }
-
-    public void resetAuth() {
-        //for testing purposes
-        authData = null;
-    }
-
     public void clearEverything() throws IOException, InterruptedException {
         //for testing purposes
         buildAndReceiveRequest("DELETE", "/db", null, null);

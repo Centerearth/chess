@@ -145,6 +145,10 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                 ChessPosition startPosition = move.getStartPosition();
                 ChessPosition endPosition = move.getEndPosition();
                 ChessPiece startingPiece = game.getBoard().getPiece(startPosition);
+                if (startingPiece == null) {
+                    allConnections.broadcastError(session, new ErrorMessage(ERROR, "ERROR: No piece at that position"));
+                    return;
+                }
                 ArrayList<ChessMove> validMoves = (ArrayList<ChessMove>) game.validMoves(startPosition);
                 ArrayList<ChessPosition> allEndPositions = new ArrayList<>();
                 for (ChessMove eachMove : validMoves) {

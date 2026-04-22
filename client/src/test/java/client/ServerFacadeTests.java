@@ -10,26 +10,26 @@ public class ServerFacadeTests {
 
     private static Server server;
     private static ServerFacadeMain serverFacade;
+    private static String serverUrl;
 
     @BeforeAll
     public static void init() {
         server = new Server();
         var port = server.run(0);
         System.out.println("Started test HTTP server on " + port);
-        String urlString = String.format("http://%s:%d", "localhost", port);
-        serverFacade = new ServerFacadeMain(urlString);
+        serverUrl = String.format("http://%s:%d", "localhost", port);
+        serverFacade = new ServerFacadeMain(serverUrl);
     }
 
     @BeforeEach
     public void clearDatabase() throws IOException, InterruptedException {
         serverFacade.clearEverything();
-        serverFacade.resetAuth();
+        serverFacade = new ServerFacadeMain(serverUrl);
     }
 
     @AfterAll
     static void stopServer() throws IOException, InterruptedException {
         serverFacade.clearEverything();
-        serverFacade.resetAuth();
         server.stop();
     }
 

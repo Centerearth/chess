@@ -23,15 +23,6 @@ Redeploy
 - Java 21, Javalin 6, Gson, BCrypt, Jakarta WebSocket, MySQL
 
 
----
-
-### Minor Issues
-
-14. Magic numbers throughout move calculators and board scanning — define `BOARD_MIN = 1`, `BOARD_MAX = 8` constants.
-16. Test helper methods `resetAuth()` / `resetIds()` exposed in public API (ServerFacadeMain.java:36-42).
-
----
-
 ### Code Quality Critique (2026-04-01)
 
 **Consistency**
@@ -53,7 +44,6 @@ Redeploy
 - `displayGameMechanics()` mixes board orientation logic with rendering — two separate concerns.
 
 **Dead / Leftover Code**
-- `resetAuth()` and `resetIds()` in ServerFacadeMain are labeled "for testing" but ship in the production class.
 - Comment at ChessGame.java:260: `// why did IntelliJ say to put this in?` — unresolved, should be removed.
 
 **Error Handling Style**
@@ -64,21 +54,6 @@ Redeploy
 - Don't maintain two separate implementations of the same logic — share via the `shared` module.
 - The client-side move check in `makeMove()` is fine as a UX shortcut, but the server check is the one that actually matters.
 
----
-
-### Additional Bugs Found (2026-04-01)
-
-1. **Check notifications backwards** (WebsocketHandler.java:177-182)
-   `isInCheck(WHITE)` means WHITE's king is threatened, but the notification says "put black in check." Both branches have the color flipped. Simple string fix.
-
-3. **NPE when moving from empty square** (WebsocketHandler.java:137-140)
-   `game.validMoves()` returns `null` when there's no piece at the start position (ChessGame.java:56-58). The server then iterates over `null` → NullPointerException, swallowed by the catch block into a generic error.
-
----
-
-### Prioritized Fix List
-4. Fix check notification strings being backwards (WebsocketHandler.java:177-182)
-6. Guard against null from `validMoves()` before iterating (WebsocketHandler.java:137)
 
 
 

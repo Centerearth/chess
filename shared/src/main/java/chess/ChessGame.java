@@ -257,7 +257,6 @@ public class ChessGame implements Cloneable {
 
     @Override
     protected Object clone() throws CloneNotSupportedException {
-        //Object o = super.clone(); // why did IntelliJ say to put this in ?
         var clone = new ChessGame();
         clone.teamsTurn = this.teamsTurn;
 

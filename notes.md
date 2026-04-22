@@ -28,7 +28,6 @@ Redeploy
 ### Minor Issues
 
 14. Magic numbers throughout move calculators and board scanning — define `BOARD_MIN = 1`, `BOARD_MAX = 8` constants.
-15. `(int)(double)` cast hack for Gson JSON numbers (ServerFacadeMain.java:148) — use `((Number) obj).intValue()`.
 16. Test helper methods `resetAuth()` / `resetIds()` exposed in public API (ServerFacadeMain.java:36-42).
 
 ---

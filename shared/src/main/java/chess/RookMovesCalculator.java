@@ -12,28 +12,28 @@ public class RookMovesCalculator implements PieceMovesCalculator {
         int row = myPosition.getRow();
         int col = myPosition.getColumn();
 
-        for (int i = 1; i <= 7; i++) {
+        for (int i = 1; i < ChessBoard.BOARD_MAX; i++) {
             int newRow = row + i;
             if (helpCalculator(newRow, col, board, myPosition, validMoves)) {
                 break;
             }
         }
 
-        for (int i = 1; i <= 7; i++) {
+        for (int i = 1; i < ChessBoard.BOARD_MAX; i++) {
             int newCol = col + i;
             if (helpCalculator(row, newCol, board, myPosition, validMoves)) {
                 break;
             }
         }
 
-        for (int i = 1; i <= 7; i++) {
+        for (int i = 1; i < ChessBoard.BOARD_MAX; i++) {
             int newRow = row - i;
             if (helpCalculator(newRow, col, board, myPosition, validMoves)) {
                 break;
             }
         }
 
-        for (int i = 1; i <= 7; i++) {
+        for (int i = 1; i < ChessBoard.BOARD_MAX; i++) {
             int newCol = col - i;
             if (helpCalculator(row, newCol, board, myPosition, validMoves)) {
                 break;

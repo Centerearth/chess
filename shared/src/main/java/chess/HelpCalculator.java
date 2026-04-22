@@ -6,7 +6,7 @@ public class HelpCalculator {
 
     // Note that this mutates validMoves as well as returns a bool
     public static boolean helpCalculator(int newRow, int newCol, ChessBoard board, ChessPosition myPosition, ArrayList<ChessMove> validMoves) {
-        if ((1 <= newRow) && (8 >= newRow) && (1 <= newCol) && (8 >= newCol)) {
+        if ((ChessBoard.BOARD_MIN <= newRow) && (ChessBoard.BOARD_MAX >= newRow) && (ChessBoard.BOARD_MIN <= newCol) && (ChessBoard.BOARD_MAX >= newCol)) {
 
             ChessPosition adjacentPosition = new ChessPosition(newRow, newCol);
             ChessPiece adjacentPiece = board.getPiece(adjacentPosition);

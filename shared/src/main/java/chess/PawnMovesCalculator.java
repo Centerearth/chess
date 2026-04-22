@@ -6,15 +6,21 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 public class PawnMovesCalculator implements PieceMovesCalculator {
+
+    private static final int WHITE_START_ROW = 2;
+    private static final int BLACK_START_ROW = 7;
+    private static final int WHITE_PRE_PROMOTION_ROW = 7;
+    private static final int BLACK_PRE_PROMOTION_ROW = 2;
+
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
 
         ChessGame.TeamColor currentColor = board.getPiece(myPosition).getTeamColor();
         ArrayList<ChessMove> validMoves = new ArrayList<>();
 
         if (currentColor == ChessGame.TeamColor.WHITE) {
-            pawnMoves(currentColor, validMoves, board, myPosition, 2, 7, 1);
+            pawnMoves(currentColor, validMoves, board, myPosition, WHITE_START_ROW, WHITE_PRE_PROMOTION_ROW, 1);
         } else {
-            pawnMoves(currentColor, validMoves, board, myPosition, 7, 2, -1);
+            pawnMoves(currentColor, validMoves, board, myPosition, BLACK_START_ROW, BLACK_PRE_PROMOTION_ROW, -1);
         }
         return validMoves;
     }
@@ -43,7 +49,7 @@ public class PawnMovesCalculator implements PieceMovesCalculator {
                 }
             }
         }
-        if (col != 1) {
+        if (col != ChessBoard.BOARD_MIN) {
             ChessPosition firstDiagonal = new ChessPosition(row + factor, col - 1);
             ChessPiece diagonalPiece = board.getPiece(firstDiagonal);
             if (diagonalPiece != null && diagonalPiece.getTeamColor() != currentColor) {
@@ -54,7 +60,7 @@ public class PawnMovesCalculator implements PieceMovesCalculator {
                 }
             }
         }
-        if (col != 8) {
+        if (col != ChessBoard.BOARD_MAX) {
             ChessPosition secondDiagonal = new ChessPosition(row + factor, col + 1);
             ChessPiece diagonalPiece = board.getPiece(secondDiagonal);
             if (diagonalPiece != null && diagonalPiece.getTeamColor() != currentColor) {

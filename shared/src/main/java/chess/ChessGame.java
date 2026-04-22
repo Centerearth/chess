@@ -141,8 +141,8 @@ public class ChessGame implements Cloneable {
      */
     public boolean isInCheck(TeamColor teamColor) {
         ChessPosition kingPosition = findKingPosition(teamColor);
-        for (int i = 1; i <= 8; i++ ) {
-            for (int j = 1; j <= 8; j++) {
+        for (int i = ChessBoard.BOARD_MIN; i <= ChessBoard.BOARD_MAX; i++ ) {
+            for (int j = ChessBoard.BOARD_MIN; j <= ChessBoard.BOARD_MAX; j++) {
                 if (checkHelper(teamColor, kingPosition, i, j)) {
                     return true;
                 }
@@ -166,8 +166,8 @@ public class ChessGame implements Cloneable {
     }
 
     public ChessPosition findKingPosition(TeamColor teamColor) {
-        for (int i = 1; i <= 8; i++ ) {
-            for (int j = 1; j <= 8; j++) {
+        for (int i = ChessBoard.BOARD_MIN; i <= ChessBoard.BOARD_MAX; i++ ) {
+            for (int j = ChessBoard.BOARD_MIN; j <= ChessBoard.BOARD_MAX; j++) {
                 ChessPosition kingPosition = new ChessPosition(i, j);
                 ChessPiece king = board.getPiece(kingPosition);
                 if (king != null) {
@@ -194,8 +194,8 @@ public class ChessGame implements Cloneable {
     }
 
     public boolean noValidMoves(TeamColor teamColor) {
-        for (int i = 1; i <= 8; i++ ) {
-            for (int j = 1; j <= 8; j++) {
+        for (int i = ChessBoard.BOARD_MIN; i <= ChessBoard.BOARD_MAX; i++ ) {
+            for (int j = ChessBoard.BOARD_MIN; j <= ChessBoard.BOARD_MAX; j++) {
                 ChessPosition position = new ChessPosition(i,j);
                 ChessPiece piece = board.getPiece(position);
                 if (piece != null && piece.getTeamColor() == teamColor) {
@@ -261,8 +261,8 @@ public class ChessGame implements Cloneable {
         var clone = new ChessGame();
         clone.teamsTurn = this.teamsTurn;
 
-        for (int i = 1; i <= 8; i++ ) {
-            for (int j = 1; j <= 8; j++) {
+        for (int i = ChessBoard.BOARD_MIN; i <= ChessBoard.BOARD_MAX; i++ ) {
+            for (int j = ChessBoard.BOARD_MIN; j <= ChessBoard.BOARD_MAX; j++) {
                 ChessPosition position = new ChessPosition(i,j);
                 clone.board.addPiece(position, this.board.getPiece(position));
             }

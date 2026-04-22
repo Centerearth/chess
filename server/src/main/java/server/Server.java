@@ -5,6 +5,7 @@ import com.google.gson.Gson;
 import dataaccess.DataAccessException;
 import io.javalin.*;
 import io.javalin.http.Context;
+import io.javalin.http.HttpStatus;
 import recordandrequest.*;
 import service.GameService;
 import service.UserService;
@@ -171,25 +172,25 @@ public class Server {
     public void exceptionHandler(Context context, Exception e) {
         context.contentType("application/json");
         if (e instanceof AlreadyTakenException) {
-            context.status(403);
+            context.status(HttpStatus.FORBIDDEN);
             context.result(new Gson().toJson(Map.of("message", e.getMessage())));
         } else if (e instanceof BadRequestException) {
-            context.status(400);
+            context.status(HttpStatus.BAD_REQUEST);
             context.result(new Gson().toJson(Map.of("message", e.getMessage())));
         } else if (e instanceof FailedLoginException) {
-            context.status(401);
+            context.status(HttpStatus.UNAUTHORIZED);
             context.result(new Gson().toJson(Map.of("message", e.getMessage())));
         } else if (e instanceof DataAccessException) {
-            context.status(500);
+            context.status(HttpStatus.INTERNAL_SERVER_ERROR);
             context.result(new Gson().toJson(Map.of("message", e.getMessage())));
         } else {
-            context.status(500);
+            context.status(HttpStatus.INTERNAL_SERVER_ERROR);
             context.result(new Gson().toJson(Map.of("message", e.getMessage())));
         }
     }
 
     private void httpExceptionHandler(Exception ex, Context ctx) {
-        ctx.status(500);
+        ctx.status(HttpStatus.INTERNAL_SERVER_ERROR);
         ctx.result(new Gson().toJson(Map.of("message", ex.getMessage())));
     }
 

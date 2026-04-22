@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import model.AuthData;
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -13,6 +14,7 @@ import java.util.ArrayList;
 
 public class ServerFacadeMain {
     private static final HttpClient HTTPCLIENT = HttpClient.newHttpClient();
+    private static final int REQUEST_TIMEOUT_MS = 5000;
     private final String serverUrl;
     private AuthData authData;
     private ArrayList<Integer> currentGames = new ArrayList<>();
@@ -187,7 +189,7 @@ public class ServerFacadeMain {
                                                         HashMap<String, String> header) throws IOException, InterruptedException {
         HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
                 .uri(URI.create(serverUrl + path))
-                .timeout(java.time.Duration.ofMillis(5000))
+                .timeout(java.time.Duration.ofMillis(REQUEST_TIMEOUT_MS))
                 .method(method, makeRequestBody(body));
         if (body != null) {
             requestBuilder.setHeader("Content-Type", "application/json");
@@ -212,13 +214,13 @@ public class ServerFacadeMain {
     }
 
     private String responseHandler(String defaultMessage, HttpResponse<String> httpResponse) {
-        if (httpResponse.statusCode() >= 200 && httpResponse.statusCode() < 300) {
+        if (httpResponse.statusCode() >= HttpURLConnection.HTTP_OK && httpResponse.statusCode() < HttpURLConnection.HTTP_MULT_CHOICE) {
             return defaultMessage;
-        } else if (httpResponse.statusCode() == 400) {
+        } else if (httpResponse.statusCode() == HttpURLConnection.HTTP_BAD_REQUEST) {
             return "Request was malformed.";
-        } else if (httpResponse.statusCode() == 401) {
+        } else if (httpResponse.statusCode() == HttpURLConnection.HTTP_UNAUTHORIZED) {
             return "User is not authorized.";
-        } else if (httpResponse.statusCode() == 403) {
+        } else if (httpResponse.statusCode() == HttpURLConnection.HTTP_FORBIDDEN) {
             return "That option is already taken";
         } else {
             return "An unknown error occurred.";

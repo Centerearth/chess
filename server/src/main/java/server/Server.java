@@ -10,7 +10,6 @@ import service.GameService;
 import service.UserService;
 
 import javax.security.auth.login.FailedLoginException;
-import java.util.HashMap;
 import java.util.Map;
 
 public class Server {
@@ -55,42 +54,32 @@ public class Server {
         }
     }
 
-    @SuppressWarnings("unchecked")
     private void createNewUser(Context context) {
         try {
-            HashMap<String, String> bodyObject = getBodyObject(context, HashMap.class);
-            String username = bodyObject.get("username");
-            String password = bodyObject.get("password");
-            String email = bodyObject.get("email");
+            RegisterRequest body = getBodyObject(context, RegisterRequest.class);
 
-            if (username == null || password == null || email == null) {
+            if (body.username() == null || body.password() == null || body.email() == null) {
                 throw new BadRequestException("Error: bad request");
             }
 
-            RegisterResult registerResult = userService.register(new RegisterRequest(
-                    username, password, email));
+            RegisterResult registerResult = userService.register(body);
 
             String json = new Gson().toJson(registerResult);
             context.json(json);
         } catch (Exception e) {
             exceptionHandler(context, e);
         }
-
     }
 
-    @SuppressWarnings("unchecked")
     private void loginUser(Context context) {
         try {
-            HashMap<String, String> bodyObject = getBodyObject(context, HashMap.class);
-            String username = bodyObject.get("username");
-            String password = bodyObject.get("password");
+            LoginRequest body = getBodyObject(context, LoginRequest.class);
 
-            if (username == null || password == null) {
+            if (body.username() == null || body.password() == null) {
                 throw new BadRequestException("Error: bad request");
             }
 
-            LoginResult loginResult = userService.login(new LoginRequest(
-                    username, password));
+            LoginResult loginResult = userService.login(body);
 
             String json = new Gson().toJson(loginResult);
             context.json(json);
@@ -111,52 +100,44 @@ public class Server {
         }
     }
 
-    @SuppressWarnings("unchecked")
+    private record CreateGameBody(String gameName) {}
+    private record JoinGameBody(String playerColor, int gameID) {}
+
     private void createNewGame(Context context) {
         try {
-            HashMap<String, String> bodyObject = getBodyObject(context, HashMap.class);
-            String gameName = bodyObject.get("gameName");
+            CreateGameBody body = getBodyObject(context, CreateGameBody.class);
             String authToken = getAuthToken(context);
-            if (authToken == null || gameName == null) {
+            if (authToken == null || body.gameName() == null) {
                 throw new BadRequestException("Error: bad request");
             }
-            CreateGameResult createGameResult = gameService.createGame(new CreateGameRequest(authToken,
-                    gameName));
+            CreateGameResult createGameResult = gameService.createGame(new CreateGameRequest(authToken, body.gameName()));
 
             String json = new Gson().toJson(createGameResult);
             context.json(json);
         } catch (Exception e) {
             exceptionHandler(context, e);
         }
-
     }
 
-    @SuppressWarnings("unchecked")
     private void joinGame(Context context) {
         try {
-            HashMap<String, Object> bodyObject = getBodyObject(context, HashMap.class);
+            JoinGameBody body = getBodyObject(context, JoinGameBody.class);
             String authToken = getAuthToken(context);
 
-            if (authToken == null || bodyObject.get("gameID") == null || bodyObject.get("playerColor") == null) {
+            if (authToken == null || body.playerColor() == null) {
                 throw new BadRequestException("Error: bad request");
             }
 
-            String teamColorString = bodyObject.get("playerColor").toString();
-            ChessGame.TeamColor teamColor = null;
-            if (teamColorString.equals("WHITE")) {
-                teamColor = ChessGame.TeamColor.WHITE;
-            } else if (teamColorString.equals("BLACK")) {
-                teamColor = ChessGame.TeamColor.BLACK;
-            }
+            ChessGame.TeamColor teamColor = switch (body.playerColor()) {
+                case "WHITE" -> ChessGame.TeamColor.WHITE;
+                case "BLACK" -> ChessGame.TeamColor.BLACK;
+                default -> throw new BadRequestException("Error: bad request");
+            };
 
-            int gameID = (int) (double) bodyObject.get("gameID"); //why does it convert to double?
-
-            gameService.joinGame(new JoinGameRequest(authToken,
-                    teamColor, gameID));
+            gameService.joinGame(new JoinGameRequest(authToken, teamColor, body.gameID()));
         } catch (Exception e) {
             exceptionHandler(context, e);
         }
-
     }
 
     private void listGames(Context context) {

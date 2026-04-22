@@ -1,12 +1,14 @@
 Plan for phase 6:
 
-joining after game has ended doesn't always work
+
+Fix rest of issues that are relevant
+go file by file and do clean up
+join with gameName instead of ID
+castling and en passant
+stress test it
+What would upgrading to java 25 look like?
 
 After:
-implement castling and en passant
-Protect against races
-deploy to AWS
-Take down
 Write a website that provides a GUI for the chess game
 Redeploy
 
@@ -34,7 +36,6 @@ Redeploy
 ### Code Quality Critique (2026-04-01)
 
 **Consistency**
-- String comparison style varies throughout: `.equals()`, `Objects.equals()`, and `==` used interchangeably. Pick `.equals()` as the default; only use `Objects.equals()` when the left side may be null.
 - Null checks have no coherent policy — some places guard, others don't.
 
 **Duplication**

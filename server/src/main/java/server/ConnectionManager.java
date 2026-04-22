@@ -6,21 +6,15 @@ import websocket.messages.ErrorMessage;
 import websocket.messages.ServerMessage;
 
 import java.io.IOException;
-import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ConnectionManager {
-    public final ConcurrentHashMap<Integer, HashSet<Session>> allConnections = new ConcurrentHashMap<>();
+    public final ConcurrentHashMap<Integer, Set<Session>> allConnections = new ConcurrentHashMap<>();
 
     public void add(int gameID, Session session) {
-        if (allConnections.get(gameID) == null) {
-            addNewGame(gameID);
-        }
+        allConnections.computeIfAbsent(gameID, id -> ConcurrentHashMap.newKeySet());
         allConnections.get(gameID).add(session);
-    }
-
-    private void addNewGame(int gameID) {
-        allConnections.put(gameID, new HashSet<Session>());
     }
 
     public void remove(int gameID) {
@@ -33,7 +27,7 @@ public class ConnectionManager {
 
     public void broadcastAll(ServerMessage serverMessage, int gameID) throws IOException {
         String messageJson = new Gson().toJson(serverMessage);
-        HashSet<Session> connections = allConnections.get(gameID);
+        Set<Session> connections = allConnections.get(gameID);
         for (Session s : connections) {
             if (s.isOpen()) {
                 s.getRemote().sendString(messageJson);
@@ -43,7 +37,7 @@ public class ConnectionManager {
 
     public void broadcastSome(Session excludeSession, ServerMessage serverMessage, int gameID) throws IOException {
         String messageJson = new Gson().toJson(serverMessage);
-        HashSet<Session> connections = allConnections.get(gameID);
+        Set<Session> connections = allConnections.get(gameID);
         for (Session s : connections) {
             if (s.isOpen()) {
                 if (!s.equals(excludeSession)) {
@@ -55,7 +49,7 @@ public class ConnectionManager {
 
     public void broadcastOne(Session session, ServerMessage serverMessage, int gameID) throws IOException {
         String messageJson = new Gson().toJson(serverMessage);
-        HashSet<Session> connections = allConnections.get(gameID);
+        Set<Session> connections = allConnections.get(gameID);
         for (Session s : connections) {
             if (s.isOpen()) {
                 if (s.equals(session)) {

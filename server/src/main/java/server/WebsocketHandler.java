@@ -126,109 +126,100 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     }
 
     private void makeMove(MakeMoveCommand makeMoveCommand, Session session) throws IOException {
+        int gameID = makeMoveCommand.getGameID();
         try {
-            int gameID = makeMoveCommand.getGameID();
+            NotificationMessage notificationMessage2;
+            LoadGameMessage loadGameMessage;
+            NotificationMessage notificationMessage;
+            boolean gameWon;
 
-            if (gameService.isGameWon(gameID)) {
-                ErrorMessage errorMessage = new ErrorMessage(ERROR, "This game has already ended.");
-                allConnections.broadcastOne(session, errorMessage, gameID);
-                return;
-            }
+            synchronized (gameService.getLock(gameID)) {
+                if (gameService.isGameWon(gameID)) {
+                    allConnections.broadcastOne(session, new ErrorMessage(ERROR, "This game has already ended."), gameID);
+                    return;
+                }
 
-            String username = gameService.getAuthData(makeMoveCommand.getAuthToken()).username();
-            ChessGame game = gameService.getGame(gameID).game();
-            ChessMove move = makeMoveCommand.getMove();
-            ChessPosition startPosition = move.getStartPosition();
-            ChessPosition endPosition = move.getEndPosition();
-            ChessPiece startingPiece = game.getBoard().getPiece(startPosition);
-            ArrayList<ChessMove> validMoves = (ArrayList<ChessMove>) game.validMoves(startPosition);
-            ArrayList<ChessPosition> allEndPositions = new ArrayList<>();
-            for (ChessMove eachMove : validMoves) {
-                allEndPositions.add(eachMove.getEndPosition());
-            }
+                String username = gameService.getAuthData(makeMoveCommand.getAuthToken()).username();
+                ChessGame game = gameService.getGame(gameID).game();
+                ChessMove move = makeMoveCommand.getMove();
+                ChessPosition startPosition = move.getStartPosition();
+                ChessPosition endPosition = move.getEndPosition();
+                ChessPiece startingPiece = game.getBoard().getPiece(startPosition);
+                ArrayList<ChessMove> validMoves = (ArrayList<ChessMove>) game.validMoves(startPosition);
+                ArrayList<ChessPosition> allEndPositions = new ArrayList<>();
+                for (ChessMove eachMove : validMoves) {
+                    allEndPositions.add(eachMove.getEndPosition());
+                }
 
-            GameData gameData = gameService.getGame(gameID);
-            ChessGame.TeamColor playerColor = gameService.getColor(username, gameID);
-            if (playerColor == null) {
-                allConnections.broadcastError(session, new ErrorMessage(ERROR, "ERROR: Observers cannot make moves"));
-                return;
-            }
-            ChessGame.TeamColor teamColor = game.getBoard().getPiece(startPosition).getTeamColor();
-            if (teamColor != gameData.whoseTurn()) {
-                allConnections.broadcastError(session, new ErrorMessage(ERROR, "ERROR: Not your turn"));
-                return;
-            }
-            if (!allEndPositions.contains(endPosition) || teamColor != playerColor) {
-                allConnections.broadcastError(session, new ErrorMessage(ERROR, "ERROR: Not a valid move"));
-                return;
-            }
+                GameData gameData = gameService.getGame(gameID);
+                ChessGame.TeamColor playerColor = gameService.getColor(username, gameID);
+                if (playerColor == null) {
+                    allConnections.broadcastError(session, new ErrorMessage(ERROR, "ERROR: Observers cannot make moves"));
+                    return;
+                }
+                ChessGame.TeamColor teamColor = game.getBoard().getPiece(startPosition).getTeamColor();
+                if (teamColor != gameData.whoseTurn()) {
+                    allConnections.broadcastError(session, new ErrorMessage(ERROR, "ERROR: Not your turn"));
+                    return;
+                }
+                if (!allEndPositions.contains(endPosition) || teamColor != playerColor) {
+                    allConnections.broadcastError(session, new ErrorMessage(ERROR, "ERROR: Not a valid move"));
+                    return;
+                }
 
-            PieceType promotion = move.getPromotionPiece();
-            if (promotion == PieceType.KING || promotion == PieceType.PAWN) {
-                allConnections.broadcastError(session, new ErrorMessage(ERROR, "ERROR: Invalid promotion piece"));
-                return;
-            }
-            if (promotion != null) {
-                game.getBoard().addPiece(endPosition,
-                        new ChessPiece(game.getBoard().getPiece(startPosition).getTeamColor(), promotion));
-            } else {
-                game.getBoard().addPiece(endPosition, startingPiece);
-            }
-            game.getBoard().addPiece(startPosition, null);
-            gameService.updateBoard(gameID, game);
+                PieceType promotion = move.getPromotionPiece();
+                if (promotion == PieceType.KING || promotion == PieceType.PAWN) {
+                    allConnections.broadcastError(session, new ErrorMessage(ERROR, "ERROR: Invalid promotion piece"));
+                    return;
+                }
+                if (promotion != null) {
+                    game.getBoard().addPiece(endPosition,
+                            new ChessPiece(game.getBoard().getPiece(startPosition).getTeamColor(), promotion));
+                } else {
+                    game.getBoard().addPiece(endPosition, startingPiece);
+                }
+                game.getBoard().addPiece(startPosition, null);
+                gameService.updateBoard(gameID, game);
 
-            //check and checkmate and stalemate
-            NotificationMessage notificationMessage2 = null;
-            if (game.isInCheckmate(ChessGame.TeamColor.WHITE)) {
-                String notification = String.format("%s has checkmated white", username);
-                notificationMessage2 = new NotificationMessage(NOTIFICATION, notification);
-                gameService.updateGameWin(gameID);
-            } else if (game.isInCheckmate(ChessGame.TeamColor.BLACK)) {
-                String notification = String.format("%s has checkmated black", username);
-                notificationMessage2 = new NotificationMessage(NOTIFICATION, notification);
-                gameService.updateGameWin(gameID);
-            } else if (game.isInCheck(ChessGame.TeamColor.WHITE)) {
-                String notification = String.format("%s has put black in check", username);
-                notificationMessage2 = new NotificationMessage(NOTIFICATION, notification);
-            } else if (game.isInCheck(ChessGame.TeamColor.BLACK)) {
-                String notification = String.format("%s has put white in check", username);
-                notificationMessage2 = new NotificationMessage(NOTIFICATION, notification);
-            } else if (game.isInStalemate(ChessGame.TeamColor.WHITE)) {
-                String notification = String.format("%s has put the game in stalemate", username);
-                notificationMessage2 = new NotificationMessage(NOTIFICATION, notification);
-                gameService.updateGameWin(gameID);
-            } else if (game.isInStalemate(ChessGame.TeamColor.BLACK)) {
-                String notification = String.format("%s has put the game in stalemate", username);
-                notificationMessage2 = new NotificationMessage(NOTIFICATION, notification);
-                gameService.updateGameWin(gameID);
-            }
-            gameData = gameService.getGame(gameID);
+                notificationMessage2 = null;
+                if (game.isInCheckmate(ChessGame.TeamColor.WHITE)) {
+                    notificationMessage2 = new NotificationMessage(NOTIFICATION, String.format("%s has checkmated white", username));
+                    gameService.updateGameWin(gameID);
+                } else if (game.isInCheckmate(ChessGame.TeamColor.BLACK)) {
+                    notificationMessage2 = new NotificationMessage(NOTIFICATION, String.format("%s has checkmated black", username));
+                    gameService.updateGameWin(gameID);
+                } else if (game.isInCheck(ChessGame.TeamColor.WHITE)) {
+                    notificationMessage2 = new NotificationMessage(NOTIFICATION, String.format("%s has put white in check", username));
+                } else if (game.isInCheck(ChessGame.TeamColor.BLACK)) {
+                    notificationMessage2 = new NotificationMessage(NOTIFICATION, String.format("%s has put black in check", username));
+                } else if (game.isInStalemate(ChessGame.TeamColor.WHITE) || game.isInStalemate(ChessGame.TeamColor.BLACK)) {
+                    notificationMessage2 = new NotificationMessage(NOTIFICATION, String.format("%s has put the game in stalemate", username));
+                    gameService.updateGameWin(gameID);
+                }
 
-            ChessGame.TeamColor nextTurn = ChessGame.TeamColor.WHITE;
-            if (gameData.whoseTurn() == ChessGame.TeamColor.WHITE) {
-                nextTurn = ChessGame.TeamColor.BLACK;
+                ChessGame.TeamColor nextTurn = (gameData.whoseTurn() == ChessGame.TeamColor.WHITE)
+                        ? ChessGame.TeamColor.BLACK : ChessGame.TeamColor.WHITE;
+                gameService.updateTurn(gameID, nextTurn);
+                gameData = gameService.getGame(gameID);
+
+                loadGameMessage = new LoadGameMessage(LOAD_GAME, gameData.game(), nextTurn, gameData.gameOver());
+                notificationMessage = new NotificationMessage(NOTIFICATION,
+                        String.format("%s has made the move %s", username, makeMoveCommand.getMove().toString()));
+                gameWon = gameService.isGameWon(gameID);
             }
 
-            gameService.updateTurn(gameID, nextTurn);
-            gameData = gameService.getGame(gameID);
-
-            LoadGameMessage loadGameMessage = new LoadGameMessage(LOAD_GAME,
-                    gameData.game(), nextTurn, gameData.gameOver());
             allConnections.broadcastAll(loadGameMessage, gameID);
-
-            String notification = String.format("%s has made the move %s", username, makeMoveCommand.getMove().toString());
-            NotificationMessage notificationMessage = new NotificationMessage(NOTIFICATION, notification);
             allConnections.broadcastSome(session, notificationMessage, gameID);
-
             if (notificationMessage2 != null) {
                 allConnections.broadcastAll(notificationMessage2, gameID);
             }
-            if (gameService.isGameWon(gameID)) {
+            if (gameWon) {
                 allConnections.remove(gameID);
             }
 
         } catch (Exception e) {
-            allConnections.broadcastError(session, new ErrorMessage(ERROR,"Error: failed to make move"));
+            logger.error("Failed to make move in game {}", gameID, e);
+            allConnections.broadcastError(session, new ErrorMessage(ERROR, "Error: failed to make move"));
         }
     }
     private void leave(UserGameCommand userGameCommand, Session session) throws IOException {
@@ -258,30 +249,29 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     }
 
     private void resign(UserGameCommand userGameCommand, Session session) throws IOException {
+        int gameID = userGameCommand.getGameID();
         try {
             String username = gameService.getAuthData(userGameCommand.getAuthToken()).username();
-            if (username == null || gameService.getColor(username, userGameCommand.getGameID()) == null) {
-                allConnections.broadcastError(session, new ErrorMessage(ERROR,"Error: cannot resign as observer"));
+            if (username == null || gameService.getColor(username, gameID) == null) {
+                allConnections.broadcastError(session, new ErrorMessage(ERROR, "Error: cannot resign as observer"));
                 return;
             }
-            if (gameService.isGameWon(userGameCommand.getGameID())) {
-                allConnections.broadcastError(session, new ErrorMessage(ERROR, "Error: game is already finished."));
-                return;
+
+            synchronized (gameService.getLock(gameID)) {
+                if (gameService.isGameWon(gameID)) {
+                    allConnections.broadcastError(session, new ErrorMessage(ERROR, "Error: game is already finished."));
+                    return;
+                }
+                gameService.updateGameWin(gameID);
             }
 
             String notification = String.format("%s has resigned from the game (%s)", userGameCommand.getUsername(), userGameCommand.getColor());
-            NotificationMessage notificationMessage = new NotificationMessage(NOTIFICATION, notification);
-
-            //allConnections.broadcastSome(session, notificationMessage, userGameCommand.getGameID());
-            allConnections.broadcastAll(notificationMessage, userGameCommand.getGameID());
-
-            gameService.updateGameWin(userGameCommand.getGameID());
-
-            allConnections.removeSession(userGameCommand.getGameID(), session);
+            allConnections.broadcastAll(new NotificationMessage(NOTIFICATION, notification), gameID);
+            allConnections.removeSession(gameID, session);
 
         } catch (Exception e) {
-            logger.error("Failed to resign from game", e);
-            allConnections.broadcastError(session, new ErrorMessage(ERROR,"Error: failed to resign"));
+            logger.error("Failed to resign from game {}", gameID, e);
+            allConnections.broadcastError(session, new ErrorMessage(ERROR, "Error: failed to resign"));
         }
     }
 }

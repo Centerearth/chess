@@ -13,10 +13,16 @@ import javax.security.auth.login.FailedLoginException;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Random;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class GameService {
     private final SQLGameDataAccess gameDataAccess = new SQLGameDataAccess();
     private final SQLAuthDataAccess authDataAccess = new SQLAuthDataAccess();
+    private final ConcurrentHashMap<Integer, Object> gameLocks = new ConcurrentHashMap<>();
+
+    public Object getLock(int gameID) {
+        return gameLocks.computeIfAbsent(gameID, id -> new Object());
+    }
 
     public GameService() throws DataAccessException {
     }
@@ -89,16 +95,18 @@ public class GameService {
         } else if (joinGameRequest.teamColor() == null) {
             throw new BadRequestException("Error: Fields cannot be left blank");
         } else {
-            if (joinGameRequest.teamColor() == ChessGame.TeamColor.WHITE &&
-                    gameDataAccess.getGame(joinGameRequest.gameID()).whiteUsername() != null) {
-                throw new AlreadyTakenException("Error: White is already taken");
+            synchronized (getLock(joinGameRequest.gameID())) {
+                if (joinGameRequest.teamColor() == ChessGame.TeamColor.WHITE &&
+                        gameDataAccess.getGame(joinGameRequest.gameID()).whiteUsername() != null) {
+                    throw new AlreadyTakenException("Error: White is already taken");
+                }
+                if (joinGameRequest.teamColor() == ChessGame.TeamColor.BLACK &&
+                        gameDataAccess.getGame(joinGameRequest.gameID()).blackUsername() != null) {
+                    throw new AlreadyTakenException("Error: Black is already taken");
+                }
+                String username = authDataAccess.getAuth(joinGameRequest.authToken()).username();
+                gameDataAccess.updateGame(joinGameRequest.teamColor(), joinGameRequest.gameID(), username);
             }
-            if (joinGameRequest.teamColor() == ChessGame.TeamColor.BLACK &&
-                    gameDataAccess.getGame(joinGameRequest.gameID()).blackUsername() != null) {
-                throw new AlreadyTakenException("Error: Black is already taken");
-            }
-            String username = authDataAccess.getAuth(joinGameRequest.authToken()).username();
-            gameDataAccess.updateGame(joinGameRequest.teamColor(), joinGameRequest.gameID(), username);
         }
     }
 

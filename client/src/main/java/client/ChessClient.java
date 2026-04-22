@@ -21,6 +21,7 @@ public class ChessClient implements ServerMessageObserver {
     private volatile int currentId;
     private volatile ChessGame.TeamColor whoseTurn;
     private final HashMap<Integer, Boolean> gamesOver = new HashMap<>();
+    private final Scanner scanner = new Scanner(System.in);
 
     public ChessClient(String serverUrl) throws Exception {
         server = new ServerFacadeMain(serverUrl);
@@ -32,7 +33,6 @@ public class ChessClient implements ServerMessageObserver {
         System.out.println("Note - application is not case sensitive.");
         System.out.print(help());
 
-        Scanner scanner = new Scanner(System.in);
         var result = "";
         while (!result.equals("quit")) {
             printPrompt();
@@ -105,15 +105,12 @@ public class ChessClient implements ServerMessageObserver {
     }
 
     private String resignHelper() {
-        Scanner scanner = new Scanner(System.in);
         System.out.print("Are you sure you want to resign? Type y for yes: ");
         String confirm = scanner.nextLine();
         if (confirm != null && confirm.equals("y") || Objects.equals(confirm, "yes")) {
             System.out.println();
-            scanner.close();
             return resign();
         } else {
-            scanner.close();
             return "The user did not resign";
         }
     }

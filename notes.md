@@ -33,19 +33,10 @@ Redeploy
 5. **Inefficient game updates** (SQLGameDataAccess.java:102-141)
    Every move does read → deserialize → delete → re-insert (3 DB round trips). Should use SQL UPDATE instead.
 
-6. **Duplicate GameService instances** (WebsocketHandler.java:32)
-   WebsocketHandler creates its own `new GameService(...)` separate from the one Server.java uses. Server should construct one and inject it into both.
 
 ---
 
 ### Major Issues
-
-7. **`gamesOver` keyed by list position, not game ID** (ChessClient.java:23, 180, 230, 299-303) ← **ROOT CAUSE OF "game already ended" BUG**
-   `gamesOver` maps list position → true when a game ends. List positions are not stable across `list` calls. A new game appearing at the same list slot incorrectly shows as "already ended."
-   Fix: key by actual game ID (`server.getGameID(this.number)`) on both the write side (displayGame) and read side (join/observe).
-
-9. **Pawn promotion not validated** (WebsocketHandler.java:160)
-   `move.getPromotionPiece()` passed through unchecked — client could send KING or PAWN as promotion piece.
 
 10. **`printStackTrace()` swallows errors** (WebsocketHandler.java:115, ConnectionManager.java:71, others)
     No error is sent back to the client; silent failures. Should send `ErrorMessage` over WebSocket.

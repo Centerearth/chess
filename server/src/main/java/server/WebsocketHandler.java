@@ -20,6 +20,9 @@ import service.GameService;
 import websocket.commands.*;
 import websocket.messages.*;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Objects;
@@ -28,6 +31,8 @@ import static websocket.messages.ServerMessage.ServerMessageType.*;
 
 
 public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsCloseHandler {
+
+    private static final Logger logger = LoggerFactory.getLogger(WebsocketHandler.class);
 
     private final ConnectionManager allConnections = new ConnectionManager();
     private final GameService gameService;
@@ -38,7 +43,7 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
 
     @Override
     public void handleConnect(WsConnectContext ctx) {
-        System.out.println("Websocket connected"); //probably should delete this but need some visual confirmation for now
+        logger.info("WebSocket connected");
         ctx.enableAutomaticPings();
     }
 
@@ -56,14 +61,14 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                 case RESIGN -> resign(userGameCommand, ctx.session);
             }
 
-        } catch (IOException ex ) {
-            ex.printStackTrace();
+        } catch (IOException ex) {
+            logger.error("WebSocket message handling failed", ex);
         }
     }
 
     @Override
     public void handleClose(WsCloseContext ctx) {
-        System.out.println("Websocket closed");
+        logger.info("WebSocket closed");
     }
 
     private void connect(UserGameCommand userGameCommand, Session session) throws IOException {
@@ -114,7 +119,7 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         allConnections.broadcastSome(session, notificationMessage, userGameCommand.getGameID());
 
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            logger.error("Failed to connect to game", e);
             allConnections.broadcastError(session, new ErrorMessage(ERROR,"Error: failed to connect"));
         }
 
@@ -246,7 +251,7 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             allConnections.removeSession(userGameCommand.getGameID(), session);
 
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            logger.error("Failed to leave game", e);
             allConnections.broadcastError(session, new ErrorMessage(ERROR,"Error: failed to leave"));
         }
     }
@@ -274,7 +279,7 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             allConnections.removeSession(userGameCommand.getGameID(), session);
 
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            logger.error("Failed to resign from game", e);
             allConnections.broadcastError(session, new ErrorMessage(ERROR,"Error: failed to resign"));
         }
     }

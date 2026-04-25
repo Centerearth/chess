@@ -1,16 +1,18 @@
 Plan for phase 6:
 
 
-Fix rest of issues that are relevant
-go file by file and do clean up
-join with gameName instead of ID
+join with gameName instead of ID, make names unique in gameService.createGame(), then use a map of game name to game ID in serverfacade main
 castling and en passant
+go file by file and do clean up
 stress test it
 What would upgrading to java 25 look like?
 
 After:
 Write a website that provides a GUI for the chess game
 Redeploy
+
+There are already helper functions for making moves and whatnot in the shared module under Chessgame?
+Outsource the validation to there and then castling and en passant changes can come from the shared folder
 
 
 ---
@@ -42,9 +44,6 @@ Redeploy
 **Method Length and Responsibility**
 - `eval()` encodes which commands exist per state directly in its body — adding a new state requires editing it. A map of `String → Command` per state would be more extensible.
 - `displayGameMechanics()` mixes board orientation logic with rendering — two separate concerns.
-
-**Dead / Leftover Code**
-- Comment at ChessGame.java:260: `// why did IntelliJ say to put this in?` — unresolved, should be removed.
 
 **Error Handling Style**
 - Broad `catch (Exception e)` returning fixed strings like `"Failed to join."` hides the actual error. At minimum, surface `e.getMessage()`.

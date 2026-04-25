@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Objects;
 
+import chess.ChessPiece.PieceType;
+
 /**
  * For a class that can manage a chess game, making moves on a board
  * <p>
@@ -34,6 +36,14 @@ public class ChessGame implements Cloneable {
      */
     public void setTeamTurn(TeamColor team) {
         this.teamsTurn = team;
+    }
+
+    public void updateTeamTurn() {
+        if (teamsTurn == TeamColor.WHITE) {
+            teamsTurn = TeamColor.BLACK;
+        } else {
+            teamsTurn = TeamColor.WHITE;
+        }
     }
 
     /**
@@ -100,7 +110,6 @@ public class ChessGame implements Cloneable {
         }
         TeamColor color = piece.getTeamColor();
 
-
         Collection<ChessMove> validMoves;
         if (testing) {
             validMoves = piece.pieceMoves(board, startPosition);
@@ -113,7 +122,9 @@ public class ChessGame implements Cloneable {
 
         if (validMoves.contains(move)) {
             board.addPiece(startPosition, null);
-            if (promotionPiece == null) {
+            if (promotionPiece == PieceType.KING || promotionPiece == PieceType.PAWN) {
+                throw new InvalidMoveException("Invalid promotion piece");
+            } else if (promotionPiece == null) {
                 board.addPiece(endPosition, piece);
             } else {
                 ChessPiece promotedPiece = new ChessPiece(color, promotionPiece);
@@ -124,11 +135,7 @@ public class ChessGame implements Cloneable {
         }
 
         if (!testing) {
-            if (piece.getTeamColor() == TeamColor.WHITE) {
-                this.setTeamTurn(TeamColor.BLACK);
-            } else {
-                this.setTeamTurn(TeamColor.WHITE);
-            }
+            this.updateTeamTurn();
         }
     }
 

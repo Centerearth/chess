@@ -3,8 +3,8 @@ package server;
 import chess.ChessGame;
 import chess.ChessMove;
 import chess.ChessPiece;
-import chess.ChessPosition;
-import chess.ChessPiece.PieceType;
+import chess.InvalidMoveException;
+
 
 import com.google.gson.Gson;
 import dataaccess.DataAccessException;
@@ -24,7 +24,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Objects;
 
 import static websocket.messages.ServerMessage.ServerMessageType.*;
@@ -95,7 +94,7 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
 
                 GameData gameData = gameService.getGame(userGameCommand.getGameID());
                 LoadGameMessage loadGameMessage = new LoadGameMessage(LOAD_GAME, gameData.game(),
-                        gameData.whoseTurn(), gameData.gameOver());
+                        gameData.gameOver());
                 allConnections.broadcastOne(session, loadGameMessage, gameData.gameID());
 
                 String notification = "This game has already ended";
@@ -109,7 +108,7 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         GameData gameData = gameService.getGame(userGameCommand.getGameID());
         ChessGame game = gameData.game();
         LoadGameMessage loadGameMessage = new LoadGameMessage(LOAD_GAME, game,
-                gameData.whoseTurn(), gameData.gameOver());
+                gameData.gameOver());
 
         String notification = String.format("%s has joined the game as %s", userGameCommand.getUsername(), userGameCommand.getColor());
 
@@ -142,18 +141,6 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                 String username = gameService.getAuthData(makeMoveCommand.getAuthToken()).username();
                 ChessGame game = gameService.getGame(gameID).game();
                 ChessMove move = makeMoveCommand.getMove();
-                ChessPosition startPosition = move.getStartPosition();
-                ChessPosition endPosition = move.getEndPosition();
-                ChessPiece startingPiece = game.getBoard().getPiece(startPosition);
-                if (startingPiece == null) {
-                    allConnections.broadcastError(session, new ErrorMessage(ERROR, "ERROR: No piece at that position"));
-                    return;
-                }
-                ArrayList<ChessMove> validMoves = (ArrayList<ChessMove>) game.validMoves(startPosition);
-                ArrayList<ChessPosition> allEndPositions = new ArrayList<>();
-                for (ChessMove eachMove : validMoves) {
-                    allEndPositions.add(eachMove.getEndPosition());
-                }
 
                 GameData gameData = gameService.getGame(gameID);
                 ChessGame.TeamColor playerColor = gameService.getColor(username, gameID);
@@ -161,28 +148,19 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                     allConnections.broadcastError(session, new ErrorMessage(ERROR, "ERROR: Observers cannot make moves"));
                     return;
                 }
-                ChessGame.TeamColor teamColor = game.getBoard().getPiece(startPosition).getTeamColor();
-                if (teamColor != gameData.whoseTurn()) {
-                    allConnections.broadcastError(session, new ErrorMessage(ERROR, "ERROR: Not your turn"));
-                    return;
-                }
-                if (!allEndPositions.contains(endPosition) || teamColor != playerColor) {
-                    allConnections.broadcastError(session, new ErrorMessage(ERROR, "ERROR: Not a valid move"));
+
+                ChessPiece startingPiece = game.getBoard().getPiece(move.getStartPosition());
+                if (startingPiece != null && startingPiece.getTeamColor() != playerColor) {
+                    allConnections.broadcastError(session, new ErrorMessage(ERROR, "ERROR: You cannot move your opponent's pieces"));
                     return;
                 }
 
-                PieceType promotion = move.getPromotionPiece();
-                if (promotion == PieceType.KING || promotion == PieceType.PAWN) {
-                    allConnections.broadcastError(session, new ErrorMessage(ERROR, "ERROR: Invalid promotion piece"));
+                try {
+                    game.makeMove(move);
+                } catch (InvalidMoveException e) {
+                    allConnections.broadcastError(session, new ErrorMessage(ERROR, String.format("ERROR: Invalid move, %s", e.getMessage())));
                     return;
                 }
-                if (promotion != null) {
-                    game.getBoard().addPiece(endPosition,
-                            new ChessPiece(game.getBoard().getPiece(startPosition).getTeamColor(), promotion));
-                } else {
-                    game.getBoard().addPiece(endPosition, startingPiece);
-                }
-                game.getBoard().addPiece(startPosition, null);
                 gameService.updateBoard(gameID, game);
 
                 notificationMessage2 = null;
@@ -201,12 +179,9 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                     gameService.updateGameWin(gameID);
                 }
 
-                ChessGame.TeamColor nextTurn = (gameData.whoseTurn() == ChessGame.TeamColor.WHITE)
-                        ? ChessGame.TeamColor.BLACK : ChessGame.TeamColor.WHITE;
-                gameService.updateTurn(gameID, nextTurn);
                 gameData = gameService.getGame(gameID);
 
-                loadGameMessage = new LoadGameMessage(LOAD_GAME, gameData.game(), nextTurn, gameData.gameOver());
+                loadGameMessage = new LoadGameMessage(LOAD_GAME, gameData.game(), gameData.gameOver());
                 notificationMessage = new NotificationMessage(NOTIFICATION,
                         String.format("%s has made the move %s", username, makeMoveCommand.getMove().toString()));
                 gameWon = gameService.isGameWon(gameID);

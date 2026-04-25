@@ -66,8 +66,7 @@ public class GameService {
         } else {
             GameData newGameData = new GameData(generateID(), null, null,
                     createGameRequest.gameName(),
-                    new ChessGame(),
-                    ChessGame.TeamColor.WHITE, false);
+                    new ChessGame(), false);
             gameDataAccess.addGameData(newGameData);
             return new CreateGameResult(newGameData.gameID());
         }
@@ -89,7 +88,7 @@ public class GameService {
 
     public void joinGame(JoinGameRequest joinGameRequest) throws FailedLoginException, DataAccessException {
         if (!gameDataExists(joinGameRequest.gameID())) {
-            throw new DataAccessException("Error: game does not exist");
+            throw new BadRequestException("Error: game does not exist");
         } else if (!authDataExists(joinGameRequest.authToken())) {
             throw new FailedLoginException("Error: unauthorized");
         } else if (joinGameRequest.teamColor() == null) {
@@ -116,10 +115,6 @@ public class GameService {
 
     public void updateBoard(int gameID, ChessGame game) throws DataAccessException {
         gameDataAccess.updateBoard(gameID, game);
-    }
-
-    public void updateTurn(int gameID, ChessGame.TeamColor whoseTurn) throws DataAccessException {
-        gameDataAccess.updateTurn(gameID, whoseTurn);
     }
 
     public void updateGameWin(int gameID) throws DataAccessException {

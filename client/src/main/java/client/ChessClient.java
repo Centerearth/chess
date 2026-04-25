@@ -297,7 +297,7 @@ public class ChessClient implements ServerMessageObserver {
         ChessGame game = loadGameMessage.getGame();
         ChessBoard gameBoard = game.getBoard();
         this.game = game;
-        this.whoseTurn = loadGameMessage.getWhoseTurn();
+        this.whoseTurn = game.getTeamTurn();
         displayGameMechanics(gameBoard, null);
         if (loadGameMessage.getGameOver()) {
             this.gamesOver.put(currentId, true);

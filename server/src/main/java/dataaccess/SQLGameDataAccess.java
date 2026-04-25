@@ -120,11 +120,11 @@ public class SQLGameDataAccess implements GameDataAccess{
         if (teamColor == ChessGame.TeamColor.BLACK) {
             newGame = new GameData(gameID,
                     oldGame.whiteUsername(), username, oldGame.gameName(), oldGame.game(),
-                    oldGame.whoseTurn(), oldGame.gameOver());
+                    oldGame.gameOver());
         } else {
             newGame = new GameData(gameID,
                     username, oldGame.blackUsername(), oldGame.gameName(), oldGame.game(),
-                    oldGame.whoseTurn(), oldGame.gameOver());
+                    oldGame.gameOver());
         }
         executeUpdate(gameID, newGame);
     }
@@ -132,21 +132,15 @@ public class SQLGameDataAccess implements GameDataAccess{
     public void updateBoard(int gameID, ChessGame game) throws DataAccessException {
         GameData oldGame = getGame(gameID);
         GameData newGame = new GameData(gameID, oldGame.whiteUsername(), oldGame.blackUsername(), oldGame.gameName(),
-                game, oldGame.whoseTurn(), oldGame.gameOver());
+                game, oldGame.gameOver());
         executeUpdate(gameID, newGame);
     }
 
-    public void updateTurn(int gameID, ChessGame.TeamColor whoseTurn) throws DataAccessException {
-        GameData oldGame = getGame(gameID);
-        GameData newGame = new GameData(gameID, oldGame.whiteUsername(), oldGame.blackUsername(), oldGame.gameName(),
-                oldGame.game(), whoseTurn, oldGame.gameOver());
-        executeUpdate(gameID, newGame);
-    }
 
     public void updateGameWin(int gameID) throws DataAccessException {
         GameData oldGame = getGame(gameID);
         GameData newGame = new GameData(gameID, oldGame.whiteUsername(), oldGame.blackUsername(), oldGame.gameName(),
-                oldGame.game(), oldGame.whoseTurn(), true);
+                oldGame.game(), true);
         executeUpdate(gameID, newGame);
     }
 

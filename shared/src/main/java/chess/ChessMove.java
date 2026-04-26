@@ -13,12 +13,16 @@ public class ChessMove {
     private final ChessPosition startPosition;
     private final ChessPosition endPosition;
     private final ChessPiece.PieceType promotionPiece;
+    private boolean enPassant;
+    private ChessPosition enPassantAdjacent;
 
     public ChessMove(ChessPosition startPosition, ChessPosition endPosition,
                      ChessPiece.PieceType promotionPiece) {
         this.startPosition = startPosition;
         this.endPosition = endPosition;
         this.promotionPiece = promotionPiece;
+        this.enPassant = false;
+        this.enPassantAdjacent = null;
     }
 
     /**
@@ -43,6 +47,18 @@ public class ChessMove {
      */
     public ChessPiece.PieceType getPromotionPiece() {
         return this.promotionPiece;
+    }
+
+    public boolean getEnPassant() {return this.enPassant;}
+
+    public void setEnPassant(boolean enPassant) {
+        this.enPassant = enPassant;
+    }
+
+    public ChessPosition getEnPassantAdjacent() {return this.enPassantAdjacent;}
+
+    public void setEnPassantAdjacent(ChessPosition enPassantAdjacent) {
+        this.enPassantAdjacent = enPassantAdjacent;
     }
 
     @Override

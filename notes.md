@@ -1,18 +1,16 @@
-Plan for phase 6:
 
 
-join with gameName instead of ID, make names unique in gameService.createGame(), then use a map of game name to game ID in serverfacade main
 castling and en passant
+en passant is only valid the turn of
+join with gameName instead of ID, make names unique in gameService.createGame(), then use a map of game name to game ID in serverfacade main
 go file by file and do clean up
 stress test it
 What would upgrading to java 25 look like?
 
 After:
 Write a website that provides a GUI for the chess game
-Redeploy
+deploy?
 
-There are already helper functions for making moves and whatnot in the shared module under Chessgame?
-Outsource the validation to there and then castling and en passant changes can come from the shared folder
 
 
 ---

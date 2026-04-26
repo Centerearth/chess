@@ -97,4 +97,19 @@ public class ChessBoard {
                 "board=" + Arrays.toString(board) +
                 '}';
     }
+
+    public void display() {
+        for (int i = 8; i >= 1; i--) {
+            for (int j = 1; j <= 8; j++) {
+                ChessPiece currentPiece = this.getPiece(new ChessPosition(i, j));
+                if (currentPiece != null) {
+                    System.out.print("| " + this.getPiece(new ChessPosition(i, j)).toString() + " ");
+                } else {
+                    System.out.print("|  ");
+                }
+            }
+            System.out.print("|");
+            System.out.println();
+        }
+    }
 }

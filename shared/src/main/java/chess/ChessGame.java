@@ -15,11 +15,13 @@ import chess.ChessPiece.PieceType;
 public class ChessGame implements Cloneable {
         private ChessBoard board;
         private TeamColor teamsTurn;
+        private boolean enPassantAllowed;
 
     public ChessGame() {
         board = new ChessBoard();
         this.board.resetBoard();
         teamsTurn = TeamColor.WHITE;
+        enPassantAllowed = false;
     }
 
     /**
@@ -75,7 +77,11 @@ public class ChessGame implements Cloneable {
                 ChessGame tempGame = (ChessGame) this.clone();
                 tempGame.makeMoveTesting(move);
                 if (!tempGame.isInCheck(startPiece.getTeamColor())) {
-                    validMoves.add(move);
+                    if (!move.getEnPassant()) {
+                        validMoves.add(move);
+                    } else if (move.getEnPassant() && enPassantAllowed) {
+                        validMoves.add(move);
+                    }
                 }
             } catch (CloneNotSupportedException | InvalidMoveException e) {
                 throw new RuntimeException(e);
@@ -110,32 +116,49 @@ public class ChessGame implements Cloneable {
         }
         TeamColor color = piece.getTeamColor();
 
-        Collection<ChessMove> validMoves;
+        ArrayList<ChessMove> validMoves;
         if (testing) {
-            validMoves = piece.pieceMoves(board, startPosition);
+            validMoves = (ArrayList<ChessMove>) piece.pieceMoves(board, startPosition);
         } else {
             if (color != getTeamTurn()) {
                 throw new InvalidMoveException("It is not your turn");
             }
-            validMoves = this.validMoves(startPosition);
+            validMoves = (ArrayList<ChessMove>) this.validMoves(startPosition);
         }
 
         if (validMoves.contains(move)) {
-            board.addPiece(startPosition, null);
-            if (promotionPiece == PieceType.KING || promotionPiece == PieceType.PAWN) {
-                throw new InvalidMoveException("Invalid promotion piece");
-            } else if (promotionPiece == null) {
+            int moveIndex = validMoves.indexOf(move);
+            if (validMoves.get(moveIndex).getEnPassant()) { //it's because the user's move doesn't have en passant
+                ChessPosition toBeErased = validMoves.get(moveIndex).getEnPassantAdjacent();
+                board.addPiece(startPosition, null);
+                board.addPiece(toBeErased, null);
                 board.addPiece(endPosition, piece);
             } else {
-                ChessPiece promotedPiece = new ChessPiece(color, promotionPiece);
-                board.addPiece(endPosition, promotedPiece);
+                board.addPiece(startPosition, null);
+                if (promotionPiece == PieceType.KING || promotionPiece == PieceType.PAWN) {
+                    throw new InvalidMoveException("Invalid promotion piece");
+                } else if (promotionPiece == null) {
+                    board.addPiece(endPosition, piece);
+                } else {
+                    ChessPiece promotedPiece = new ChessPiece(color, promotionPiece);
+                    board.addPiece(endPosition, promotedPiece);
+                }
             }
         } else {
             throw new InvalidMoveException("This is an invalid move");
         }
 
         if (!testing) {
+            if (piece.getPieceType() == PieceType.PAWN && ((startPosition.getRow() == 2 && endPosition.getRow() == 4)
+            || (startPosition.getRow() == 7 && endPosition.getRow() == 5))) {
+                enPassantAllowed = true;
+                System.out.println("setting to true");
+            } else {
+                enPassantAllowed = false;
+                System.out.println("setting to false");
+            }
             this.updateTeamTurn();
+            piece.updateTotalMoves();
         }
     }
 

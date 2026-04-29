@@ -1,11 +1,11 @@
 
 
-castling and en passant
-en passant is only valid the turn of
+castling
+an extra move successful if erroring sometimes and says logged in before prinitng the board after a move
 join with gameName instead of ID, make names unique in gameService.createGame(), then use a map of game name to game ID in serverfacade main
+resigning didn't autoremove the other player?
 go file by file and do clean up
 stress test it
-What would upgrading to java 25 look like?
 
 After:
 Write a website that provides a GUI for the chess game

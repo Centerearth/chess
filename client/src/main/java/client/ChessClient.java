@@ -7,20 +7,24 @@ import websocket.messages.ErrorMessage;
 import websocket.messages.LoadGameMessage;
 import websocket.messages.NotificationMessage;
 import websocket.messages.ServerMessage;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Scanner;
 import static ui.EscapeSequences.*;
 
 public class ChessClient implements ServerMessageObserver {
     private final ServerFacadeMain server;
-    private State state = State.LOGGEDOUT;
-    private GameplayState gameplayState = GameplayState.NOGAMEPLAY;
-    private ObservingState observingState = ObservingState.NOTOBSERVING;
+    private volatile State state = State.LOGGEDOUT;
+    private volatile GameplayState gameplayState = GameplayState.NOGAMEPLAY;
+    private volatile ObservingState observingState = ObservingState.NOTOBSERVING;
     private final WebsocketFacade websocketFacade;
-    private ChessGame.TeamColor teamColor = ChessGame.TeamColor.WHITE;
-    private ChessGame game;
-    private int number;
-    private ChessGame.TeamColor whoseTurn;
+    private volatile ChessGame.TeamColor teamColor = ChessGame.TeamColor.WHITE;
+    private volatile ChessGame game;
+    private volatile int currentId;
+    private volatile ChessGame.TeamColor whoseTurn;
     private final HashMap<Integer, Boolean> gamesOver = new HashMap<>();
+    private final Scanner scanner = new Scanner(System.in);
 
     public ChessClient(String serverUrl) throws Exception {
         server = new ServerFacadeMain(serverUrl);
@@ -32,7 +36,6 @@ public class ChessClient implements ServerMessageObserver {
         System.out.println("Note - application is not case sensitive.");
         System.out.print(help());
 
-        Scanner scanner = new Scanner(System.in);
         var result = "";
         while (!result.equals("quit")) {
             printPrompt();
@@ -46,6 +49,7 @@ public class ChessClient implements ServerMessageObserver {
                 System.out.print(msg);
             }
         }
+        scanner.close();
         System.out.println();
     }
 
@@ -104,10 +108,9 @@ public class ChessClient implements ServerMessageObserver {
     }
 
     private String resignHelper() {
-        Scanner scanner = new Scanner(System.in);
         System.out.print("Are you sure you want to resign? Type y for yes: ");
         String confirm = scanner.nextLine();
-        if (confirm != null && confirm.equals("y") || Objects.equals(confirm, "yes")) {
+        if (confirm.equals("y") || confirm.equals("yes")) {
             System.out.println();
             return resign();
         } else {
@@ -124,7 +127,7 @@ public class ChessClient implements ServerMessageObserver {
         try {
             if (params.length == 3) {
                 String response = server.registerUser(params[0], params[1], params[2]);
-                if (Objects.equals(response, "User was registered successfully. User was logged in successfully.")) {
+                if (response.equals("User was registered successfully. User was logged in successfully.")) {
                     state = State.LOGGEDIN;
                 }
                 return response;
@@ -140,7 +143,7 @@ public class ChessClient implements ServerMessageObserver {
         try {
             if (params.length == 2) {
                 String response = server.loginUser(params[0], params[1]);
-                if (Objects.equals(response, "User was logged in successfully.")) {
+                if (response.equals("User was logged in successfully.")) {
                     state = State.LOGGEDIN;
                 }
                 return response;
@@ -175,12 +178,12 @@ public class ChessClient implements ServerMessageObserver {
     private String join(String... params) {
         try {
             if (params.length == 2) {
-                int number = Integer.parseInt(params[0]);
+                int currentId = Integer.parseInt(params[0]);
 
-                if (gamesOver.get(number) != null && gamesOver.get(number)) {
+                if (gamesOver.get(currentId) != null && gamesOver.get(currentId)) {
                     return "Game has already ended";
                 }
-                this.number = number;
+                this.currentId = currentId;
                 String color = params[1];
                 return tryConnection(color);
             } else {
@@ -192,26 +195,26 @@ public class ChessClient implements ServerMessageObserver {
     }
 
     private String tryConnection(String color) throws Exception {
-        if (Objects.equals(color, "WHITE") || Objects.equals(color, "white")) {
-            String response = server.playGame(number, "WHITE");
-            if (Objects.equals(response, "User joined successfully.")) {
-                websocketFacade.connect(server.getAuth().authToken(), server.getGameID(number),
+        if (color.equals("WHITE") || color.equals("white")) {
+            String response = server.playGame(currentId, "WHITE");
+            if (response.equals("User joined successfully.")) {
+                websocketFacade.connect(server.getAuth().authToken(), currentId,
                         server.getAuth().username(), color);
 
-                if (gamesOver.get(number) != null && gamesOver.get(number)) {
+                if (gamesOver.get(currentId) != null && gamesOver.get(currentId)) {
                     return "Game has already ended";
                 }
                 gameplayState = GameplayState.INGAMEPLAY;
                 teamColor = ChessGame.TeamColor.WHITE;
             }
             return response;
-        } else if (Objects.equals(color, "BLACK") || Objects.equals(color, "black")) {
-            String response = server.playGame(number, "BLACK");
-            if (Objects.equals(response, "User joined successfully.")) {
-                websocketFacade.connect(server.getAuth().authToken(), server.getGameID(number),
+        } else if (color.equals("BLACK") || color.equals("black")) {
+            String response = server.playGame(currentId, "BLACK");
+            if (response.equals("User joined successfully.")) {
+                websocketFacade.connect(server.getAuth().authToken(), currentId,
                         server.getAuth().username(), color);
 
-                if (gamesOver.get(number) != null && gamesOver.get(number)) {
+                if (gamesOver.get(currentId) != null && gamesOver.get(currentId)) {
                     return "Game has already ended";
                 }
                 gameplayState = GameplayState.INGAMEPLAY;
@@ -226,17 +229,17 @@ public class ChessClient implements ServerMessageObserver {
     private String observe(String... params) {
         try {
             if (params.length == 1) {
-                int number = Integer.parseInt(params[0]);
-                if (gamesOver.get(number) != null && gamesOver.get(number)) {
+                int currentId = Integer.parseInt(params[0]);
+                if (gamesOver.get(currentId) != null && gamesOver.get(currentId)) {
                     return "Game has already ended";
                 }
-                this.number = number;
-                String response = server.observeGame(number);
+                this.currentId = currentId;
+                String response = server.observeGame(currentId);
 
-                if (Objects.equals(response, "Game is being observed.")) {
-                    websocketFacade.connect(server.getAuth().authToken(), server.getGameID(number), server.getAuth().username(), "observer");
+                if (response.equals("Game is being observed.")) {
+                    websocketFacade.connect(server.getAuth().authToken(), currentId, server.getAuth().username(), "observer");
 
-                    if (gamesOver.get(number) != null && gamesOver.get(number)) {
+                    if (gamesOver.get(currentId) != null && gamesOver.get(currentId)) {
                         return "Game has already ended";
                     }
                     gameplayState = GameplayState.INGAMEPLAY;
@@ -294,10 +297,10 @@ public class ChessClient implements ServerMessageObserver {
         ChessGame game = loadGameMessage.getGame();
         ChessBoard gameBoard = game.getBoard();
         this.game = game;
-        this.whoseTurn = loadGameMessage.getWhoseTurn();
+        this.whoseTurn = game.getTeamTurn();
         displayGameMechanics(gameBoard, null);
         if (loadGameMessage.getGameOver()) {
-            this.gamesOver.put(number, true);
+            this.gamesOver.put(currentId, true);
             observingState = ObservingState.NOTOBSERVING;
             gameplayState = GameplayState.NOGAMEPLAY;
         }
@@ -420,12 +423,12 @@ public class ChessClient implements ServerMessageObserver {
     public String leave() {
         try {
             if (observingState == ObservingState.OBSERVING) {
-                websocketFacade.leave(server.getAuth().authToken(), server.getGameID(this.number), server.getAuth().username(), "observer");
+                websocketFacade.leave(server.getAuth().authToken(), this.currentId, server.getAuth().username(), "observer");
                 observingState = ObservingState.NOTOBSERVING;
                 gameplayState = GameplayState.NOGAMEPLAY;
                 return "User stopped observing the game.";
             } else {
-                websocketFacade.leave(server.getAuth().authToken(), server.getGameID(this.number),
+                websocketFacade.leave(server.getAuth().authToken(), this.currentId,
                         server.getAuth().username(), teamColor.toString().toLowerCase());
                 gameplayState = GameplayState.NOGAMEPLAY;
                 return "User has left the game";
@@ -466,7 +469,7 @@ public class ChessClient implements ServerMessageObserver {
                         return "ERROR: Not a valid move";
                     } else {
                         ChessMove chessMove = new ChessMove(startPosition, endPosition, promotionPiece);
-                        websocketFacade.makeMove(server.getAuth().authToken(), server.getGameID(this.number),
+                        websocketFacade.makeMove(server.getAuth().authToken(), this.currentId,
                                 server.getAuth().username(), teamColor.toString().toLowerCase(), chessMove);
 
                         return "Move successful";
@@ -484,7 +487,7 @@ public class ChessClient implements ServerMessageObserver {
     }
     public String resign() {
         try {
-                websocketFacade.resign(server.getAuth().authToken(), server.getGameID(this.number),
+                websocketFacade.resign(server.getAuth().authToken(), this.currentId,
                         server.getAuth().username(), teamColor.toString().toLowerCase());
                 gameplayState = GameplayState.NOGAMEPLAY;
                 return "User has resigned from the game";

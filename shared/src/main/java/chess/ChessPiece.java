@@ -13,10 +13,12 @@ public class ChessPiece {
 
     private final ChessGame.TeamColor pieceColor;
     private final PieceType type;
+    private int totalMoves;
 
     public ChessPiece(ChessGame.TeamColor pieceColor, ChessPiece.PieceType type) {
         this.pieceColor = pieceColor;
         this.type = type;
+        this.totalMoves = 0;
     }
 
     /**
@@ -44,6 +46,10 @@ public class ChessPiece {
     public PieceType getPieceType() {
         return this.type;
     }
+
+    public int getTotalMoves () {return this.totalMoves;}
+
+    public void updateTotalMoves () {this.totalMoves += 1;}
 
     /**
      * Calculates all the positions a chess piece can move to
@@ -95,12 +101,15 @@ public class ChessPiece {
 
     @Override
     public int hashCode() {
-        return Objects.hash(pieceColor, type);
+        return Objects.hash(pieceColor, type, getTotalMoves());
     }
 
     @Override
     public String toString() {
-        return "" + pieceColor + type;
+        return "ChessPiece{" +
+                "pieceColor=" + pieceColor +
+                ", type=" + type +
+                ", totalMoves=" + totalMoves +
+                '}';
     }
-
 }

@@ -8,7 +8,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
-import recordandrequest.*;
 import service.UserService;
 
 import java.util.ArrayList;
@@ -29,8 +28,7 @@ public class DataAccessTests {
     public void addGameSuccess() throws DataAccessException {
         gameDataAccess.removeAllGameData();
         GameData testGame = new GameData(10, null, null,
-                "game1", new ChessGame(),
-                ChessGame.TeamColor.WHITE, false);
+                "game1", new ChessGame(), false);
         gameDataAccess.addGameData(testGame);
         Assertions.assertEquals(testGame, gameDataAccess.getGame(10),
                 "Returned game was not the same game as was added");
@@ -43,11 +41,9 @@ public class DataAccessTests {
     public void addGameFailure() throws DataAccessException {
         gameDataAccess.removeAllGameData();
         GameData testGame1 = new GameData(10, null, null,
-                "game1", new ChessGame(),
-                ChessGame.TeamColor.WHITE, false);
+                "game1", new ChessGame(), false);
         GameData testGame2 = new GameData(10, null, null,
-                "game1", new ChessGame(),
-                ChessGame.TeamColor.WHITE, false);
+                "game1", new ChessGame(), false);
         gameDataAccess.addGameData(testGame1);
         Assertions.assertThrows(DataAccessException.class, () -> gameDataAccess.addGameData(testGame2));
         gameDataAccess.removeAllGameData();
@@ -59,8 +55,7 @@ public class DataAccessTests {
     public void getGameSuccess() throws DataAccessException {
         gameDataAccess.removeAllGameData();
         GameData newTestGame = new GameData(100, null, null,
-                "newGame1", new ChessGame(),
-                ChessGame.TeamColor.WHITE, false);
+                "newGame1", new ChessGame(), false);
         gameDataAccess.addGameData(newTestGame);
         Assertions.assertEquals(newTestGame, gameDataAccess.getGame(100),
                 "Returned game was not the same game as was added");
@@ -81,14 +76,11 @@ public class DataAccessTests {
     @DisplayName("Clear all games")
     public void clearGameSuccess() throws DataAccessException {
         GameData testGame1 = new GameData(10, null, null,
-                "game1", new ChessGame(),
-                ChessGame.TeamColor.WHITE, false);
+                "game1", new ChessGame(), false);
         GameData testGame2 = new GameData(11, null, null,
-                "game2", new ChessGame(),
-                ChessGame.TeamColor.WHITE, false);
+                "game2", new ChessGame(), false);
         GameData testGame3 = new GameData(12, null, null,
-                "game3", new ChessGame(),
-                ChessGame.TeamColor.WHITE, false);
+                "game3", new ChessGame(), false);
         gameDataAccess.addGameData(testGame1);
         gameDataAccess.addGameData(testGame2);
         gameDataAccess.addGameData(testGame3);
@@ -107,8 +99,7 @@ public class DataAccessTests {
     public void removeGameSuccess() throws DataAccessException {
         gameDataAccess.removeAllGameData();
         GameData testGame = new GameData(10, null, null,
-                "game1", new ChessGame(),
-                ChessGame.TeamColor.WHITE, false);
+                "game1", new ChessGame(), false);
         gameDataAccess.addGameData(testGame);
         gameDataAccess.removeGameData(10);
 
@@ -134,14 +125,11 @@ public class DataAccessTests {
 
         gameDataAccess.removeAllGameData();
         GameData testGame1 = new GameData(10, null, null,
-                "game1", new ChessGame(),
-                ChessGame.TeamColor.WHITE, false);
+                "game1", new ChessGame(), false);
         GameData testGame2 = new GameData(11, null, null,
-                "game2", new ChessGame(),
-                ChessGame.TeamColor.WHITE, false);
+                "game2", new ChessGame(), false);
         GameData testGame3 = new GameData(12, null, null,
-                "game3", new ChessGame(),
-                ChessGame.TeamColor.WHITE, false);
+                "game3", new ChessGame(), false);
         gameDataAccess.addGameData(testGame1);
         gameDataAccess.addGameData(testGame2);
         gameDataAccess.addGameData(testGame3);
@@ -172,8 +160,7 @@ public class DataAccessTests {
 
         gameDataAccess.removeAllGameData();
         GameData testGame1 = new GameData(10, null, null,
-                "game1", new ChessGame(),
-                ChessGame.TeamColor.WHITE, false);
+                "game1", new ChessGame(), false);
         gameDataAccess.addGameData(testGame1);
         gameDataAccess.updateGame(ChessGame.TeamColor.WHITE, 10, "white_username");
 

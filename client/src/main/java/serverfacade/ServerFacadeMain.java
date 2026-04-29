@@ -4,20 +4,27 @@ import com.google.gson.Gson;
 import model.AuthData;
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.HashMap;
+import java.util.ArrayList;
 
 public class ServerFacadeMain {
     private static final HttpClient HTTPCLIENT = HttpClient.newHttpClient();
+    private static final int REQUEST_TIMEOUT_MS = 5000;
     private final String serverUrl;
-    private static AuthData authData;
-    private static HashMap<Integer, Integer> idToNumber;
+    private AuthData authData;
+    private ArrayList<Integer> currentGames = new ArrayList<>();
 
-    public int getGameID (int number) {
-        return idToNumber.get(number);
+    public ArrayList<Integer> getCurrentGames() {
+        return currentGames;
+    }
+
+    public boolean isGameCurrent (int id) {
+        return currentGames.contains(id);
     }
 
     public ServerFacadeMain(String url) {
@@ -30,16 +37,6 @@ public class ServerFacadeMain {
 
     public void setAuth(String username, String token) {
         authData = new AuthData(token, username);
-    }
-
-    public void resetAuth() {
-        //for testing purposes
-        authData = null;
-    }
-
-    public void resetIds() {
-        //for testing purposes
-        idToNumber = null;
     }
 
     public void clearEverything() throws IOException, InterruptedException {
@@ -77,16 +74,17 @@ public class ServerFacadeMain {
         if (authData == null) {
             return "User is not logged in.";
         }
+
+        if (currentGames == null || !isGameCurrent(gameIndex)) {
+            return "Game does not exist.";
+        }
+
         String authToken = authData.authToken();
         HashMap<String, String> headers = new HashMap<>();
         headers.put("authorization", authToken);
 
-        if (idToNumber == null || !idToNumber.containsKey(gameIndex)) {
-            return "Game does not exist.";
-        }
-
         HashMap<String, Object> bodyObject = new HashMap<>();
-        bodyObject.put("gameID", idToNumber.get(gameIndex));
+        bodyObject.put("gameID", gameIndex);
         bodyObject.put("playerColor", color);
         String jsonBody = new Gson().toJson(bodyObject);
         HttpResponse<String> httpResponse = buildAndReceiveRequest("PUT", "/game", jsonBody, headers);
@@ -94,12 +92,15 @@ public class ServerFacadeMain {
     }
 
     public String observeGame(int gameIndex) {
+        //this function doesn't really do anything ?
         if (authData == null) {
             return "User is not logged in.";
         }
-        if (idToNumber == null || !idToNumber.containsKey(gameIndex)) {
+
+        if (currentGames == null || !isGameCurrent(gameIndex)) {
             return "Game does not exist.";
         }
+        
         return "Game is being observed.";
     }
 
@@ -143,22 +144,18 @@ public class ServerFacadeMain {
         ListGameResult allGames = new Gson().fromJson(httpResponse.body(), ListGameResult.class);
 
         StringBuilder gameList = new StringBuilder();
-        if (idToNumber == null || idToNumber.isEmpty()) {
-            idToNumber = new HashMap<>();
-        }
-
+        currentGames = new ArrayList<Integer>();
+        
         if (allGames.games().isEmpty()) {
             return "No games to display.";
         }
-        for (int i = idToNumber.size(); i < allGames.games().size(); i++) {
-            idToNumber.put(i+1, allGames.games().get(i).gameID());
-        }
+
 
         for (int i = 0; i < allGames.games().size(); i++) {
-            //idToNumber.put(i+1, allGames.games().get(i).gameID());
+            currentGames.add(allGames.games().get(i).gameID());
 
             gameList.append("Game: ");
-            gameList.append(i+1);
+            gameList.append(allGames.games().get(i).gameID());
             gameList.append(", Game Name: ");
             gameList.append(allGames.games().get(i).gameName());
             gameList.append(", White Player: ");
@@ -182,7 +179,7 @@ public class ServerFacadeMain {
                                                         HashMap<String, String> header) throws IOException, InterruptedException {
         HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
                 .uri(URI.create(serverUrl + path))
-                .timeout(java.time.Duration.ofMillis(5000))
+                .timeout(java.time.Duration.ofMillis(REQUEST_TIMEOUT_MS))
                 .method(method, makeRequestBody(body));
         if (body != null) {
             requestBuilder.setHeader("Content-Type", "application/json");
@@ -206,14 +203,14 @@ public class ServerFacadeMain {
         }
     }
 
-    private String responseHandler(String defaultMessage, HttpResponse httpResponse) {
-        if (httpResponse.statusCode() >= 200 && httpResponse.statusCode() < 300) {
+    private String responseHandler(String defaultMessage, HttpResponse<String> httpResponse) {
+        if (httpResponse.statusCode() >= HttpURLConnection.HTTP_OK && httpResponse.statusCode() < HttpURLConnection.HTTP_MULT_CHOICE) {
             return defaultMessage;
-        } else if (httpResponse.statusCode() == 400) {
+        } else if (httpResponse.statusCode() == HttpURLConnection.HTTP_BAD_REQUEST) {
             return "Request was malformed.";
-        } else if (httpResponse.statusCode() == 401) {
+        } else if (httpResponse.statusCode() == HttpURLConnection.HTTP_UNAUTHORIZED) {
             return "User is not authorized.";
-        } else if (httpResponse.statusCode() == 403) {
+        } else if (httpResponse.statusCode() == HttpURLConnection.HTTP_FORBIDDEN) {
             return "That option is already taken";
         } else {
             return "An unknown error occurred.";

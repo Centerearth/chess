@@ -39,9 +39,11 @@ public class SQLGameDataAccess implements GameDataAccess{
                 conn.setCatalog(databaseName);
 
                 try (var rs = preparedStatement.executeQuery()) {
-                    rs.next();
-                    var gameDataString = rs.getString("gameData");
-                    return new Gson().fromJson(gameDataString, GameData.class);
+                    if (rs.next()) {
+                        var gameDataString = rs.getString("gameData");
+                        return new Gson().fromJson(gameDataString, GameData.class);
+                    }
+                    return null;
                 }
             }
 
@@ -99,56 +101,47 @@ public class SQLGameDataAccess implements GameDataAccess{
             throw new DataAccessException("Error: failed to fetch all game data", e);
         }
    }
-    public void updateGame(ChessGame.TeamColor teamColor, int gameID, String username) throws DataAccessException {
+    private void executeUpdate(int gameID, GameData newGame) throws DataAccessException {
+        try (var conn = DatabaseManager.getConnection()) {
+            conn.setCatalog(databaseName);
+            try (var preparedStatement = conn.prepareStatement("UPDATE game SET gameData = ? WHERE gameID = ?")) {
+                preparedStatement.setString(1, new Gson().toJson(newGame));
+                preparedStatement.setInt(2, gameID);
+                preparedStatement.executeUpdate();
+            }
+        } catch (Exception e) {
+            throw new DataAccessException("Error: failed to update game", e);
+        }
+    }
 
+    public void updateGame(ChessGame.TeamColor teamColor, int gameID, String username) throws DataAccessException {
         GameData oldGame = getGame(gameID);
         GameData newGame;
         if (teamColor == ChessGame.TeamColor.BLACK) {
             newGame = new GameData(gameID,
                     oldGame.whiteUsername(), username, oldGame.gameName(), oldGame.game(),
-                    oldGame.whoseTurn(), oldGame.gameOver());
+                    oldGame.gameOver());
         } else {
             newGame = new GameData(gameID,
                     username, oldGame.blackUsername(), oldGame.gameName(), oldGame.game(),
-                    oldGame.whoseTurn(), oldGame.gameOver());
+                    oldGame.gameOver());
         }
-
-        removeGameData(gameID);
-        addGameData(newGame);
+        executeUpdate(gameID, newGame);
     }
 
     public void updateBoard(int gameID, ChessGame game) throws DataAccessException {
-
         GameData oldGame = getGame(gameID);
-        GameData newGame;
-
-        newGame = new GameData(gameID, oldGame.whiteUsername(), oldGame.blackUsername(), oldGame.gameName(),
-                game, oldGame.whoseTurn(), oldGame.gameOver());
-
-        removeGameData(gameID);
-        addGameData(newGame);
+        GameData newGame = new GameData(gameID, oldGame.whiteUsername(), oldGame.blackUsername(), oldGame.gameName(),
+                game, oldGame.gameOver());
+        executeUpdate(gameID, newGame);
     }
 
-    public void updateTurn(int gameID, ChessGame.TeamColor whoseTurn) throws DataAccessException {
-        GameData oldGame = getGame(gameID);
-        GameData newGame;
-
-        newGame = new GameData(gameID, oldGame.whiteUsername(), oldGame.blackUsername(), oldGame.gameName(),
-                oldGame.game(), whoseTurn, oldGame.gameOver());
-
-        removeGameData(gameID);
-        addGameData(newGame);
-    }
 
     public void updateGameWin(int gameID) throws DataAccessException {
         GameData oldGame = getGame(gameID);
-        GameData newGame;
-
-        newGame = new GameData(gameID, oldGame.whiteUsername(), oldGame.blackUsername(), oldGame.gameName(),
-                oldGame.game(), oldGame.whoseTurn(), true);
-
-        removeGameData(gameID);
-        addGameData(newGame);
+        GameData newGame = new GameData(gameID, oldGame.whiteUsername(), oldGame.blackUsername(), oldGame.gameName(),
+                oldGame.game(), true);
+        executeUpdate(gameID, newGame);
     }
 
     public boolean isGameWon(int gameID) throws DataAccessException {
@@ -158,10 +151,8 @@ public class SQLGameDataAccess implements GameDataAccess{
     public String giveColorGivenUsername(String username, int gameID) throws DataAccessException {
         GameData gameData = getGame(gameID);
         if (Objects.equals(gameData.whiteUsername(), username)) {
-            System.out.println("I am returning white");
             return "WHITE";
         } else if (Objects.equals(gameData.blackUsername(), username)) {
-            System.out.println("I am returning black");
             return "BLACK";
         }
         return null;

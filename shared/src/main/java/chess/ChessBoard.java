@@ -14,7 +14,10 @@ import static chess.ChessPiece.PieceType.*;
  */
 public class ChessBoard {
 
-    ChessPiece[][] board = new ChessPiece[8][8];
+    public static final int BOARD_MIN = 1;
+    public static final int BOARD_MAX = 8;
+
+    ChessPiece[][] board = new ChessPiece[BOARD_MAX][BOARD_MAX];
     public ChessBoard() {
     }
 
@@ -25,7 +28,7 @@ public class ChessBoard {
      * @param piece    the piece to add
      */
     public void addPiece(ChessPosition position, ChessPiece piece) {
-        this.board[position.getRow()-1][position.getColumn()-1] = piece;
+        this.board[position.getRow() - BOARD_MIN][position.getColumn() - BOARD_MIN] = piece;
     }
 
     /**
@@ -37,7 +40,7 @@ public class ChessBoard {
      */
     public ChessPiece getPiece(ChessPosition position) {
 
-        return this.board[position.getRow()-1][position.getColumn()-1];
+        return this.board[position.getRow() - BOARD_MIN][position.getColumn() - BOARD_MIN];
     }
 
     /**
@@ -45,9 +48,9 @@ public class ChessBoard {
      * (How the game of chess normally starts)
      */
     public void resetBoard() {
-        this.board = new ChessPiece[8][8];
+        this.board = new ChessPiece[BOARD_MAX][BOARD_MAX];
         //adding pawns
-        for (int col = 1; col <= 8; col++) {
+        for (int col = BOARD_MIN; col <= BOARD_MAX; col++) {
             addPiece(new ChessPosition(2, col), new ChessPiece(WHITE, PAWN));
             addPiece(new ChessPosition(7, col), new ChessPiece(BLACK, PAWN));
         }
@@ -56,12 +59,12 @@ public class ChessBoard {
         addPiece(new ChessPosition(1, 8), new ChessPiece(WHITE, ROOK));
         addPiece(new ChessPosition(8, 1), new ChessPiece(BLACK, ROOK));
         addPiece(new ChessPosition(8, 8), new ChessPiece(BLACK, ROOK));
-        //adding bishops
+        //adding knights
         addPiece(new ChessPosition(1, 2), new ChessPiece(WHITE, KNIGHT));
         addPiece(new ChessPosition(1, 7), new ChessPiece(WHITE, KNIGHT));
         addPiece(new ChessPosition(8, 2), new ChessPiece(BLACK, KNIGHT));
         addPiece(new ChessPosition(8, 7), new ChessPiece(BLACK, KNIGHT));
-        //adding knights
+        //adding bishops
         addPiece(new ChessPosition(1, 3), new ChessPiece(WHITE, BISHOP));
         addPiece(new ChessPosition(1, 6), new ChessPiece(WHITE, BISHOP));
         addPiece(new ChessPosition(8, 3), new ChessPiece(BLACK, BISHOP));
@@ -93,5 +96,20 @@ public class ChessBoard {
         return "ChessBoard{" +
                 "board=" + Arrays.toString(board) +
                 '}';
+    }
+
+    public void display() {
+        for (int i = 8; i >= 1; i--) {
+            for (int j = 1; j <= 8; j++) {
+                ChessPiece currentPiece = this.getPiece(new ChessPosition(i, j));
+                if (currentPiece != null) {
+                    System.out.print("| " + this.getPiece(new ChessPosition(i, j)).toString() + " ");
+                } else {
+                    System.out.print("|  ");
+                }
+            }
+            System.out.print("|");
+            System.out.println();
+        }
     }
 }

@@ -12,7 +12,7 @@ public class BishopMovesCalculator implements PieceMovesCalculator {
         int row = myPosition.getRow();
         int col = myPosition.getColumn();
 
-        for (int i = 1, j = 1; i <= 7 && j <= 7; i++, j++) {
+        for (int i = 1, j = 1; i < ChessBoard.BOARD_MAX && j < ChessBoard.BOARD_MAX; i++, j++) {
             int newRow = row + i;
             int newCol = col - j;
             if (helpCalculator(newRow, newCol, board, myPosition, validMoves)) {
@@ -20,7 +20,7 @@ public class BishopMovesCalculator implements PieceMovesCalculator {
             }
         }
 
-        for (int i = 1, j = 1; i <= 7 && j <= 7; i++, j++) {
+        for (int i = 1, j = 1; i < ChessBoard.BOARD_MAX && j < ChessBoard.BOARD_MAX; i++, j++) {
             int newRow = row + i;
             int newCol = col + j;
             if (helpCalculator(newRow, newCol, board, myPosition, validMoves)) {
@@ -28,7 +28,7 @@ public class BishopMovesCalculator implements PieceMovesCalculator {
             }
         }
 
-        for (int i = 1, j = 1; i <= 7 && j <= 7; i++, j++) {
+        for (int i = 1, j = 1; i < ChessBoard.BOARD_MAX && j < ChessBoard.BOARD_MAX; i++, j++) {
             int newRow = row - i;
             int newCol = col - j;
             if (helpCalculator(newRow, newCol, board, myPosition, validMoves)) {
@@ -36,7 +36,7 @@ public class BishopMovesCalculator implements PieceMovesCalculator {
             }
         }
 
-        for (int i = 1, j = 1; i <= 7 && j <= 7; i++, j++) {
+        for (int i = 1, j = 1; i < ChessBoard.BOARD_MAX && j < ChessBoard.BOARD_MAX; i++, j++) {
             int newRow = row - i;
             int newCol = col + j;
             if (helpCalculator(newRow, newCol, board, myPosition, validMoves)) {

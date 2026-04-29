@@ -26,6 +26,6 @@ public class KingMovesCalculator implements PieceMovesCalculator {
         return validMoves;
     }
     public boolean inBoundsAndValid (int i, int j, int newRow, int newCol) {
-        return (!(0 == i && 0 == j) && ((1 <= newRow) && (8 >= newRow) && (1 <= newCol) && (8 >= newCol)));
+        return (!(0 == i && 0 == j) && ((ChessBoard.BOARD_MIN <= newRow) && (ChessBoard.BOARD_MAX >= newRow) && (ChessBoard.BOARD_MIN <= newCol) && (ChessBoard.BOARD_MAX >= newCol)));
     }
 }

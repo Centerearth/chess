@@ -1,6 +1,5 @@
 package service;
 
-import chess.ChessBoard;
 import chess.ChessGame;
 import dataaccess.DataAccessException;
 import dataaccess.SQLAuthDataAccess;
@@ -14,17 +13,23 @@ import javax.security.auth.login.FailedLoginException;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Random;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class GameService {
     private final SQLGameDataAccess gameDataAccess = new SQLGameDataAccess();
     private final SQLAuthDataAccess authDataAccess = new SQLAuthDataAccess();
+    private final ConcurrentHashMap<Integer, Object> gameLocks = new ConcurrentHashMap<>();
+
+    public Object getLock(int gameID) {
+        return gameLocks.computeIfAbsent(gameID, id -> new Object());
+    }
 
     public GameService() throws DataAccessException {
     }
 
     public static int generateID() {
         Random r= new Random();
-        return r.nextInt(500);
+        return r.nextInt(Integer.MAX_VALUE);
     }
 
     public GameData getGame(int gameID) throws DataAccessException {
@@ -61,8 +66,7 @@ public class GameService {
         } else {
             GameData newGameData = new GameData(generateID(), null, null,
                     createGameRequest.gameName(),
-                    new ChessGame(),
-                    ChessGame.TeamColor.WHITE, false);
+                    new ChessGame(), false);
             gameDataAccess.addGameData(newGameData);
             return new CreateGameResult(newGameData.gameID());
         }
@@ -84,22 +88,24 @@ public class GameService {
 
     public void joinGame(JoinGameRequest joinGameRequest) throws FailedLoginException, DataAccessException {
         if (!gameDataExists(joinGameRequest.gameID())) {
-            throw new DataAccessException("Error: game does not exist");
+            throw new BadRequestException("Error: game does not exist");
         } else if (!authDataExists(joinGameRequest.authToken())) {
             throw new FailedLoginException("Error: unauthorized");
         } else if (joinGameRequest.teamColor() == null) {
             throw new BadRequestException("Error: Fields cannot be left blank");
         } else {
-            if (joinGameRequest.teamColor() == ChessGame.TeamColor.WHITE &&
-                    gameDataAccess.getGame(joinGameRequest.gameID()).whiteUsername() != null) {
-                throw new AlreadyTakenException("Error: White is already taken");
+            synchronized (getLock(joinGameRequest.gameID())) {
+                if (joinGameRequest.teamColor() == ChessGame.TeamColor.WHITE &&
+                        gameDataAccess.getGame(joinGameRequest.gameID()).whiteUsername() != null) {
+                    throw new AlreadyTakenException("Error: White is already taken");
+                }
+                if (joinGameRequest.teamColor() == ChessGame.TeamColor.BLACK &&
+                        gameDataAccess.getGame(joinGameRequest.gameID()).blackUsername() != null) {
+                    throw new AlreadyTakenException("Error: Black is already taken");
+                }
+                String username = authDataAccess.getAuth(joinGameRequest.authToken()).username();
+                gameDataAccess.updateGame(joinGameRequest.teamColor(), joinGameRequest.gameID(), username);
             }
-            if (joinGameRequest.teamColor() == ChessGame.TeamColor.BLACK &&
-                    gameDataAccess.getGame(joinGameRequest.gameID()).blackUsername() != null) {
-                throw new AlreadyTakenException("Error: Black is already taken");
-            }
-            String username = authDataAccess.getAuth(joinGameRequest.authToken()).username();
-            gameDataAccess.updateGame(joinGameRequest.teamColor(), joinGameRequest.gameID(), username);
         }
     }
 
@@ -109,10 +115,6 @@ public class GameService {
 
     public void updateBoard(int gameID, ChessGame game) throws DataAccessException {
         gameDataAccess.updateBoard(gameID, game);
-    }
-
-    public void updateTurn(int gameID, ChessGame.TeamColor whoseTurn) throws DataAccessException {
-        gameDataAccess.updateTurn(gameID, whoseTurn);
     }
 
     public void updateGameWin(int gameID) throws DataAccessException {

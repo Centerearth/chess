@@ -1,13 +1,14 @@
 package server;
 
-import chess.*;
 
 public class ServerMain {
+    private static final int DEFAULT_PORT = 8080;
+
     public static void main(String[] args) {
         System.out.println("♕ 240 Chess Server");
 
         Server server = new Server();
-        server.run(8080);
+        server.run(DEFAULT_PORT);
 
         System.out.println("♕ 240 Chess Server");
     }

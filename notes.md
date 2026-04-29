@@ -1,17 +1,57 @@
-Plan for phase 6:
-~add logging~
-Read through and figure this out
 
-joining after game has ended doesn't always work
+
+castling
+an extra move successful if erroring sometimes and says logged in before prinitng the board after a move
+join with gameName instead of ID, make names unique in gameService.createGame(), then use a map of game name to game ID in serverfacade main
+resigning didn't autoremove the other player?
+go file by file and do clean up
+stress test it
+
 After:
-implement castling and en passant
-Protect against races
-deploy to AWS
-Take down
 Write a website that provides a GUI for the chess game
-Redeploy
+deploy?
 
-Some of the games are going back to false after having been won.
+
+
+---
+
+## Code Review (2026-04-01)
+
+### General Architecture
+- 3-module Maven project: shared (chess engine + WebSocket protocol), server (Javalin HTTP + WebSocket + MySQL), client (CLI REPL)
+- REST for auth/game management, WebSocket for real-time gameplay
+- Java 21, Javalin 6, Gson, BCrypt, Jakarta WebSocket, MySQL
+
+
+### Code Quality Critique (2026-04-01)
+
+**Consistency**
+- Null checks have no coherent policy — some places guard, others don't.
+
+**Duplication**
+- `tryConnection()` (ChessClient.java:194) has two nearly identical WHITE/BLACK branches — should be one path with a parameter.
+- SQL data access classes repeat the same connection boilerplate in every method across three files — needs a shared helper.
+- `join()` checks `gamesOver` twice (before and after connecting); one check is always redundant.
+
+**Naming**
+- `number` (field and local in join()) — should be `currentGameNumber` or `selectedGameIndex`.
+- `gamesOver` — reads as a noun, but is a state map. Should be `endedGameIds` after the bug fix.
+- `tryConnection()` — doesn't describe purpose, describes implementation. Should be something like `joinGame()`.
+- `HelpCalculator` — vague; it's actually a move bounds validator.
+
+**Method Length and Responsibility**
+- `eval()` encodes which commands exist per state directly in its body — adding a new state requires editing it. A map of `String → Command` per state would be more extensible.
+- `displayGameMechanics()` mixes board orientation logic with rendering — two separate concerns.
+
+**Error Handling Style**
+- Broad `catch (Exception e)` returning fixed strings like `"Failed to join."` hides the actual error. At minimum, surface `e.getMessage()`.
+
+**Also discussed: client-side vs. server-side validation**
+- Both are appropriate, but for different reasons: server validation is mandatory (security), client validation is for UX (fast feedback, fewer round trips).
+- Don't maintain two separate implementations of the same logic — share via the `shared` module.
+- The client-side move check in `makeMove()` is fine as a UX shortcut, but the server check is the one that actually matters.
+
+
 
 
 

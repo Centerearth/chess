@@ -25,6 +25,7 @@ public class ChessClient implements ServerMessageObserver {
     private volatile ChessGame.TeamColor whoseTurn;
     private final HashMap<Integer, Boolean> gamesOver = new HashMap<>();
     private final Scanner scanner = new Scanner(System.in);
+    private volatile boolean suppressNextMainPrompt = false;
 
     public ChessClient(String serverUrl) throws Exception {
         server = new ServerFacadeMain(serverUrl);
@@ -38,7 +39,7 @@ public class ChessClient implements ServerMessageObserver {
 
         var result = "";
         while (!result.equals("quit")) {
-            printPrompt();
+            printMainLoopPrompt();
             String line = scanner.nextLine();
 
             try {
@@ -51,6 +52,14 @@ public class ChessClient implements ServerMessageObserver {
         }
         scanner.close();
         System.out.println();
+    }
+
+    private void printMainLoopPrompt() {
+        if (suppressNextMainPrompt) {
+            suppressNextMainPrompt = false;
+            return;
+        }
+        printPrompt();
     }
 
     private void printPrompt() {
@@ -206,6 +215,8 @@ public class ChessClient implements ServerMessageObserver {
                 }
                 gameplayState = GameplayState.INGAMEPLAY;
                 teamColor = ChessGame.TeamColor.WHITE;
+                suppressNextMainPrompt = true;
+                return response;
             }
             return response;
         } else if (color.equals("BLACK") || color.equals("black")) {
@@ -219,6 +230,8 @@ public class ChessClient implements ServerMessageObserver {
                 }
                 gameplayState = GameplayState.INGAMEPLAY;
                 teamColor = ChessGame.TeamColor.BLACK;
+                suppressNextMainPrompt = true;
+                return response;
             }
             return response;
         } else {
@@ -245,6 +258,7 @@ public class ChessClient implements ServerMessageObserver {
                     gameplayState = GameplayState.INGAMEPLAY;
                     observingState = ObservingState.OBSERVING;
                     teamColor = ChessGame.TeamColor.WHITE;
+                    suppressNextMainPrompt = true;
                     return "Observing game...";
                 } else {
                     return response;
@@ -472,6 +486,7 @@ public class ChessClient implements ServerMessageObserver {
                         websocketFacade.makeMove(server.getAuth().authToken(), this.currentId,
                                 server.getAuth().username(), teamColor.toString().toLowerCase(), chessMove);
 
+                        suppressNextMainPrompt = true;
                         return "Move successful";
                     }
 

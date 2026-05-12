@@ -1,7 +1,3 @@
-
-
-castling
-an extra move successful if erroring sometimes and says logged in before prinitng the board after a move
 join with gameName instead of ID, make names unique in gameService.createGame(), then use a map of game name to game ID in serverfacade main
 resigning didn't autoremove the other player?
 go file by file and do clean up

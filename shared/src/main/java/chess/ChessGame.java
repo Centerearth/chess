@@ -75,13 +75,31 @@ public class ChessGame implements Cloneable {
         for (ChessMove move : initialMoves) {
             try {
                 ChessGame tempGame = (ChessGame) this.clone();
+                ChessGame tempGameCastling = (ChessGame) this.clone();
                 tempGame.makeMoveTesting(move);
                 if (!tempGame.isInCheck(startPiece.getTeamColor())) {
-                    if (!move.getEnPassant()) {
+                    ChessMove tempKingMove;
+                    if (move.getCastling()) {
+                        if (this.isInCheck(startPiece.getTeamColor())) {
+                            // cannot castle while in check
+                        } else {
+                            if (move.getEndPosition().getColumn() == 7) {
+                                tempKingMove = new ChessMove(move.getStartPosition(), new ChessPosition(move.getStartPosition().getRow(), 6), null);
+                            } else {
+                                tempKingMove = new ChessMove(move.getStartPosition(), new ChessPosition(move.getStartPosition().getRow(), 4), null);
+                            }
+
+                            tempGameCastling.makeMoveTesting(tempKingMove);
+                            if (!tempGameCastling.isInCheck(startPiece.getTeamColor())) {
+                                validMoves.add(move);
+                            }
+                        }
+                    } else if (!move.getEnPassant()) {
                         validMoves.add(move);
                     } else if (move.getEnPassant() && enPassantAllowed) {
                         validMoves.add(move);
                     }
+                
                 }
             } catch (CloneNotSupportedException | InvalidMoveException e) {
                 throw new RuntimeException(e);
@@ -133,6 +151,29 @@ public class ChessGame implements Cloneable {
                 board.addPiece(startPosition, null);
                 board.addPiece(toBeErased, null);
                 board.addPiece(endPosition, piece);
+            } else if (validMoves.get(moveIndex).getCastling()) {
+                //needs to add the king, then the rook, as well as updating the rook's number of moves. 
+                board.addPiece(startPosition, null);
+                board.addPiece(endPosition, piece);
+                if (endPosition.getColumn() == 7) {
+                    ChessPosition rookStart = new ChessPosition(startPosition.getRow(), 8);
+                    ChessPosition rookEnd = new ChessPosition(startPosition.getRow(), 6);
+                    ChessPiece rook = board.getPiece(rookStart);
+                    board.addPiece(rookStart, null);
+                    board.addPiece(rookEnd, rook);
+                    if (!testing) {
+                        rook.updateTotalMoves();
+                    }
+                } else {
+                    ChessPosition rookStart = new ChessPosition(startPosition.getRow(), 1);
+                    ChessPosition rookEnd = new ChessPosition(startPosition.getRow(), 4);
+                    ChessPiece rook = board.getPiece(rookStart);
+                    board.addPiece(rookStart, null);
+                    board.addPiece(rookEnd, rook);
+                    if (!testing) {
+                        rook.updateTotalMoves();
+                    }
+                }
             } else {
                 board.addPiece(startPosition, null);
                 if (promotionPiece == PieceType.KING || promotionPiece == PieceType.PAWN) {
@@ -152,10 +193,8 @@ public class ChessGame implements Cloneable {
             if (piece.getPieceType() == PieceType.PAWN && ((startPosition.getRow() == 2 && endPosition.getRow() == 4)
             || (startPosition.getRow() == 7 && endPosition.getRow() == 5))) {
                 enPassantAllowed = true;
-                System.out.println("setting to true");
             } else {
                 enPassantAllowed = false;
-                System.out.println("setting to false");
             }
             this.updateTeamTurn();
             piece.updateTotalMoves();

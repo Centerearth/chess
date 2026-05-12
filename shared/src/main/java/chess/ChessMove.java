@@ -15,6 +15,7 @@ public class ChessMove {
     private final ChessPiece.PieceType promotionPiece;
     private boolean enPassant;
     private ChessPosition enPassantAdjacent;
+    private boolean castling;
 
     public ChessMove(ChessPosition startPosition, ChessPosition endPosition,
                      ChessPiece.PieceType promotionPiece) {
@@ -23,6 +24,7 @@ public class ChessMove {
         this.promotionPiece = promotionPiece;
         this.enPassant = false;
         this.enPassantAdjacent = null;
+        this.castling = false;
     }
 
     /**
@@ -53,6 +55,12 @@ public class ChessMove {
 
     public void setEnPassant(boolean enPassant) {
         this.enPassant = enPassant;
+    }
+
+    public boolean getCastling() {return this.castling;}
+
+    public void setCastling(boolean castling) {
+        this.castling = castling;
     }
 
     public ChessPosition getEnPassantAdjacent() {return this.enPassantAdjacent;}

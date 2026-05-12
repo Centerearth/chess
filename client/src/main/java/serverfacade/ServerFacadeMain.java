@@ -10,21 +10,20 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.HashMap;
-import java.util.ArrayList;
 
 public class ServerFacadeMain {
     private static final HttpClient HTTPCLIENT = HttpClient.newHttpClient();
     private static final int REQUEST_TIMEOUT_MS = 5000;
     private final String serverUrl;
     private AuthData authData;
-    private ArrayList<Integer> currentGames = new ArrayList<>();
+    private HashMap<String, Integer> gameNameToID = new HashMap<>();
 
-    public ArrayList<Integer> getCurrentGames() {
-        return currentGames;
+    public Integer getGameId(String gameName) {
+        return gameNameToID.get(gameName);
     }
 
-    public boolean isGameCurrent (int id) {
-        return currentGames.contains(id);
+    public boolean isGameCurrent(int id) {
+        return gameNameToID.containsValue(id);
     }
 
     public ServerFacadeMain(String url) {
@@ -75,7 +74,7 @@ public class ServerFacadeMain {
             return "User is not logged in.";
         }
 
-        if (currentGames == null || !isGameCurrent(gameIndex)) {
+        if (!isGameCurrent(gameIndex)) {
             return "Game does not exist.";
         }
 
@@ -97,10 +96,10 @@ public class ServerFacadeMain {
             return "User is not logged in.";
         }
 
-        if (currentGames == null || !isGameCurrent(gameIndex)) {
+        if (!isGameCurrent(gameIndex)) {
             return "Game does not exist.";
         }
-        
+
         return "Game is being observed.";
     }
 
@@ -144,19 +143,16 @@ public class ServerFacadeMain {
         ListGameResult allGames = new Gson().fromJson(httpResponse.body(), ListGameResult.class);
 
         StringBuilder gameList = new StringBuilder();
-        currentGames = new ArrayList<Integer>();
-        
+        gameNameToID = new HashMap<>();
+
         if (allGames.games().isEmpty()) {
             return "No games to display.";
         }
 
-
         for (int i = 0; i < allGames.games().size(); i++) {
-            currentGames.add(allGames.games().get(i).gameID());
+            gameNameToID.put(allGames.games().get(i).gameName(), allGames.games().get(i).gameID());
 
-            gameList.append("Game: ");
-            gameList.append(allGames.games().get(i).gameID());
-            gameList.append(", Game Name: ");
+            gameList.append("Game Name: ");
             gameList.append(allGames.games().get(i).gameName());
             gameList.append(", White Player: ");
             if (allGames.games().get(i).whiteUsername() != null) {

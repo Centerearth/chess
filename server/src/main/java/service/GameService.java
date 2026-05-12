@@ -64,6 +64,11 @@ public class GameService {
         } else if (authDataAccess.getAuth(authToken) == null) {
             throw new FailedLoginException("Error: unauthorized");
         } else {
+            for (GameData existing : gameDataAccess.getAllGameData()) {
+                if (existing.gameName().equals(createGameRequest.gameName())) {
+                    throw new AlreadyTakenException("Error: a game with that name already exists");
+                }
+            }
             GameData newGameData = new GameData(generateID(), null, null,
                     createGameRequest.gameName(),
                     new ChessGame(), false);

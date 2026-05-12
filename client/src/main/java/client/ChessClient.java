@@ -187,12 +187,15 @@ public class ChessClient implements ServerMessageObserver {
     private String join(String... params) {
         try {
             if (params.length == 2) {
-                int currentId = Integer.parseInt(params[0]);
-
-                if (gamesOver.get(currentId) != null && gamesOver.get(currentId)) {
+                String gameName = params[0];
+                Integer gameId = server.getGameId(gameName);
+                if (gameId == null) {
+                    return "Game does not exist.";
+                }
+                if (gamesOver.get(gameId) != null && gamesOver.get(gameId)) {
                     return "Game has already ended";
                 }
-                this.currentId = currentId;
+                this.currentId = gameId;
                 String color = params[1];
                 return tryConnection(color);
             } else {
@@ -210,12 +213,12 @@ public class ChessClient implements ServerMessageObserver {
                 websocketFacade.connect(server.getAuth().authToken(), currentId,
                         server.getAuth().username(), color);
 
+                suppressNextMainPrompt = true;
                 if (gamesOver.get(currentId) != null && gamesOver.get(currentId)) {
                     return "Game has already ended";
                 }
                 gameplayState = GameplayState.INGAMEPLAY;
                 teamColor = ChessGame.TeamColor.WHITE;
-                suppressNextMainPrompt = true;
                 return response;
             }
             return response;
@@ -225,6 +228,7 @@ public class ChessClient implements ServerMessageObserver {
                 websocketFacade.connect(server.getAuth().authToken(), currentId,
                         server.getAuth().username(), color);
 
+                suppressNextMainPrompt = true;
                 if (gamesOver.get(currentId) != null && gamesOver.get(currentId)) {
                     return "Game has already ended";
                 }
@@ -242,11 +246,15 @@ public class ChessClient implements ServerMessageObserver {
     private String observe(String... params) {
         try {
             if (params.length == 1) {
-                int currentId = Integer.parseInt(params[0]);
-                if (gamesOver.get(currentId) != null && gamesOver.get(currentId)) {
+                String gameName = params[0];
+                Integer gameId = server.getGameId(gameName);
+                if (gameId == null) {
+                    return "Game does not exist.";
+                }
+                if (gamesOver.get(gameId) != null && gamesOver.get(gameId)) {
                     return "Game has already ended";
                 }
-                this.currentId = currentId;
+                this.currentId = gameId;
                 String response = server.observeGame(currentId);
 
                 if (response.equals("Game is being observed.")) {

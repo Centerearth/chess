@@ -1,4 +1,4 @@
-join with gameName instead of ID, make names unique in gameService.createGame(), then use a map of game name to game ID in serverfacade main
+Extra prompts - stress test
 go file by file and do clean up
 stress test it
 
@@ -41,10 +41,6 @@ deploy?
 **Error Handling Style**
 - Broad `catch (Exception e)` returning fixed strings like `"Failed to join."` hides the actual error. At minimum, surface `e.getMessage()`.
 
-**Also discussed: client-side vs. server-side validation**
-- Both are appropriate, but for different reasons: server validation is mandatory (security), client validation is for UX (fast feedback, fewer round trips).
-- Don't maintain two separate implementations of the same logic — share via the `shared` module.
-- The client-side move check in `makeMove()` is fine as a UX shortcut, but the server check is the one that actually matters.
 
 
 

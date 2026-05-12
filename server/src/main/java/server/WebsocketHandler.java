@@ -246,7 +246,9 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
 
             String notification = String.format("%s has resigned from the game (%s)", userGameCommand.getUsername(), userGameCommand.getColor());
             allConnections.broadcastAll(new NotificationMessage(NOTIFICATION, notification), gameID);
-            allConnections.removeSession(gameID, session);
+            gameService.updateGame(ChessGame.TeamColor.WHITE, gameID, null);
+            gameService.updateGame(ChessGame.TeamColor.BLACK, gameID, null);
+            allConnections.remove(gameID);
 
         } catch (Exception e) {
             logger.error("Failed to resign from game {}", gameID, e);

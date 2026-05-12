@@ -1,5 +1,4 @@
 join with gameName instead of ID, make names unique in gameService.createGame(), then use a map of game name to game ID in serverfacade main
-resigning didn't autoremove the other player?
 go file by file and do clean up
 stress test it
 

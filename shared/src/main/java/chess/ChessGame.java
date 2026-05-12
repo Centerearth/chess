@@ -15,13 +15,13 @@ import chess.ChessPiece.PieceType;
 public class ChessGame implements Cloneable {
         private ChessBoard board;
         private TeamColor teamsTurn;
-        private boolean enPassantAllowed;
+        private int enPassantColumn;
 
     public ChessGame() {
         board = new ChessBoard();
         this.board.resetBoard();
         teamsTurn = TeamColor.WHITE;
-        enPassantAllowed = false;
+        enPassantColumn = -1;
     }
 
     /**
@@ -96,7 +96,7 @@ public class ChessGame implements Cloneable {
                         }
                     } else if (!move.getEnPassant()) {
                         validMoves.add(move);
-                    } else if (move.getEnPassant() && enPassantAllowed) {
+                    } else if (move.getEnPassant() && move.getEnPassantAdjacent().getColumn() == enPassantColumn) {
                         validMoves.add(move);
                     }
                 
@@ -192,9 +192,9 @@ public class ChessGame implements Cloneable {
         if (!testing) {
             if (piece.getPieceType() == PieceType.PAWN && ((startPosition.getRow() == 2 && endPosition.getRow() == 4)
             || (startPosition.getRow() == 7 && endPosition.getRow() == 5))) {
-                enPassantAllowed = true;
+                enPassantColumn = endPosition.getColumn();
             } else {
-                enPassantAllowed = false;
+                enPassantColumn = -1;
             }
             this.updateTeamTurn();
             piece.updateTotalMoves();
@@ -316,7 +316,8 @@ public class ChessGame implements Cloneable {
             return false;
         }
         ChessGame chessGame = (ChessGame) o;
-        return Objects.equals(getBoard(), chessGame.getBoard()) && teamsTurn == chessGame.teamsTurn;
+        return Objects.equals(getBoard(), chessGame.getBoard()) && teamsTurn == chessGame.teamsTurn
+                && enPassantColumn == chessGame.enPassantColumn;
     }
 
     @Override
@@ -328,6 +329,7 @@ public class ChessGame implements Cloneable {
     protected Object clone() throws CloneNotSupportedException {
         var clone = new ChessGame();
         clone.teamsTurn = this.teamsTurn;
+        clone.enPassantColumn = this.enPassantColumn;
 
         for (int i = ChessBoard.BOARD_MIN; i <= ChessBoard.BOARD_MAX; i++ ) {
             for (int j = ChessBoard.BOARD_MIN; j <= ChessBoard.BOARD_MAX; j++) {

@@ -101,7 +101,7 @@ public class ChessPiece {
 
     @Override
     public int hashCode() {
-        return Objects.hash(pieceColor, type, getTotalMoves());
+        return Objects.hash(pieceColor, type);
     }
 
     @Override

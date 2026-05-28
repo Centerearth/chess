@@ -29,7 +29,7 @@ public class HelperFunctions {
                     - help - will list all available commands.
                     """;
         } else {
-            return """ 
+            return """
                     - move <starting position> <end position> <optional:promotion piece (q,r,n,b)
                     - legalmoves <position> - highlight all legal moves
                     - redraw
@@ -40,51 +40,27 @@ public class HelperFunctions {
         }
     }
 
-    public static int letterToNumber(String letter) throws Exception {
-        switch (letter) {
-            case "a" -> {
-                return 1;
-            }
-            case "b" -> {
-                return 2;
-            }
-            case "c" -> {
-                return 3;
-            }
-            case "d" -> {
-                return 4;
-            }
-            case "e" -> {
-                return 5;
-            }
-            case "f" -> {
-                return 6;
-            }
-            case "g" -> {
-                return 7;
-            }
-            case "h" -> {
-                return 8;
-            }
+    public static int fileToColumn(String letter) throws Exception {
+        return switch (letter) {
+            case "a" -> 1;
+            case "b" -> 2;
+            case "c" -> 3;
+            case "d" -> 4;
+            case "e" -> 5;
+            case "f" -> 6;
+            case "g" -> 7;
+            case "h" -> 8;
             default -> throw new Exception();
-        }
+        };
     }
 
-    public static ChessPiece.PieceType letterToPromotion(String letter) throws Exception {
-        switch (letter) {
-            case "q" -> {
-                return ChessPiece.PieceType.QUEEN;
-            }
-            case "r" -> {
-                return ChessPiece.PieceType.ROOK;
-            }
-            case "b" -> {
-                return ChessPiece.PieceType.BISHOP;
-            }
-            case "n" -> {
-                return ChessPiece.PieceType.KNIGHT;
-            }
+    public static ChessPiece.PieceType charToPromotionPiece(String letter) throws Exception {
+        return switch (letter) {
+            case "q" -> ChessPiece.PieceType.QUEEN;
+            case "r" -> ChessPiece.PieceType.ROOK;
+            case "b" -> ChessPiece.PieceType.BISHOP;
+            case "n" -> ChessPiece.PieceType.KNIGHT;
             default -> throw new Exception();
-        }
+        };
     }
 }

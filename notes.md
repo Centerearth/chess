@@ -5,6 +5,7 @@ stress test it
 After:
 Write a website that provides a GUI for the chess game
 deploy?
+Write a chess bot????
 
 
 
@@ -16,31 +17,6 @@ deploy?
 - 3-module Maven project: shared (chess engine + WebSocket protocol), server (Javalin HTTP + WebSocket + MySQL), client (CLI REPL)
 - REST for auth/game management, WebSocket for real-time gameplay
 - Java 21, Javalin 6, Gson, BCrypt, Jakarta WebSocket, MySQL
-
-
-### Code Quality Critique (2026-04-01)
-
-**Consistency**
-- Null checks have no coherent policy — some places guard, others don't.
-
-**Duplication**
-- `tryConnection()` (ChessClient.java:194) has two nearly identical WHITE/BLACK branches — should be one path with a parameter.
-- SQL data access classes repeat the same connection boilerplate in every method across three files — needs a shared helper.
-- `join()` checks `gamesOver` twice (before and after connecting); one check is always redundant.
-
-**Naming**
-- `number` (field and local in join()) — should be `currentGameNumber` or `selectedGameIndex`.
-- `gamesOver` — reads as a noun, but is a state map. Should be `endedGameIds` after the bug fix.
-- `tryConnection()` — doesn't describe purpose, describes implementation. Should be something like `joinGame()`.
-- `HelpCalculator` — vague; it's actually a move bounds validator.
-
-**Method Length and Responsibility**
-- `eval()` encodes which commands exist per state directly in its body — adding a new state requires editing it. A map of `String → Command` per state would be more extensible.
-- `displayGameMechanics()` mixes board orientation logic with rendering — two separate concerns.
-
-**Error Handling Style**
-- Broad `catch (Exception e)` returning fixed strings like `"Failed to join."` hides the actual error. At minimum, surface `e.getMessage()`.
-
 
 
 

@@ -12,19 +12,12 @@ import java.net.http.HttpResponse;
 import java.util.HashMap;
 
 public class ServerFacadeMain {
-    private static final HttpClient HTTPCLIENT = HttpClient.newHttpClient();
+    private static final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();
+    private static final Gson GSON = new Gson();
     private static final int REQUEST_TIMEOUT_MS = 5000;
     private final String serverUrl;
     private AuthData authData;
-    private HashMap<String, Integer> gameNameToID = new HashMap<>();
-
-    public Integer getGameId(String gameName) {
-        return gameNameToID.get(gameName);
-    }
-
-    public boolean isGameCurrent(int id) {
-        return gameNameToID.containsValue(id);
-    }
+    private HashMap<String, Integer> gameNameToId = new HashMap<>();
 
     public ServerFacadeMain(String url) {
         this.serverUrl = url;
@@ -38,8 +31,15 @@ public class ServerFacadeMain {
         authData = new AuthData(token, username);
     }
 
+    public Integer getGameId(String gameName) {
+        return gameNameToId.get(gameName);
+    }
+
+    public boolean isGameCurrent(int id) {
+        return gameNameToId.containsValue(id);
+    }
+
     public void clearEverything() throws IOException, InterruptedException {
-        //for testing purposes
         buildAndReceiveRequest("DELETE", "/db", null, null);
     }
 
@@ -47,87 +47,40 @@ public class ServerFacadeMain {
         if (authData == null) {
             return "User is already logged out.";
         }
-        String authToken = authData.authToken();
-        HashMap<String, String> headers = new HashMap<>();
-        headers.put("authorization", authToken);
-        HttpResponse<String> httpResponse = buildAndReceiveRequest("DELETE", "/session", null, headers);
+        HttpResponse<String> httpResponse = buildAndReceiveRequest("DELETE", "/session", null, makeAuthHeaders());
         return responseHandler("User was logged out successfully.", httpResponse);
     }
 
     public String loginUser(String username, String password) throws IOException, InterruptedException {
-        HashMap<String, String> bodyObject = new HashMap<>();
-        bodyObject.put("username", username);
-        bodyObject.put("password", password);
-        String jsonBody = new Gson().toJson(bodyObject);
-        HttpResponse<String> httpResponse = buildAndReceiveRequest("POST", "/session", jsonBody, null);
+        HashMap<String, String> body = new HashMap<>();
+        body.put("username", username);
+        body.put("password", password);
+        HttpResponse<String> httpResponse = buildAndReceiveRequest("POST", "/session", GSON.toJson(body), null);
 
         if (httpResponse.statusCode() >= 200 && httpResponse.statusCode() < 300) {
-            var body = new Gson().fromJson(httpResponse.body(), HashMap.class);
-            setAuth(body.get("username").toString(), body.get("authToken").toString());
+            var parsed = GSON.fromJson(httpResponse.body(), HashMap.class);
+            setAuth(parsed.get("username").toString(), parsed.get("authToken").toString());
         }
         return responseHandler("User was logged in successfully.", httpResponse);
-
-    }
-
-    public String playGame(int gameIndex, String color) throws IOException, InterruptedException {
-        if (authData == null) {
-            return "User is not logged in.";
-        }
-
-        if (!isGameCurrent(gameIndex)) {
-            return "Game does not exist.";
-        }
-
-        String authToken = authData.authToken();
-        HashMap<String, String> headers = new HashMap<>();
-        headers.put("authorization", authToken);
-
-        HashMap<String, Object> bodyObject = new HashMap<>();
-        bodyObject.put("gameID", gameIndex);
-        bodyObject.put("playerColor", color);
-        String jsonBody = new Gson().toJson(bodyObject);
-        HttpResponse<String> httpResponse = buildAndReceiveRequest("PUT", "/game", jsonBody, headers);
-        return responseHandler("User joined successfully.", httpResponse);
-    }
-
-    public String observeGame(int gameIndex) {
-        //this function doesn't really do anything ?
-        if (authData == null) {
-            return "User is not logged in.";
-        }
-
-        if (!isGameCurrent(gameIndex)) {
-            return "Game does not exist.";
-        }
-
-        return "Game is being observed.";
     }
 
     public String registerUser(String username, String password, String email) throws IOException, InterruptedException {
-        HashMap<String, String> bodyObject = new HashMap<>();
-        bodyObject.put("username", username);
-        bodyObject.put("password", password);
-        bodyObject.put("email", email);
-        String jsonBody = new Gson().toJson(bodyObject);
-        HttpResponse<String> httpResponse = buildAndReceiveRequest("POST", "/user", jsonBody, null);
+        HashMap<String, String> body = new HashMap<>();
+        body.put("username", username);
+        body.put("password", password);
+        body.put("email", email);
+        HttpResponse<String> httpResponse = buildAndReceiveRequest("POST", "/user", GSON.toJson(body), null);
         String loginResult = loginUser(username, password);
         return responseHandler("User was registered successfully. " + loginResult, httpResponse);
-
     }
 
     public String createGame(String gameName) throws IOException, InterruptedException {
         if (authData == null) {
             return "User is not logged in.";
         }
-        String authToken = authData.authToken();
-        HashMap<String, String> headers = new HashMap<>();
-        headers.put("authorization", authToken);
-
-        HashMap<String, String> bodyObject = new HashMap<>();
-        bodyObject.put("gameName", gameName);
-        String jsonBody = new Gson().toJson(bodyObject);
-
-        HttpResponse<String> httpResponse = buildAndReceiveRequest("POST", "/game", jsonBody, headers);
+        HashMap<String, String> body = new HashMap<>();
+        body.put("gameName", gameName);
+        HttpResponse<String> httpResponse = buildAndReceiveRequest("POST", "/game", GSON.toJson(body), makeAuthHeaders());
         return responseHandler("Game was created successfully.", httpResponse);
     }
 
@@ -135,44 +88,58 @@ public class ServerFacadeMain {
         if (authData == null) {
             return "User is not logged in.";
         }
-        String authToken = authData.authToken();
-        HashMap<String, String> headers = new HashMap<>();
-        headers.put("authorization", authToken);
-
-        HttpResponse<String> httpResponse = buildAndReceiveRequest("GET", "/game", null, headers);
-        ListGameResult allGames = new Gson().fromJson(httpResponse.body(), ListGameResult.class);
-
-        StringBuilder gameList = new StringBuilder();
-        gameNameToID = new HashMap<>();
+        HttpResponse<String> httpResponse = buildAndReceiveRequest("GET", "/game", null, makeAuthHeaders());
+        ListGameResult allGames = GSON.fromJson(httpResponse.body(), ListGameResult.class);
 
         if (allGames.games().isEmpty()) {
             return "No games to display.";
         }
 
+        gameNameToId = new HashMap<>();
+        StringBuilder gameList = new StringBuilder();
         for (int i = 0; i < allGames.games().size(); i++) {
-            gameNameToID.put(allGames.games().get(i).gameName(), allGames.games().get(i).gameID());
-
-            gameList.append("Game Name: ");
-            gameList.append(allGames.games().get(i).gameName());
-            gameList.append(", White Player: ");
-            if (allGames.games().get(i).whiteUsername() != null) {
-                gameList.append(allGames.games().get(i).whiteUsername());
-            } else {
-                gameList.append("none");
-            }
-            gameList.append(", Black Player: ");
-            if (allGames.games().get(i).blackUsername() != null) {
-                gameList.append(allGames.games().get(i).blackUsername());
-            } else {
-                gameList.append("none");
-            }
+            var game = allGames.games().get(i);
+            gameNameToId.put(game.gameName(), game.gameID());
+            gameList.append("Game Name: ").append(game.gameName());
+            gameList.append(", White Player: ").append(game.whiteUsername() != null ? game.whiteUsername() : "none");
+            gameList.append(", Black Player: ").append(game.blackUsername() != null ? game.blackUsername() : "none");
             gameList.append("\n");
         }
         return responseHandler(gameList.toString(), httpResponse);
     }
 
-    private HttpResponse<String> buildAndReceiveRequest(String method, String path, Object body,
-                                                        HashMap<String, String> header) throws IOException, InterruptedException {
+    public String playGame(int gameIndex, String color) throws IOException, InterruptedException {
+        if (authData == null) {
+            return "User is not logged in.";
+        }
+        if (!isGameCurrent(gameIndex)) {
+            return "Game does not exist.";
+        }
+        HashMap<String, Object> body = new HashMap<>();
+        body.put("gameID", gameIndex);
+        body.put("playerColor", color);
+        HttpResponse<String> httpResponse = buildAndReceiveRequest("PUT", "/game", GSON.toJson(body), makeAuthHeaders());
+        return responseHandler("User joined successfully.", httpResponse);
+    }
+
+    public String observeGame(int gameIndex) {
+        if (authData == null) {
+            return "User is not logged in.";
+        }
+        if (!isGameCurrent(gameIndex)) {
+            return "Game does not exist.";
+        }
+        return "Game is being observed.";
+    }
+
+    private HashMap<String, String> makeAuthHeaders() {
+        HashMap<String, String> headers = new HashMap<>();
+        headers.put("authorization", authData.authToken());
+        return headers;
+    }
+
+    private HttpResponse<String> buildAndReceiveRequest(String method, String path, String body,
+                                                        HashMap<String, String> headers) throws IOException, InterruptedException {
         HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
                 .uri(URI.create(serverUrl + path))
                 .timeout(java.time.Duration.ofMillis(REQUEST_TIMEOUT_MS))
@@ -180,20 +147,17 @@ public class ServerFacadeMain {
         if (body != null) {
             requestBuilder.setHeader("Content-Type", "application/json");
         }
-        if (header != null) {
-            for (String key : header.keySet()) {
-                requestBuilder.setHeader(key, header.get(key));
+        if (headers != null) {
+            for (String key : headers.keySet()) {
+                requestBuilder.setHeader(key, headers.get(key));
             }
         }
-        HttpRequest finishedRequest = requestBuilder.build();
-        return HTTPCLIENT.send(finishedRequest, HttpResponse.BodyHandlers.ofString());
-
+        return HTTP_CLIENT.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
     }
 
-
-    private HttpRequest.BodyPublisher makeRequestBody(Object request) {
-        if (request != null) {
-            return HttpRequest.BodyPublishers.ofString((String) request);
+    private HttpRequest.BodyPublisher makeRequestBody(String body) {
+        if (body != null) {
+            return HttpRequest.BodyPublishers.ofString(body);
         } else {
             return HttpRequest.BodyPublishers.noBody();
         }

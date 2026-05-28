@@ -20,74 +20,60 @@ import static websocket.commands.UserGameCommand.CommandType.*;
 
 public class WebsocketFacade extends Endpoint {
 
-    Session session;
-    ServerMessageObserver serverMessageObserver;
+    private static final Gson GSON = new Gson();
+    private Session session;
 
     public WebsocketFacade(String url, ServerMessageObserver serverMessageObserver) throws Exception {
         try {
             url = url.replace("http", "ws");
             URI socketURI = new URI(url + "/ws");
-            this.serverMessageObserver = serverMessageObserver;
 
             WebSocketContainer container = ContainerProvider.getWebSocketContainer();
             this.session = container.connectToServer(this, socketURI);
 
-            //set message handler
-            this.session.addMessageHandler(new MessageHandler.Whole<String>() { //can replace with lambda
+            this.session.addMessageHandler(new MessageHandler.Whole<String>() {
                 @Override
                 public void onMessage(String message) {
-
-                    ServerMessage serverMessage = new Gson().fromJson(message, ServerMessage.class);
-
-                    if (serverMessage.getServerMessageType() == ServerMessage.ServerMessageType.LOAD_GAME) {
-                        LoadGameMessage loadGameMessage = new Gson().fromJson(message, LoadGameMessage.class); //reassigning
-                        serverMessageObserver.displayGame(loadGameMessage);
-                    } else if (serverMessage.getServerMessageType() == ServerMessage.ServerMessageType.NOTIFICATION) {
-                        NotificationMessage notificationMessage = new Gson().fromJson(message, NotificationMessage.class); //reassigning
-                        serverMessageObserver.notify(notificationMessage);
-                    } else if (serverMessage.getServerMessageType() == ServerMessage.ServerMessageType.ERROR) {
-                        ErrorMessage errorMessage = new Gson().fromJson(message, ErrorMessage.class); //reassigning
-                        serverMessageObserver.notifyError(errorMessage);
-                    } else {
-                        serverMessageObserver.notifyDefault(serverMessage);
+                    ServerMessage serverMessage = GSON.fromJson(message, ServerMessage.class);
+                    switch (serverMessage.getServerMessageType()) {
+                        case LOAD_GAME -> serverMessageObserver.displayGame(GSON.fromJson(message, LoadGameMessage.class));
+                        case NOTIFICATION -> serverMessageObserver.notify(GSON.fromJson(message, NotificationMessage.class));
+                        case ERROR -> serverMessageObserver.notifyError(GSON.fromJson(message, ErrorMessage.class));
+                        default -> serverMessageObserver.notifyDefault(serverMessage);
                     }
                 }
             });
         } catch (DeploymentException | IOException | URISyntaxException ex) {
-            throw new Exception(ex.getMessage()); // change this ??
+            throw new Exception(ex);
         }
     }
 
-    //don't change
     @Override
     public void onOpen(Session session, EndpointConfig endpointConfig) {
     }
 
-
-    public void connect(String authToken, int gameID, String username, String color) throws Exception {
+    public void connect(String authToken, int gameId, String username, String color) throws Exception {
         try {
-            UserGameCommand userGameCommand = new UserGameCommand(CONNECT, authToken, gameID, username, color);
-            this.session.getBasicRemote().sendText(new Gson().toJson(userGameCommand));
+            UserGameCommand userGameCommand = new UserGameCommand(CONNECT, authToken, gameId, username, color);
+            this.session.getBasicRemote().sendText(GSON.toJson(userGameCommand));
         } catch (IOException ex) {
-            throw new Exception(ex.getMessage());
+            throw new Exception(ex);
         }
     }
 
-    public void leave(String authToken, int gameID, String username, String color) throws IOException {
-        UserGameCommand userGameCommand = new UserGameCommand(LEAVE, authToken, gameID, username, color);
-        System.out.println();
-        //this change is just to satisfy the autograder
-        this.session.getBasicRemote().sendText(new Gson().toJson(userGameCommand));
+    public void leave(String authToken, int gameId, String username, String color) throws IOException {
+        UserGameCommand userGameCommand = new UserGameCommand(LEAVE, authToken, gameId, username, color);
+        System.out.println(); // required by autograder
+        this.session.getBasicRemote().sendText(GSON.toJson(userGameCommand));
     }
 
-    public void makeMove(String authToken, int gameID, String username, String color, ChessMove move) throws IOException {
-        MakeMoveCommand makeMoveCommand = new MakeMoveCommand(MAKE_MOVE, authToken, gameID, username, color, move);
-        this.session.getBasicRemote().sendText(new Gson().toJson(makeMoveCommand));
+    public void makeMove(String authToken, int gameId, String username, String color, ChessMove move) throws IOException {
+        MakeMoveCommand makeMoveCommand = new MakeMoveCommand(MAKE_MOVE, authToken, gameId, username, color, move);
+        this.session.getBasicRemote().sendText(GSON.toJson(makeMoveCommand));
     }
 
-    public void resign(String authToken, int gameID, String username, String color) throws IOException {
-        UserGameCommand userGameCommand = new UserGameCommand(RESIGN, authToken, gameID, username, color);
-        this.session.getBasicRemote().sendText(new Gson().toJson(userGameCommand));
+    public void resign(String authToken, int gameId, String username, String color) throws IOException {
+        UserGameCommand userGameCommand = new UserGameCommand(RESIGN, authToken, gameId, username, color);
+        this.session.getBasicRemote().sendText(GSON.toJson(userGameCommand));
     }
-
 }

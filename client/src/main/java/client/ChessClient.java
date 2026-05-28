@@ -26,6 +26,7 @@ public class ChessClient implements ServerMessageObserver {
     private final HashMap<Integer, Boolean> gamesOver = new HashMap<>();
     private final Scanner scanner = new Scanner(System.in);
     private volatile boolean suppressNextMainPrompt = false;
+    private static final String RESET_COLORS = "[39;49m";
 
     public ChessClient(String serverUrl) throws Exception {
         server = new ServerFacadeMain(serverUrl);
@@ -84,16 +85,16 @@ public class ChessClient implements ServerMessageObserver {
                 };
             } else {
                 if (gameplayState == GameplayState.NOGAMEPLAY) {
-                return switch (cmd) {
-                    case "create" -> create(params);
-                    case "list" -> list();
-                    case "join" -> join(params);
-                    case "observe" -> observe(params);
-                    case "logout" -> logout();
-                    case "quit" -> "quit";
-                    default -> help();
-                };
-                } else if (observingState == ObservingState.OBSERVING ){
+                    return switch (cmd) {
+                        case "create" -> create(params);
+                        case "list" -> list();
+                        case "join" -> join(params);
+                        case "observe" -> observe(params);
+                        case "logout" -> logout();
+                        case "quit" -> "quit";
+                        default -> help();
+                    };
+                } else if (observingState == ObservingState.OBSERVING) {
                     return switch (cmd) {
                         case "legalmoves" -> legalMoves(params);
                         case "redraw" -> reDraw();
@@ -192,7 +193,7 @@ public class ChessClient implements ServerMessageObserver {
                 if (gameId == null) {
                     return "Game does not exist.";
                 }
-                if (gamesOver.get(gameId) != null && gamesOver.get(gameId)) {
+                if (Boolean.TRUE.equals(gamesOver.get(gameId))) {
                     return "Game has already ended";
                 }
                 this.currentId = gameId;
@@ -207,40 +208,23 @@ public class ChessClient implements ServerMessageObserver {
     }
 
     private String tryConnection(String color) throws Exception {
-        if (color.equals("WHITE") || color.equals("white")) {
-            String response = server.playGame(currentId, "WHITE");
-            if (response.equals("User joined successfully.")) {
-                websocketFacade.connect(server.getAuth().authToken(), currentId,
-                        server.getAuth().username(), color);
-
-                suppressNextMainPrompt = true;
-                if (gamesOver.get(currentId) != null && gamesOver.get(currentId)) {
-                    return "Game has already ended";
-                }
-                gameplayState = GameplayState.INGAMEPLAY;
-                teamColor = ChessGame.TeamColor.WHITE;
-                return response;
-            }
-            return response;
-        } else if (color.equals("BLACK") || color.equals("black")) {
-            String response = server.playGame(currentId, "BLACK");
-            if (response.equals("User joined successfully.")) {
-                websocketFacade.connect(server.getAuth().authToken(), currentId,
-                        server.getAuth().username(), color);
-
-                suppressNextMainPrompt = true;
-                if (gamesOver.get(currentId) != null && gamesOver.get(currentId)) {
-                    return "Game has already ended";
-                }
-                gameplayState = GameplayState.INGAMEPLAY;
-                teamColor = ChessGame.TeamColor.BLACK;
-                suppressNextMainPrompt = true;
-                return response;
-            }
-            return response;
-        } else {
+        boolean isWhite = color.equalsIgnoreCase("white");
+        if (!isWhite && !color.equalsIgnoreCase("black")) {
             return "Request is malformed";
         }
+        String serverColor = isWhite ? "WHITE" : "BLACK";
+        String response = server.playGame(currentId, serverColor);
+        if (!response.equals("User joined successfully.")) {
+            return response;
+        }
+        websocketFacade.connect(server.getAuth().authToken(), currentId, server.getAuth().username(), color);
+        suppressNextMainPrompt = true;
+        if (Boolean.TRUE.equals(gamesOver.get(currentId))) {
+            return "Game has already ended";
+        }
+        gameplayState = GameplayState.INGAMEPLAY;
+        teamColor = isWhite ? ChessGame.TeamColor.WHITE : ChessGame.TeamColor.BLACK;
+        return response;
     }
 
     private String observe(String... params) {
@@ -251,26 +235,23 @@ public class ChessClient implements ServerMessageObserver {
                 if (gameId == null) {
                     return "Game does not exist.";
                 }
-                if (gamesOver.get(gameId) != null && gamesOver.get(gameId)) {
+                if (Boolean.TRUE.equals(gamesOver.get(gameId))) {
                     return "Game has already ended";
                 }
                 this.currentId = gameId;
                 String response = server.observeGame(currentId);
-
-                if (response.equals("Game is being observed.")) {
-                    websocketFacade.connect(server.getAuth().authToken(), currentId, server.getAuth().username(), "observer");
-
-                    if (gamesOver.get(currentId) != null && gamesOver.get(currentId)) {
-                        return "Game has already ended";
-                    }
-                    gameplayState = GameplayState.INGAMEPLAY;
-                    observingState = ObservingState.OBSERVING;
-                    teamColor = ChessGame.TeamColor.WHITE;
-                    suppressNextMainPrompt = true;
-                    return "Observing game...";
-                } else {
+                if (!response.equals("Game is being observed.")) {
                     return response;
                 }
+                websocketFacade.connect(server.getAuth().authToken(), currentId, server.getAuth().username(), "observer");
+                if (Boolean.TRUE.equals(gamesOver.get(currentId))) {
+                    return "Game has already ended";
+                }
+                gameplayState = GameplayState.INGAMEPLAY;
+                observingState = ObservingState.OBSERVING;
+                teamColor = ChessGame.TeamColor.WHITE;
+                suppressNextMainPrompt = true;
+                return "Observing game...";
             } else {
                 return "Request is malformed";
             }
@@ -315,7 +296,7 @@ public class ChessClient implements ServerMessageObserver {
     }
 
     @Override
-    public void displayGame (LoadGameMessage loadGameMessage) {
+    public void displayGame(LoadGameMessage loadGameMessage) {
         ChessGame game = loadGameMessage.getGame();
         ChessBoard gameBoard = game.getBoard();
         this.game = game;
@@ -329,7 +310,7 @@ public class ChessClient implements ServerMessageObserver {
         printPrompt();
     }
 
-    public void displayGameMechanics (ChessBoard gameBoard, ArrayList<ChessPosition> validPositions) {
+    public void displayGameMechanics(ChessBoard gameBoard, ArrayList<ChessPosition> validPositions) {
         String[] rowLabels;
         String[] columnLabels;
 
@@ -349,7 +330,7 @@ public class ChessClient implements ServerMessageObserver {
             System.out.printf(" %s ", letter);
         }
         System.out.print("   ");
-        System.out.println("\u001b[39;49m");
+        System.out.println(RESET_COLORS);
 
         for (int i = 1; i <= 8; i++) {
             System.out.print(SET_BG_COLOR_LIGHT_GREY);
@@ -366,8 +347,7 @@ public class ChessClient implements ServerMessageObserver {
             System.out.print(SET_BG_COLOR_LIGHT_GREY);
             System.out.print(SET_TEXT_COLOR_BLACK);
             System.out.printf(" %s ", columnLabels[i-1]);
-
-            System.out.println("\u001b[39;49m");
+            System.out.println(RESET_COLORS);
         }
         System.out.print(SET_BG_COLOR_LIGHT_GREY);
         System.out.print(SET_TEXT_COLOR_BLACK);
@@ -376,14 +356,13 @@ public class ChessClient implements ServerMessageObserver {
             System.out.printf(" %s ", letter);
         }
         System.out.print("   ");
-        System.out.println("\u001b[39;49m");
-
+        System.out.println(RESET_COLORS);
     }
 
     private void printSquare(ChessBoard gameBoard, int i, int j, ArrayList<ChessPosition> validPositions) {
         if (validPositions != null && validPositions.contains(new ChessPosition(i, j))) {
             System.out.print(SET_BG_COLOR_YELLOW);
-        } else if (((i+j) % 2) != 0 ) {
+        } else if (((i+j) % 2) != 0) {
             System.out.print(SET_BG_COLOR_WHITE);
         } else {
             System.out.print(SET_BG_COLOR_BLACK);
@@ -410,36 +389,31 @@ public class ChessClient implements ServerMessageObserver {
         }
     }
 
-    public String legalMoves (String... params) {
+    public String legalMoves(String... params) {
+        if (params.length != 1) {
+            return "Request is malformed";
+        }
         try {
-            if (params.length == 1) {
-                try {
-                    int column = letterToNumber(params[0].substring(0,1));
-                    int row = Integer.parseInt(params[0].substring(1,2));
-                    ArrayList<ChessPosition> allEndPositions = new ArrayList<>();
-                    ArrayList<ChessMove> validMoves = (ArrayList<ChessMove>) game.validMoves(new ChessPosition(row, column));
-                    for (ChessMove move : validMoves) {
-                        allEndPositions.add(move.getEndPosition());
-                    }
-                    displayGameMechanics(game.getBoard(), allEndPositions);
-                    return "Here are the valid moves";
-
-                } catch (Exception e) {
-                    return "Request is malformed";
-                }
-            } else {
-                return "Request is malformed";
+            int column = fileToColumn(params[0].substring(0, 1));
+            int row = Integer.parseInt(params[0].substring(1, 2));
+            ArrayList<ChessMove> validMoves = (ArrayList<ChessMove>) game.validMoves(new ChessPosition(row, column));
+            ArrayList<ChessPosition> allEndPositions = new ArrayList<>();
+            for (ChessMove move : validMoves) {
+                allEndPositions.add(move.getEndPosition());
             }
+            displayGameMechanics(game.getBoard(), allEndPositions);
+            return "Here are the valid moves";
         } catch (Exception e) {
-            return "Failed to highlight legal moves";
+            return "Request is malformed";
         }
     }
 
-    private int letterToNumber(String letter) throws Exception {
-        return HelperFunctions.letterToNumber(letter);
+    private int fileToColumn(String letter) throws Exception {
+        return HelperFunctions.fileToColumn(letter);
     }
-    private ChessPiece.PieceType letterToPromotion(String letter) throws Exception {
-        return HelperFunctions.letterToPromotion(letter);
+
+    private ChessPiece.PieceType charToPromotionPiece(String letter) throws Exception {
+        return HelperFunctions.charToPromotionPiece(letter);
     }
 
     public String leave() {
@@ -459,61 +433,54 @@ public class ChessClient implements ServerMessageObserver {
             return "Failed to leave";
         }
     }
-    public String makeMove (String... params) {
+
+    public String makeMove(String... params) {
+        if (this.teamColor != this.whoseTurn) {
+            return "ERROR: Not your turn";
+        }
+        if (params.length != 2 && params.length != 3) {
+            return "Request is malformed";
+        }
         try {
-            if (this.teamColor != this.whoseTurn) {
-                return "ERROR: Not your turn";
+            int column1 = fileToColumn(params[0].substring(0, 1));
+            int row1 = Integer.parseInt(params[0].substring(1, 2));
+            int column2 = fileToColumn(params[1].substring(0, 1));
+            int row2 = Integer.parseInt(params[1].substring(1, 2));
+
+            ChessPiece.PieceType promotionPiece = null;
+            if (params.length == 3) {
+                promotionPiece = charToPromotionPiece(params[2].substring(0, 1));
             }
-            if (params.length == 2 || params.length == 3) {
-                try {
-                    int column1 = letterToNumber(params[0].substring(0,1));
-                    int row1 = Integer.parseInt(params[0].substring(1,2));
 
-                    int column2 = letterToNumber(params[1].substring(0,1));
-                    int row2 = Integer.parseInt(params[1].substring(1,2));
+            ChessPosition startPosition = new ChessPosition(row1, column1);
+            ChessPosition endPosition = new ChessPosition(row2, column2);
 
-                    ChessPiece.PieceType promotionPiece = null;
-                    if (params.length == 3) {
-                        promotionPiece = letterToPromotion(params[2].substring(0,1));
-                    }
-
-                    ChessPosition startPosition = new ChessPosition(row1, column1);
-                    ChessPosition endPosition = new ChessPosition(row2, column2);
-
-                    ArrayList<ChessMove> validMoves = (ArrayList<ChessMove>) game.validMoves(startPosition);
-                    ArrayList<ChessPosition> allEndPositions = new ArrayList<>();
-                    for (ChessMove move : validMoves) {
-                        allEndPositions.add(move.getEndPosition());
-                    }
-
-                    if (!allEndPositions.contains(endPosition) ||
-                            game.getBoard().getPiece(startPosition).getTeamColor() != teamColor) {
-                        return "ERROR: Not a valid move";
-                    } else {
-                        ChessMove chessMove = new ChessMove(startPosition, endPosition, promotionPiece);
-                        websocketFacade.makeMove(server.getAuth().authToken(), this.currentId,
-                                server.getAuth().username(), teamColor.toString().toLowerCase(), chessMove);
-
-                        suppressNextMainPrompt = true;
-                        return "Move successful";
-                    }
-
-                } catch (Exception e) {
-                    return "Request is malformed";
-                }
-            } else {
-                return "Request is malformed";
+            ArrayList<ChessMove> validMoves = (ArrayList<ChessMove>) game.validMoves(startPosition);
+            ArrayList<ChessPosition> allEndPositions = new ArrayList<>();
+            for (ChessMove move : validMoves) {
+                allEndPositions.add(move.getEndPosition());
             }
+
+            if (!allEndPositions.contains(endPosition) ||
+                    game.getBoard().getPiece(startPosition).getTeamColor() != teamColor) {
+                return "ERROR: Not a valid move";
+            }
+            ChessMove chessMove = new ChessMove(startPosition, endPosition, promotionPiece);
+            websocketFacade.makeMove(server.getAuth().authToken(), this.currentId,
+                    server.getAuth().username(), teamColor.toString().toLowerCase(), chessMove);
+            suppressNextMainPrompt = true;
+            return "Move successful";
         } catch (Exception e) {
-            return "Failed to make move";
+            return "Request is malformed";
         }
     }
+
     public String resign() {
         try {
-                websocketFacade.resign(server.getAuth().authToken(), this.currentId,
-                        server.getAuth().username(), teamColor.toString().toLowerCase());
-                gameplayState = GameplayState.NOGAMEPLAY;
-                return "User has resigned from the game";
+            websocketFacade.resign(server.getAuth().authToken(), this.currentId,
+                    server.getAuth().username(), teamColor.toString().toLowerCase());
+            gameplayState = GameplayState.NOGAMEPLAY;
+            return "User has resigned from the game";
         } catch (Exception e) {
             return "Failed to resign";
         }

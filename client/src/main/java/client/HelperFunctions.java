@@ -6,7 +6,7 @@ public class HelperFunctions {
     public static String help(State state, ObservingState observingState, GameplayState gameplayState) {
         if (state == State.LOGGEDOUT) {
             return """
-                    - register <USERNAME> <PASSWORD> <EMAIL> - this will create your account.
+                    - register <USERNAME> <PASSWORD> - this will create your account.
                     - login <USERNAME> <PASSWORD>
                     - quit
                     - help - will list all available commands.

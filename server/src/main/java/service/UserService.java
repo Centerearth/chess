@@ -39,8 +39,7 @@ public class UserService {
     }
 
     public RegisterResult register(RegisterRequest registerRequest) throws DataAccessException {
-        if (registerRequest.username().isBlank() || registerRequest.password().isBlank()
-        || registerRequest.email().isBlank()) {
+        if (registerRequest.username().isBlank() || registerRequest.password().isBlank()) {
             throw new BadRequestException("Error: The fields cannot be left blank");
         }
 
@@ -48,8 +47,7 @@ public class UserService {
             throw new AlreadyTakenException("Error: This username is already taken.");
         } else {
             String hashedPassword = BCrypt.hashpw(registerRequest.password(), BCrypt.gensalt());
-            UserData newUserData = new UserData(registerRequest.username(),
-                    hashedPassword, registerRequest.email());
+            UserData newUserData = new UserData(registerRequest.username(), hashedPassword);
             AuthData newAuthData = new AuthData(generateToken(), registerRequest.username());
 
             userDataAccess.addUserData(newUserData);

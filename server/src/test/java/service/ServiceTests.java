@@ -27,7 +27,7 @@ public class ServiceTests {
         //submit register request
 
         RegisterResult registerResult = userService.register(
-                new RegisterRequest(username, "pswd", "abcd@yahoo.com"));
+                new RegisterRequest(username, "pswd"));
 
         Assertions.assertEquals(username, registerResult.username(),
                 "Response did not have the same username as was registered");
@@ -40,10 +40,10 @@ public class ServiceTests {
     public void registerTwice() throws DataAccessException {
         userService.clearAllData();
         userService.register(
-                new RegisterRequest("basic_username", "pswd", "abcd@yahoo.com"));
+                new RegisterRequest("basic_username", "pswd"));
         //submit register request trying to register existing user
         assertThrows(AlreadyTakenException.class, () -> userService.register(
-                new RegisterRequest("basic_username", "pswd", "abcd@yahoo.com")));
+                new RegisterRequest("basic_username", "pswd")));
     }
 
     @Test
@@ -53,7 +53,7 @@ public class ServiceTests {
         userService.clearAllData();
         //attempt to register a user without a password
         assertThrows(BadRequestException.class, () -> userService.register(
-                    new RegisterRequest("", "pswd", "abcd@yahoo.com")));
+                    new RegisterRequest("", "pswd")));
     }
 
 
@@ -64,7 +64,7 @@ public class ServiceTests {
     @ValueSource(strings = {"basic_username", "second_username", "third_username"})
     public void loginSuccess(String username) throws FailedLoginException, DataAccessException {
         userService.clearAllData();
-        userService.register(new RegisterRequest(username, "pswd", "abcd@yahoo.com"));
+        userService.register(new RegisterRequest(username, "pswd"));
         //submit login request
 
         LoginResult loginResult = userService.login(
@@ -81,7 +81,7 @@ public class ServiceTests {
     public void loginUnauthorized() throws DataAccessException {
         userService.clearAllData();
         userService.register(
-                new RegisterRequest("basic_username", "pswd", "abcd@yahoo.com"));
+                new RegisterRequest("basic_username", "pswd"));
         //submit login request with wrong password
         assertThrows(FailedLoginException.class, () -> userService.login(
                 new LoginRequest("basic_username", "1234")));
@@ -104,7 +104,7 @@ public class ServiceTests {
     public void logoutSuccess(String username) throws FailedLoginException, DataAccessException {
         userService.clearAllData();
         RegisterResult registerResult = userService.register(
-                new RegisterRequest(username, "pswd", "abcd@yahoo.com"));
+                new RegisterRequest(username, "pswd"));
         //submit logout request
 
         userService.logout(new LogoutRequest(registerResult.authToken()));
@@ -119,7 +119,7 @@ public class ServiceTests {
     public void logoutUnauthorized() throws DataAccessException {
         userService.clearAllData();
         userService.register(
-                new RegisterRequest("basic_username", "pswd", "abcd@yahoo.com"));
+                new RegisterRequest("basic_username", "pswd"));
         //submit logout request with wrong authToken
         assertThrows(FailedLoginException.class, () -> userService.logout(new LogoutRequest("fake_token")));
     }
@@ -133,7 +133,7 @@ public class ServiceTests {
         userService.clearAllData();
         //submit create request
         RegisterResult registerResult = userService.register(
-                new RegisterRequest("first_username", "pswd", "abcd@yahoo.com"));
+                new RegisterRequest("first_username", "pswd"));
 
         String authToken = registerResult.authToken();
         CreateGameResult createGameResult = gameService.createGame(
@@ -149,7 +149,7 @@ public class ServiceTests {
         userService.clearAllData();
         //attempt to create a game without a name
         RegisterResult registerResult =  userService.register(
-                new RegisterRequest("basic_username", "pswd", "abcd@yahoo.com"));
+                new RegisterRequest("basic_username", "pswd"));
         assertThrows(BadRequestException.class, () -> gameService.createGame(
                 new CreateGameRequest(registerResult.authToken(), "")));
     }
@@ -160,7 +160,7 @@ public class ServiceTests {
     public void createGameUnauthorized() throws DataAccessException {
         userService.clearAllData();
         userService.register(
-                new RegisterRequest("basic_username", "pswd", "abcd@yahoo.com"));
+                new RegisterRequest("basic_username", "pswd"));
         //submit logout request with wrong authToken
         assertThrows(FailedLoginException.class,
                 () -> gameService.createGame(new CreateGameRequest("", "new_game")));
@@ -173,9 +173,9 @@ public class ServiceTests {
         userService.clearAllData();
 
         RegisterResult registerResult1 = userService.register(
-                new RegisterRequest("first_username", "pswd", "abcd@yahoo.com"));
+                new RegisterRequest("first_username", "pswd"));
         RegisterResult registerResult2 = userService.register(
-                new RegisterRequest("second_username", "pswd", "abcd@yahoo.com"));
+                new RegisterRequest("second_username", "pswd"));
 
         String authToken1 = registerResult1.authToken();
         String authToken2 = registerResult2.authToken();
@@ -203,7 +203,7 @@ public class ServiceTests {
         //submit list request
         userService.clearAllData();
         RegisterResult registerResult = userService.register(
-                new RegisterRequest("first_username", "pswd", "abcd@yahoo.com"));
+                new RegisterRequest("first_username", "pswd"));
 
         String authToken = registerResult.authToken();
 
@@ -222,7 +222,7 @@ public class ServiceTests {
     public void listGameUnauthorized() throws FailedLoginException, DataAccessException {
         userService.clearAllData();
         RegisterResult registerResult = userService.register(
-                new RegisterRequest("first_username", "pswd", "abcd@yahoo.com"));
+                new RegisterRequest("first_username", "pswd"));
 
         String authToken = registerResult.authToken();
 
@@ -244,9 +244,9 @@ public class ServiceTests {
         //submit join request
         userService.clearAllData();
         RegisterResult registerResult1 = userService.register(
-                new RegisterRequest("first_username", "pswd", "abcd@yahoo.com"));
+                new RegisterRequest("first_username", "pswd"));
         RegisterResult registerResult2 = userService.register(
-                new RegisterRequest("second_username", "pswd", "abcd@yahoo.com"));
+                new RegisterRequest("second_username", "pswd"));
 
         String authToken1 = registerResult1.authToken();
         String authToken2 = registerResult2.authToken();
@@ -266,7 +266,7 @@ public class ServiceTests {
     @DisplayName("Join Game - User is unauthorized")
     public void joinGameUnauthorized() throws FailedLoginException, DataAccessException {
         RegisterResult registerResult = userService.register(
-                new RegisterRequest("first_username", "pswd", "abcd@yahoo.com"));
+                new RegisterRequest("first_username", "pswd"));
 
         String authToken = registerResult.authToken();
 
@@ -284,7 +284,7 @@ public class ServiceTests {
     @DisplayName("Join Game - Place is already taken")
     public void joinTakenGame() throws FailedLoginException, DataAccessException {
         RegisterResult registerResult = userService.register(
-                new RegisterRequest("first_username", "pswd", "abcd@yahoo.com"));
+                new RegisterRequest("first_username", "pswd"));
 
         String authToken = registerResult.authToken();
 

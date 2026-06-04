@@ -92,9 +92,9 @@ public class GameService {
     }
 
     public void joinGame(JoinGameRequest joinGameRequest) throws FailedLoginException, DataAccessException {
-        if (!gameDataExists(joinGameRequest.gameID())) {
+        if (gameDataAccess.getGame(joinGameRequest.gameID()) == null) {
             throw new BadRequestException("Error: game does not exist");
-        } else if (!authDataExists(joinGameRequest.authToken())) {
+        } else if (authDataAccess.getAuth(joinGameRequest.authToken()) == null) {
             throw new FailedLoginException("Error: unauthorized");
         } else if (joinGameRequest.teamColor() == null) {
             throw new BadRequestException("Error: Fields cannot be left blank");

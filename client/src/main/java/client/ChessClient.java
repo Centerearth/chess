@@ -135,8 +135,8 @@ public class ChessClient implements ServerMessageObserver {
 
     private String register(String... params) {
         try {
-            if (params.length == 3) {
-                String response = server.registerUser(params[0], params[1], params[2]);
+            if (params.length == 2) {
+                String response = server.registerUser(params[0], params[1]);
                 if (response.equals("User was registered successfully. User was logged in successfully.")) {
                     state = State.LOGGEDIN;
                 }

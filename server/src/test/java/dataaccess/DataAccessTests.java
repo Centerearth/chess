@@ -186,7 +186,7 @@ public class DataAccessTests {
     @DisplayName("Add new user")
     public void addUserSuccess() throws DataAccessException {
         userDataAccess.removeAllUsers();
-        UserData testUser = new UserData("user1", "pswd", "abcd@yahoo.com");
+        UserData testUser = new UserData("user1", "pswd");
         userDataAccess.addUserData(testUser);
         Assertions.assertEquals(testUser, userDataAccess.getUser("user1"),
                 "Returned user was not the same user as was added");
@@ -197,7 +197,7 @@ public class DataAccessTests {
     @DisplayName("User already exists")
     public void addUserFailure() throws DataAccessException {
         userDataAccess.removeAllUsers();
-        UserData testUser = new UserData("user1", "pswd", "abcd@yahoo.com");
+        UserData testUser = new UserData("user1", "pswd");
         userDataAccess.addUserData(testUser);
         Assertions.assertThrows(DataAccessException.class, () -> userDataAccess.addUserData(testUser));
         userDataAccess.removeAllUsers();
@@ -208,9 +208,9 @@ public class DataAccessTests {
     @DisplayName("Clear all users")
     public void clearUserSuccess() throws DataAccessException {
         userService.clearAllData();
-        UserData testUser1 = new UserData("user1", "pswd", "abcd@yahoo.com");
-        UserData testUser2 = new UserData("user2", "pswd", "abcd@yahoo.com");
-        UserData testUser3 = new UserData("user3", "pswd", "abcd@yahoo.com");
+        UserData testUser1 = new UserData("user1", "pswd");
+        UserData testUser2 = new UserData("user2", "pswd");
+        UserData testUser3 = new UserData("user3", "pswd");
         userDataAccess.addUserData(testUser1);
         userDataAccess.addUserData(testUser2);
         userDataAccess.addUserData(testUser3);

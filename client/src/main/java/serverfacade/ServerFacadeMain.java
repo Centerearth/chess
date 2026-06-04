@@ -64,11 +64,10 @@ public class ServerFacadeMain {
         return responseHandler("User was logged in successfully.", httpResponse);
     }
 
-    public String registerUser(String username, String password, String email) throws IOException, InterruptedException {
+    public String registerUser(String username, String password) throws IOException, InterruptedException {
         HashMap<String, String> body = new HashMap<>();
         body.put("username", username);
         body.put("password", password);
-        body.put("email", email);
         HttpResponse<String> httpResponse = buildAndReceiveRequest("POST", "/user", GSON.toJson(body), null);
         String loginResult = loginUser(username, password);
         return responseHandler("User was registered successfully. " + loginResult, httpResponse);

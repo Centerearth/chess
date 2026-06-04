@@ -75,7 +75,7 @@ function clearAll() {
   displayRequest('DELETE', '/db', null);
 }
 function register() {
-  displayRequest('POST', '/user', { username: 'username', password: 'password', email: 'email' });
+  displayRequest('POST', '/user', { username: 'username', password: 'password' });
 }
 function login() {
   displayRequest('POST', '/session', { username: 'username', password: 'password' });

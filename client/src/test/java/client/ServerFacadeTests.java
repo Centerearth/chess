@@ -37,25 +37,25 @@ public class ServerFacadeTests {
     @Test
     public void registerTest() throws Exception {
         Assertions.assertEquals("User was registered successfully. User was logged in successfully.",
-                serverFacade.registerUser("user1", "pswd", "abcd@yahoo.com"));
+                serverFacade.registerUser("user1", "pswd"));
     }
 
     @Test
     public void registerTestTwice() throws Exception {
-        serverFacade.registerUser("user1", "pswd", "abcd@yahoo.com");
-        Assertions.assertEquals("That option is already taken", serverFacade.registerUser("user1", "pswd", "abcd@yahoo.com"));
+        serverFacade.registerUser("user1", "pswd");
+        Assertions.assertEquals("That option is already taken", serverFacade.registerUser("user1", "pswd"));
     }
 
     @Test
     public void registerAndLoginTest() throws Exception {
         Assertions.assertEquals("User was registered successfully. User was logged in successfully.",
-                serverFacade.registerUser("user1", "pswd", "abcd@yahoo.com"));
+                serverFacade.registerUser("user1", "pswd"));
         Assertions.assertNotNull(serverFacade.getAuth());
     }
 
     @Test
     public void registerLogoutLogin() throws Exception {
-        serverFacade.registerUser("user1", "pswd", "abcd@yahoo.com");
+        serverFacade.registerUser("user1", "pswd");
         serverFacade.logoutUser();
         Assertions.assertEquals("User was logged in successfully.", serverFacade.loginUser("user1", "pswd"));
     }
@@ -69,7 +69,7 @@ public class ServerFacadeTests {
 
     @Test
     public void logoutUser() throws Exception {
-        serverFacade.registerUser("user1", "pswd", "abcd@yahoo.com");
+        serverFacade.registerUser("user1", "pswd");
         Assertions.assertEquals("User was logged out successfully.", serverFacade.logoutUser());
     }
 
@@ -80,7 +80,7 @@ public class ServerFacadeTests {
 
     @Test
     public void createGame() throws Exception {
-        serverFacade.registerUser("user1", "pswd", "abcd@yahoo.com");
+        serverFacade.registerUser("user1", "pswd");
         Assertions.assertEquals("Game was created successfully.", serverFacade.createGame("game1"));
     }
 
@@ -91,7 +91,7 @@ public class ServerFacadeTests {
 
     @Test
     public void listGames() throws Exception {
-        serverFacade.registerUser("user1", "pswd", "abcd@yahoo.com");
+        serverFacade.registerUser("user1", "pswd");
         serverFacade.createGame("game1");
         serverFacade.createGame("game2");
         Assertions.assertTrue(serverFacade.listGames().length() > 10);
@@ -99,13 +99,13 @@ public class ServerFacadeTests {
 
     @Test
     public void listNoGames() throws Exception {
-        serverFacade.registerUser("user1", "pswd", "abcd@yahoo.com");
+        serverFacade.registerUser("user1", "pswd");
         Assertions.assertEquals("No games to display.", serverFacade.listGames());
     }
 
     @Test
     public void playGame() throws Exception {
-        serverFacade.registerUser("user1", "pswd", "abcd@yahoo.com");
+        serverFacade.registerUser("user1", "pswd");
         serverFacade.createGame("game1");
         serverFacade.listGames();
         Assertions.assertEquals("User joined successfully.", serverFacade.playGame(
@@ -115,7 +115,7 @@ public class ServerFacadeTests {
     @Test
     public void playGameFail() throws Exception {
         //games haven't been listed yet
-        serverFacade.registerUser("user1", "pswd", "abcd@yahoo.com");
+        serverFacade.registerUser("user1", "pswd");
         serverFacade.createGame("game1");
         Assertions.assertEquals("Game does not exist.", serverFacade.playGame(1, "WHITE"));
     }
@@ -123,7 +123,7 @@ public class ServerFacadeTests {
     @Test
     public void observeGame() throws Exception {
         //games haven't been listed yet
-        serverFacade.registerUser("user1", "pswd", "abcd@yahoo.com");
+        serverFacade.registerUser("user1", "pswd");
         serverFacade.createGame("game1");
         serverFacade.listGames();
         Assertions.assertEquals("Game is being observed.", serverFacade.observeGame(
@@ -134,7 +134,7 @@ public class ServerFacadeTests {
     @Test
     public void observeGameFail() throws Exception {
         //games haven't been listed yet
-        serverFacade.registerUser("user1", "pswd", "abcd@yahoo.com");
+        serverFacade.registerUser("user1", "pswd");
         serverFacade.createGame("game1");
         Assertions.assertEquals("Game does not exist.", serverFacade.observeGame(
             0

@@ -59,7 +59,7 @@ public class Server {
         try {
             RegisterRequest body = getBodyObject(context, RegisterRequest.class);
 
-            if (body.username() == null || body.password() == null || body.email() == null) {
+            if (body.username() == null || body.password() == null) {
                 throw new BadRequestException("Error: bad request");
             }
 

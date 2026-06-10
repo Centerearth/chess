@@ -8,11 +8,20 @@ import java.util.Arrays;
 public class Agent {
     private TeamColor color;
 
-    public Agent(TeamColor color) {
+    public Agent(ChessGame.TeamColor color) {
         this.color = color;
     }
 
-    public ChessMove minimaxMove(ChessGame game) throws CloneNotSupportedException, InvalidMoveException {
+    public ChessMove getBestMove(ChessGame game) {
+        try {
+            return minimaxMove(game);
+        } catch (CloneNotSupportedException | InvalidMoveException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    private ChessMove minimaxMove(ChessGame game) throws CloneNotSupportedException, InvalidMoveException {
         return (ChessMove) recursiveMinimax(game, 3, true).get(0);
 
     }
@@ -28,7 +37,7 @@ public class Agent {
             ChessGame newGame = (ChessGame) game.clone();
             newGame.makeMove(move);
 
-            double expectedUtility = (depth == 2)
+            double expectedUtility = (depth == 1)
                 ? calculateUtility(newGame)
                 : (double) recursiveMinimax(newGame, depth-1, !maximizingPlayer).get(1);
 
@@ -58,7 +67,7 @@ public class Agent {
                 ChessPosition position = new ChessPosition(row, col);
                 ChessPiece piece = board.getPiece(position);
                 if (piece != null && piece.getTeamColor() == game.getTeamTurn()) {
-                    validMoves.addAll(piece.pieceMoves(board, position));
+                    validMoves.addAll(game.validMoves(position));
                 }
             }
         }
@@ -72,8 +81,10 @@ public class Agent {
         for (int row = 1; row <= 8; row++) {
             for (int col = 1; col <= 8; col++) {
                 ChessPosition position = new ChessPosition(row, col);
-                if (board.getPiece(position) != null) {
-                    totalUtility += getValue(board.getPiece(position));
+                ChessPiece piece = board.getPiece(position);
+                if (piece != null) {
+                double factor = (piece.getTeamColor() == this.color) ? 1.0 : -1.0;
+                    totalUtility += factor * getValue(piece);
                 }
             }
         }
@@ -96,4 +107,5 @@ public class Agent {
                 return 0.0;
         }
     }
+
 }

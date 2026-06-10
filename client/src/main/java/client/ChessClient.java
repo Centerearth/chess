@@ -27,6 +27,7 @@ public class ChessClient implements ServerMessageObserver {
     private final Scanner scanner = new Scanner(System.in);
     private volatile boolean suppressNextMainPrompt = false;
     private static final String RESET_COLORS = "[39;49m";
+    private boolean aiMode = false;
 
     public ChessClient(String serverUrl) throws Exception {
         server = new ServerFacadeMain(serverUrl);
@@ -103,6 +104,10 @@ public class ChessClient implements ServerMessageObserver {
                     };
                 } else {
                     return switch (cmd) {
+                        case "ai" -> {
+                            aiMode = !aiMode;
+                            yield "AI mode is now " + (aiMode ? "ON" : "OFF");
+                        }
                         case "legalmoves" -> legalMoves(params);
                         case "redraw" -> reDraw();
                         case "leave" -> leave();
@@ -306,6 +311,22 @@ public class ChessClient implements ServerMessageObserver {
             this.gamesOver.put(currentId, true);
             observingState = ObservingState.NOTOBSERVING;
             gameplayState = GameplayState.NOGAMEPLAY;
+        } else if (aiMode && this.teamColor == whoseTurn) {
+            try {
+                ChessMove bestMove = new Agent(this.teamColor).getBestMove(this.game);
+                if (bestMove == null) {
+                    System.out.println("AI failed to calculate a move");
+                    printPrompt();
+                    return;
+                }
+                websocketFacade.makeMove(server.getAuth().authToken(), this.currentId,
+                        server.getAuth().username(), teamColor.toString().toLowerCase(), bestMove);
+                suppressNextMainPrompt = true;
+                System.out.println("AI has made its move: " + bestMove.toString());
+            } catch (Exception e) {
+                System.out.println("AI failed to make a move");
+                printPrompt();
+            }
         }
         printPrompt();
     }

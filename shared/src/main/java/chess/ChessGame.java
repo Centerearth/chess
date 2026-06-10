@@ -326,7 +326,7 @@ public class ChessGame implements Cloneable {
     }
 
     @Override
-    protected Object clone() throws CloneNotSupportedException {
+    public Object clone() throws CloneNotSupportedException {
         var clone = new ChessGame();
         clone.teamsTurn = this.teamsTurn;
         clone.enPassantColumn = this.enPassantColumn;

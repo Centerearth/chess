@@ -35,6 +35,8 @@ public class Agent {
                 game.isInStalemate(this.color) || game.isInStalemate((this.color == TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE) ? 0.0 : bestUtility));
         }
         //the checkmate utility is baked in because the starting utilities are 10000 and -10000
+        bestMove = validMoves.get(0); //best moves can't be null for checkmate reasons
+
 
         for (ChessMove move : validMoves) {
             ChessGame newGame = (ChessGame) game.clone();
@@ -91,7 +93,10 @@ public class Agent {
             return new ArrayList<>(Arrays.asList(null, 
                 game.isInStalemate(this.color) || game.isInStalemate((this.color == TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE) ? 0.0 : bestUtility));
         }
-        
+
+        bestMove = validMoves.get(0); //best moves can't be null for checkmate reasons
+
+
         for (ChessMove move : validMoves) {
             ChessGame newGame = (ChessGame) game.clone();
             newGame.makeMove(move);

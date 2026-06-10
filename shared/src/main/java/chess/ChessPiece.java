@@ -21,6 +21,12 @@ public class ChessPiece {
         this.totalMoves = 0;
     }
 
+    public ChessPiece(ChessGame.TeamColor pieceColor, ChessPiece.PieceType type, int totalMoves) {
+    this.pieceColor = pieceColor;
+    this.type = type;
+    this.totalMoves = totalMoves;
+    }
+
     /**
      * The various different chess piece options
      */

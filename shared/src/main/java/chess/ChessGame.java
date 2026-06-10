@@ -334,7 +334,9 @@ public class ChessGame implements Cloneable {
         for (int i = ChessBoard.BOARD_MIN; i <= ChessBoard.BOARD_MAX; i++ ) {
             for (int j = ChessBoard.BOARD_MIN; j <= ChessBoard.BOARD_MAX; j++) {
                 ChessPosition position = new ChessPosition(i,j);
-                clone.board.addPiece(position, this.board.getPiece(position));
+                ChessPiece piece = this.board.getPiece(position);
+                clone.board.addPiece(position, piece == null ? null 
+                    : new ChessPiece(piece.getTeamColor(), piece.getPieceType(), piece.getTotalMoves()));
             }
         }
 

@@ -22,17 +22,22 @@ public class Agent {
     }
 
     private ChessMove alphaBetaMove(ChessGame game) throws CloneNotSupportedException, InvalidMoveException {
-        return (ChessMove) recursiveAlphaBeta(game, 3, -10000.0, 10000.0, true).get(0);
+        ChessMove bestMove = (ChessMove) recursiveAlphaBeta(game, 4, -10000, 10000, true).get(0);
+        if (Math.random() < 0.05) {
+            ArrayList<ChessMove> moves = getAllValidMoves(game);
+            return moves.get((int)(Math.random() * moves.size())); //has a 5 percent chance to make a random move instead of the best move
+        }
+        return bestMove;
     }
 
-    private ArrayList<Object> recursiveAlphaBeta(ChessGame game, int depth, double alpha, double beta, boolean maximizingPlayer) throws CloneNotSupportedException, InvalidMoveException {
+    private ArrayList<Object> recursiveAlphaBeta(ChessGame game, int depth, int alpha, int beta, boolean maximizingPlayer) throws CloneNotSupportedException, InvalidMoveException {
         ArrayList<ChessMove> validMoves = getAllValidMoves(game);
-        double bestUtility = (maximizingPlayer) ? -10000.0 : 10000.0;
+        int bestUtility = (maximizingPlayer) ? -10000 : 10000;
         ChessMove bestMove = null;
 
         if (validMoves.isEmpty()) {
             return new ArrayList<>(Arrays.asList(null, 
-                game.isInStalemate(this.color) || game.isInStalemate((this.color == TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE) ? 0.0 : bestUtility));
+                game.isInStalemate(this.color) || game.isInStalemate((this.color == TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE) ? 0 : bestUtility));
         }
         //the checkmate utility is baked in because the starting utilities are 10000 and -10000
         bestMove = validMoves.get(0); //best moves can't be null for checkmate reasons
@@ -42,9 +47,9 @@ public class Agent {
             ChessGame newGame = (ChessGame) game.clone();
             newGame.makeMove(move);
 
-            double expectedUtility = (depth == 1)
+            int expectedUtility = (depth == 1)
                 ? calculateUtility(newGame)
-                : (double) recursiveAlphaBeta(newGame, depth-1, alpha, beta, !maximizingPlayer).get(1);
+                : (int) recursiveAlphaBeta(newGame, depth-1, alpha, beta, !maximizingPlayer).get(1);
 
             if (maximizingPlayer) {
                 if (expectedUtility > bestUtility) {
@@ -86,12 +91,12 @@ public class Agent {
     private ArrayList<Object> recursiveMinimax(ChessGame game, int depth, boolean maximizingPlayer) throws CloneNotSupportedException, InvalidMoveException {
         //what to do if no validMoves?
         ArrayList<ChessMove> validMoves = getAllValidMoves(game);
-        double bestUtility = (maximizingPlayer) ? -10000.0 : 10000.0;
+        int bestUtility = (maximizingPlayer) ? -10000 : 10000;
         ChessMove bestMove = null;
 
         if (validMoves.isEmpty()) {
             return new ArrayList<>(Arrays.asList(null, 
-                game.isInStalemate(this.color) || game.isInStalemate((this.color == TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE) ? 0.0 : bestUtility));
+                game.isInStalemate(this.color) || game.isInStalemate((this.color == TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE) ? 0 : bestUtility));
         }
 
         bestMove = validMoves.get(0); //best moves can't be null for checkmate reasons
@@ -101,9 +106,9 @@ public class Agent {
             ChessGame newGame = (ChessGame) game.clone();
             newGame.makeMove(move);
 
-            double expectedUtility = (depth == 1)
+            int expectedUtility = (depth == 1)
                 ? calculateUtility(newGame)
-                : (double) recursiveMinimax(newGame, depth-1, !maximizingPlayer).get(1);
+                : (int) recursiveMinimax(newGame, depth-1, !maximizingPlayer).get(1);
 
             if (maximizingPlayer) {
                 if (expectedUtility > bestUtility) {
@@ -148,16 +153,16 @@ public class Agent {
         return validMoves;
     }
 
-    private double calculateUtility(ChessGame game) {
-        double totalUtility = 0.0;
+    private int calculateUtility(ChessGame game) {
+        int totalUtility = 0;
         ChessBoard board = game.getBoard();
 
         if (game.isInCheckmate(this.color)) {
-            return -10000.0; 
+            return -10000; 
         } else if (game.isInCheckmate((this.color == TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE)) {
-            return 10000.0; 
+            return 10000; 
         } else if (game.isInStalemate(this.color) || game.isInStalemate((this.color == TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE)) {
-            return 0.0; 
+            return 0; 
         }
 
 
@@ -167,29 +172,110 @@ public class Agent {
                 ChessPosition position = new ChessPosition(row, col);
                 ChessPiece piece = board.getPiece(position);
                 if (piece != null) {
-                double factor = (piece.getTeamColor() == this.color) ? 1.0 : -1.0;
-                    totalUtility += factor * getValue(piece);
+                    int factor = (piece.getTeamColor() == this.color) ? 1 : -1;
+                        totalUtility += factor * getValue(piece, isEndgame(game));
+                        totalUtility += factor * pstCalculation(piece, position, isEndgame(game));
                 }
+                
+
+
+
             }
         }
         return totalUtility;
     }
 
-    private double getValue(ChessPiece piece) {
-        switch (piece.getPieceType()) {
-            case PAWN:
-                return 1.0;
-            case KNIGHT:
-                return 3.0;
-            case BISHOP:
-                return 3.0;
-            case ROOK:
-                return 5.0;
-            case QUEEN:
-                return 9.0;
-            default:
-                return 0.0;
+    private int getValue(ChessPiece piece, boolean isEndgame) {
+        if (isEndgame) {
+            switch (piece.getPieceType()) {
+                case PAWN:
+                    return 94;
+                case KNIGHT:
+                    return 281;
+                case BISHOP:
+                    return 297;
+                case ROOK:
+                    return 512;
+                case QUEEN:
+                    return 936;
+                default:
+                    return 0;
+            }
+        } else {
+            switch (piece.getPieceType()) {
+                case PAWN:
+                    return 82;
+                case KNIGHT:
+                    return 337;
+                case BISHOP:
+                    return 365;
+                case ROOK:
+                    return 477;
+                case QUEEN:
+                    return 1025;
+                default:
+                    return 0;
+            }
         }
     }
 
+    private boolean isEndgame(ChessGame game) {
+        ChessBoard board = game.getBoard();
+        int totalPieces = 0;
+        for (int row = 1; row <= 8; row++) {
+            for (int col = 1; col <= 8; col++) {
+                ChessPosition position = new ChessPosition(row, col);
+                if (board.getPiece(position) != null) {
+                    totalPieces++;
+                }
+            }
+        }
+        return totalPieces <= 12; 
+    }
+
+    private int pstCalculation(ChessPiece piece, ChessPosition position, boolean isEndgame) {
+        int row = position.getRow() - 1;
+        int col = position.getColumn() - 1;
+
+        if (piece.getTeamColor() == TeamColor.BLACK) {
+            row = 7 - row;
+            col = 7 - col;
+        }
+
+        if (!isEndgame) {
+            switch (piece.getPieceType()) {
+                case PAWN:
+                    return midgamePST.PAWN_PST[row][col];
+                case KNIGHT:
+                    return midgamePST.KNIGHT_PST[row][col];
+                case BISHOP:
+                    return midgamePST.BISHOP_PST[row][col];
+                case ROOK:
+                    return midgamePST.ROOK_PST[row][col];
+                case QUEEN:
+                    return midgamePST.QUEEN_PST[row][col];
+                case KING:
+                    return midgamePST.KING_PST[row][col];
+                default:
+                    return 0;
+            }
+        } else {
+            switch (piece.getPieceType()) {
+                case PAWN:
+                    return endgamePST.PAWN_PST[row][col];
+                case KNIGHT:
+                    return endgamePST.KNIGHT_PST[row][col];
+                case BISHOP:
+                    return endgamePST.BISHOP_PST[row][col];
+                case ROOK:
+                    return endgamePST.ROOK_PST[row][col];
+                case QUEEN:
+                    return endgamePST.QUEEN_PST[row][col];
+                case KING:
+                    return endgamePST.KING_PST[row][col];
+                default:
+                    return 0;
+            }
+        }
+    }
 }

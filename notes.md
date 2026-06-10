@@ -8,8 +8,8 @@ deploy?
 
 
 Chess bot ideas
-update heuristic function with checkmate and stalemate
-Alpha-beta
+make heuristic way better
+give it a small chance to do a random move - forces exploring. Might hurt though? Would prevent it from getting stuck
 
 ---
 

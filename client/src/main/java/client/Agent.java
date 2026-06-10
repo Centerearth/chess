@@ -14,11 +14,66 @@ public class Agent {
 
     public ChessMove getBestMove(ChessGame game) {
         try {
-            return minimaxMove(game);
+            return alphaBetaMove(game);
         } catch (CloneNotSupportedException | InvalidMoveException e) {
             e.printStackTrace();
             return null;
         }
+    }
+
+    private ChessMove alphaBetaMove(ChessGame game) throws CloneNotSupportedException, InvalidMoveException {
+        return (ChessMove) recursiveAlphaBeta(game, 3, -10000.0, 10000.0, true).get(0);
+    }
+
+    private ArrayList<Object> recursiveAlphaBeta(ChessGame game, int depth, double alpha, double beta, boolean maximizingPlayer) throws CloneNotSupportedException, InvalidMoveException {
+        ArrayList<ChessMove> validMoves = getAllValidMoves(game);
+        double bestUtility = (maximizingPlayer) ? -10000.0 : 10000.0;
+        ChessMove bestMove = null;
+
+        if (validMoves.isEmpty()) {
+            return new ArrayList<>(Arrays.asList(null, 
+                game.isInStalemate(this.color) || game.isInStalemate((this.color == TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE) ? 0.0 : bestUtility));
+        }
+        //the checkmate utility is baked in because the starting utilities are 10000 and -10000
+
+        for (ChessMove move : validMoves) {
+            ChessGame newGame = (ChessGame) game.clone();
+            newGame.makeMove(move);
+
+            double expectedUtility = (depth == 1)
+                ? calculateUtility(newGame)
+                : (double) recursiveAlphaBeta(newGame, depth-1, alpha, beta, !maximizingPlayer).get(1);
+
+            if (maximizingPlayer) {
+                if (expectedUtility > bestUtility) {
+                    bestUtility = expectedUtility;
+                    bestMove = move;
+                } else if (expectedUtility == bestUtility) {
+                    // Randomly choose between moves of equal utility
+                    if (Math.random() < 0.5) {
+                        bestMove = move;
+                    }
+                }
+                alpha = Math.max(alpha, bestUtility);
+            } else {
+                if (expectedUtility < bestUtility) {
+                    bestUtility = expectedUtility;
+                    bestMove = move;
+                } else if (expectedUtility == bestUtility) {
+                    // Randomly choose between moves of equal utility
+                    if (Math.random() < 0.5) {
+                        bestMove = move;
+                    }
+                }
+                beta = Math.min(beta, bestUtility);
+            }
+
+            if (beta <= alpha) {
+                break; 
+            }
+        }
+
+        return new ArrayList<>(Arrays.asList(bestMove, bestUtility));
     }
 
     private ChessMove minimaxMove(ChessGame game) throws CloneNotSupportedException, InvalidMoveException {
@@ -32,7 +87,11 @@ public class Agent {
         double bestUtility = (maximizingPlayer) ? -10000.0 : 10000.0;
         ChessMove bestMove = null;
 
-
+        if (validMoves.isEmpty()) {
+            return new ArrayList<>(Arrays.asList(null, 
+                game.isInStalemate(this.color) || game.isInStalemate((this.color == TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE) ? 0.0 : bestUtility));
+        }
+        
         for (ChessMove move : validMoves) {
             ChessGame newGame = (ChessGame) game.clone();
             newGame.makeMove(move);
@@ -95,6 +154,8 @@ public class Agent {
         } else if (game.isInStalemate(this.color) || game.isInStalemate((this.color == TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE)) {
             return 0.0; 
         }
+
+
 
         for (int row = 1; row <= 8; row++) {
             for (int col = 1; col <= 8; col++) {

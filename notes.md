@@ -5,9 +5,11 @@ stress test it
 After:
 Write a website that provides a GUI for the chess game
 deploy?
-Write a chess bot????
 
 
+Chess bot ideas
+update heuristic function with checkmate and stalemate
+Alpha-beta
 
 ---
 

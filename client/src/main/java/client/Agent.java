@@ -45,11 +45,21 @@ public class Agent {
                 if (expectedUtility > bestUtility) {
                     bestUtility = expectedUtility;
                     bestMove = move;
+                } else if (expectedUtility == bestUtility) {
+                    // Randomly choose between moves of equal utility
+                    if (Math.random() < 0.5) {
+                        bestMove = move;
+                    }
                 }
             } else {
                 if (expectedUtility < bestUtility) {
                     bestUtility = expectedUtility;
                     bestMove = move;
+                } else if (expectedUtility == bestUtility) {
+                    // Randomly choose between moves of equal utility
+                    if (Math.random() < 0.5) {
+                        bestMove = move;
+                    }
                 }
             }
         }
@@ -77,6 +87,14 @@ public class Agent {
     private double calculateUtility(ChessGame game) {
         double totalUtility = 0.0;
         ChessBoard board = game.getBoard();
+
+        if (game.isInCheckmate(this.color)) {
+            return -10000.0; 
+        } else if (game.isInCheckmate((this.color == TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE)) {
+            return 10000.0; 
+        } else if (game.isInStalemate(this.color) || game.isInStalemate((this.color == TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE)) {
+            return 0.0; 
+        }
 
         for (int row = 1; row <= 8; row++) {
             for (int col = 1; col <= 8; col++) {

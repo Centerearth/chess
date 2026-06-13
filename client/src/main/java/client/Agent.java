@@ -22,11 +22,11 @@ public class Agent {
     }
 
     private ChessMove alphaBetaMove(ChessGame game) throws CloneNotSupportedException, InvalidMoveException {
-        ChessMove bestMove = (ChessMove) recursiveAlphaBeta(game, 4, -10000, 10000, true).get(0);
-        if (Math.random() < 0.05) {
-            ArrayList<ChessMove> moves = getAllValidMoves(game);
-            return moves.get((int)(Math.random() * moves.size())); //has a 5 percent chance to make a random move instead of the best move
-        }
+        ChessMove bestMove = (ChessMove) recursiveAlphaBeta(game, 4, -10000, 10000, true).get(0); //depth 4 to 5 is a big jump
+        // if (Math.random() < 0.05) {
+        //     ArrayList<ChessMove> moves = getAllValidMoves(game);
+        //     return moves.get((int)(Math.random() * moves.size())); //has a 5 percent chance to make a random move instead of the best move
+        // } don't really need the random anymore since we have the pst's
         return bestMove;
     }
 
@@ -43,35 +43,48 @@ public class Agent {
         bestMove = validMoves.get(0); //best moves can't be null for checkmate reasons
 
 
+        ArrayList<ChessMove> captures = getAllValidCaptures(game);
+        ArrayList<ChessMove> quietMoves = new ArrayList<>(validMoves);
+        quietMoves.removeAll(captures);
+        captures.addAll(quietMoves); // reordering so we compute captures first, then quiet moves
+        validMoves = captures;
+
         for (ChessMove move : validMoves) {
             ChessGame newGame = (ChessGame) game.clone();
             newGame.makeMove(move);
 
             int expectedUtility = (depth == 1)
-                ? calculateUtility(newGame)
+                ? quiescence(newGame, alpha, beta, !maximizingPlayer, 5)
                 : (int) recursiveAlphaBeta(newGame, depth-1, alpha, beta, !maximizingPlayer).get(1);
+
+            if (depth == 4) {
+                //boolean isCapture = game.getBoard().getPiece(move.getEndPosition()) != null;
+                //System.out.println(move + " -> " + expectedUtility + (isCapture ? " [CAPTURE]" : ""));
+            }
 
             if (maximizingPlayer) {
                 if (expectedUtility > bestUtility) {
                     bestUtility = expectedUtility;
                     bestMove = move;
-                } else if (expectedUtility == bestUtility) {
-                    // Randomly choose between moves of equal utility
-                    if (Math.random() < 0.5) {
-                        bestMove = move;
-                    }
                 }
+                // } else if (expectedUtility == bestUtility) {
+                //     Randomly choose between moves of equal utility
+                //     if (Math.random() < 0.5) { causing problems
+                //         bestMove = move;
+                //     }
+                // }
                 alpha = Math.max(alpha, bestUtility);
             } else {
                 if (expectedUtility < bestUtility) {
                     bestUtility = expectedUtility;
                     bestMove = move;
-                } else if (expectedUtility == bestUtility) {
-                    // Randomly choose between moves of equal utility
-                    if (Math.random() < 0.5) {
-                        bestMove = move;
-                    }
                 }
+                // } else if (expectedUtility == bestUtility) {
+                //     Randomly choose between moves of equal utility
+                //     if (Math.random() < 0.5) { taking this out since it was causing problems
+                //         bestMove = move;
+                //     }
+                // }
                 beta = Math.min(beta, bestUtility);
             }
 
@@ -153,6 +166,62 @@ public class Agent {
         return validMoves;
     }
 
+    private ArrayList<ChessMove> getAllValidCaptures(ChessGame game) { //change this to only reflect captures
+        ArrayList<ChessMove> validMoves = getAllValidMoves(game);
+
+        ArrayList<ChessMove> validCaptures = new ArrayList<>();
+        ChessBoard board = game.getBoard();
+
+        for (ChessMove move : validMoves) {
+            ChessPosition endPosition = move.getEndPosition();
+            if (board.getPiece(endPosition) != null) {
+                validCaptures.add(move);
+            }
+        }
+        return validCaptures;
+    }
+
+    private int quiescence(ChessGame game, int alpha, int beta, boolean maximizingPlayer, int depth) throws InvalidMoveException, CloneNotSupportedException {
+        if (depth == 0) {
+            return calculateUtility(game);
+        }
+        
+        int doNothing = calculateUtility(game);
+
+        if (maximizingPlayer) {
+            if (doNothing >= beta) {
+                return beta;   // this position wouldn't be reached, can be pruned
+            }     
+            alpha = Math.max(alpha, doNothing); //update alpha if necessary
+        } else {
+            if (doNothing <= alpha) {
+                return alpha;   // this position wouldn't be reached, can be pruned
+            }     
+            beta = Math.min(beta, doNothing); //update beta if necessary
+        }
+
+        ArrayList<ChessMove> validCaptures = getAllValidCaptures(game);
+
+        for (ChessMove capture : validCaptures) {
+                ChessGame newGame = (ChessGame) game.clone();
+                newGame.makeMove(capture);
+                int futureUtility = quiescence(newGame, alpha, beta, !maximizingPlayer, depth-1);
+                if (maximizingPlayer) {
+                    if (futureUtility >= beta) {
+                        return beta;
+                    }
+                    alpha = Math.max(alpha, futureUtility);
+                } else {
+                    if (futureUtility <= alpha) {
+                        return alpha;
+                    }
+                    beta = Math.min(beta, futureUtility);
+                }
+        }
+
+        return (maximizingPlayer) ? alpha : beta;
+    }
+
     private int calculateUtility(ChessGame game) {
         int totalUtility = 0;
         ChessBoard board = game.getBoard();
@@ -173,8 +242,9 @@ public class Agent {
                 ChessPiece piece = board.getPiece(position);
                 if (piece != null) {
                     int factor = (piece.getTeamColor() == this.color) ? 1 : -1;
-                        totalUtility += factor * getValue(piece, isEndgame(game));
-                        totalUtility += factor * pstCalculation(piece, position, isEndgame(game));
+                    boolean endgame = isEndgame(game);
+                        totalUtility += factor * getValue(piece, endgame);
+                        totalUtility += factor * pstCalculation(piece, position, endgame);
                 }
                 
 
@@ -237,9 +307,8 @@ public class Agent {
         int row = position.getRow() - 1;
         int col = position.getColumn() - 1;
 
-        if (piece.getTeamColor() == TeamColor.BLACK) {
+        if (piece.getTeamColor() == TeamColor.WHITE) {
             row = 7 - row;
-            col = 7 - col;
         }
 
         if (!isEndgame) {

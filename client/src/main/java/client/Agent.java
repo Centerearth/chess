@@ -67,24 +67,12 @@ public class Agent {
                     bestUtility = expectedUtility;
                     bestMove = move;
                 }
-                // } else if (expectedUtility == bestUtility) {
-                //     Randomly choose between moves of equal utility
-                //     if (Math.random() < 0.5) { causing problems
-                //         bestMove = move;
-                //     }
-                // }
                 alpha = Math.max(alpha, bestUtility);
             } else {
                 if (expectedUtility < bestUtility) {
                     bestUtility = expectedUtility;
                     bestMove = move;
                 }
-                // } else if (expectedUtility == bestUtility) {
-                //     Randomly choose between moves of equal utility
-                //     if (Math.random() < 0.5) { taking this out since it was causing problems
-                //         bestMove = move;
-                //     }
-                // }
                 beta = Math.min(beta, bestUtility);
             }
 

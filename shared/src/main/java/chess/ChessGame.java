@@ -48,6 +48,14 @@ public class ChessGame implements Cloneable {
         }
     }
 
+    public int getEnPassantColumn() {
+        return enPassantColumn;
+    }
+
+    public void setEnPassantColumn(int col) {
+        this.enPassantColumn = col;
+    }
+
     /**
      * Enum identifying the 2 possible teams in a chess game
      */

@@ -1,6 +1,8 @@
 # BYU CS 240 Chess
 
-Here's an AI generate summary below. This started as a project for CS 240 but I extended it significantly to be much cleaner and include an adverserial search AI and a pytorch trained model to play against.
+This started as a project for CS 240 but I extended it significantly to be much cleaner and include an adverserial search AI and a pytorch trained model to play against.
+
+Here's an AI generated summary below. 
 This project demonstrates mastery of proper software design, client/server architecture, networking using HTTP and WebSocket, database persistence, unit testing, serialization, and security.
 
 ## 10k Architecture Overview

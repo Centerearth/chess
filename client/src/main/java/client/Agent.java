@@ -71,6 +71,10 @@ public class Agent {
                 e.printStackTrace();
             }
         }
+        if (Math.random() < 0.05) {
+            ArrayList<ChessMove> moves = getAllValidMoves(game);
+            return moves.get((int)(Math.random() * moves.size())); //has a 5 percent chance to make a random move instead of the best move
+        } 
         return bestMove;
     }
 
@@ -170,10 +174,10 @@ public class Agent {
 
     private ChessMove alphaBetaMove(ChessGame game) throws CloneNotSupportedException, InvalidMoveException {
         ChessMove bestMove = (ChessMove) recursiveAlphaBeta(game, 4, -10000, 10000, true).get(0); //depth 4 to 5 is a big jump
-        // if (Math.random() < 0.05) {
-        //     ArrayList<ChessMove> moves = getAllValidMoves(game);
-        //     return moves.get((int)(Math.random() * moves.size())); //has a 5 percent chance to make a random move instead of the best move
-        // } don't really need the random anymore since we have the pst's
+        if (Math.random() < 0.05) {
+            ArrayList<ChessMove> moves = getAllValidMoves(game);
+            return moves.get((int)(Math.random() * moves.size())); //has a 5 percent chance to make a random move instead of the best move
+        } 
         return bestMove;
     }
 

@@ -4,20 +4,167 @@ import chess.*;
 import java.util.ArrayList;
 import chess.ChessGame.TeamColor;
 import java.util.Arrays;
+import java.util.Map;
+import ai.onnxruntime.*;
 
 public class Agent {
     private TeamColor color;
+
+    private static final OrtEnvironment env;
+    private static final OrtSession session;
+
+    static {
+        OrtEnvironment tmpEnv = null;
+        OrtSession tmpSession = null;
+        try {
+            tmpEnv = OrtEnvironment.getEnvironment();
+            tmpSession = tmpEnv.createSession("python-agent/chess_eval.onnx");
+        } catch (OrtException e) {
+            e.printStackTrace();
+        }
+        env = tmpEnv;
+        session = tmpSession;
+    }
 
     public Agent(ChessGame.TeamColor color) {
         this.color = color;
     }
 
-    public ChessMove getBestMove(ChessGame game) {
+    public ChessMove getBestMove(ChessGame game, boolean mlMode) {
+        if (mlMode) {
+            try {
+                return mlMove(game);
+            } catch (CloneNotSupportedException | InvalidMoveException e) {
+                e.printStackTrace();
+                return null;
+            }
+        } else {
         try {
             return alphaBetaMove(game);
         } catch (CloneNotSupportedException | InvalidMoveException e) {
             e.printStackTrace();
             return null;
+        }
+    }
+    }
+
+    private ChessMove mlMove(ChessGame game) throws CloneNotSupportedException, InvalidMoveException {
+        ArrayList<ChessMove> validMoves = getAllValidMoves(game);
+        if (validMoves.isEmpty()) return null;
+
+        ChessMove bestMove = validMoves.get(0);
+        boolean agentIsWhite = this.color == TeamColor.WHITE;
+        float bestScore = agentIsWhite ? -Float.MAX_VALUE : Float.MAX_VALUE;
+
+        for (ChessMove move : validMoves) {
+            ChessGame newGame = (ChessGame) game.clone();
+            newGame.makeMove(move);
+            try {
+                float score = recursiveML(newGame, 2, -Float.MAX_VALUE, Float.MAX_VALUE, !agentIsWhite);
+                System.out.println(move + " -> " + score);
+                boolean better = agentIsWhite ? score > bestScore : score < bestScore;
+                if (better) {
+                    bestScore = score;
+                    bestMove = move;
+                }
+            } catch (OrtException e) {
+                e.printStackTrace();
+            }
+        }
+        return bestMove;
+    }
+
+    private float recursiveML(ChessGame game, int depth, float alpha, float beta, boolean maximizingPlayer) throws CloneNotSupportedException, InvalidMoveException, OrtException {
+        if (depth == 0) {
+            return quiescenceML(game, alpha, beta, maximizingPlayer, 4);
+        }
+
+        ArrayList<ChessMove> validMoves = getAllValidMoves(game);
+        if (validMoves.isEmpty()) {
+            boolean stalemate = game.isInStalemate(this.color) || game.isInStalemate(this.color == TeamColor.WHITE ? TeamColor.BLACK : TeamColor.WHITE);
+            return stalemate ? 0.0f : (maximizingPlayer ? -1.0f : 1.0f);
+        }
+
+        ArrayList<ChessMove> captures = getAllValidCaptures(game);
+        ArrayList<ChessMove> quietMoves = new ArrayList<>(validMoves);
+        quietMoves.removeAll(captures);
+        captures.addAll(quietMoves);
+        validMoves = captures;
+
+        float best = maximizingPlayer ? -Float.MAX_VALUE : Float.MAX_VALUE;
+        for (ChessMove move : validMoves) {
+            ChessGame newGame = (ChessGame) game.clone();
+            newGame.makeMove(move);
+            float score = recursiveML(newGame, depth - 1, alpha, beta, !maximizingPlayer);
+            if (maximizingPlayer) {
+                best = Math.max(best, score);
+                alpha = Math.max(alpha, best);
+            } else {
+                best = Math.min(best, score);
+                beta = Math.min(beta, best);
+            }
+            if (beta <= alpha) break;
+        }
+        return best;
+    }
+
+    private float quiescenceML(ChessGame game, float alpha, float beta, boolean maximizingPlayer, int depth) throws CloneNotSupportedException, InvalidMoveException, OrtException {
+        float standPat = evaluate(game.getBoard());
+        if (depth == 0) return standPat;
+        if (maximizingPlayer) {
+            if (standPat >= beta) return beta;
+            alpha = Math.max(alpha, standPat);
+        } else {
+            if (standPat <= alpha) return alpha;
+            beta = Math.min(beta, standPat);
+        }
+        for (ChessMove capture : getAllValidCaptures(game)) {
+            ChessGame newGame = (ChessGame) game.clone();
+            newGame.makeMove(capture);
+            float score = quiescenceML(newGame, alpha, beta, !maximizingPlayer, depth - 1);
+            if (maximizingPlayer) {
+                if (score >= beta) return beta;
+                alpha = Math.max(alpha, score);
+            } else {
+                if (score <= alpha) return alpha;
+                beta = Math.min(beta, score);
+            }
+        }
+        return maximizingPlayer ? alpha : beta;
+    }
+
+    private float evaluate(ChessBoard board) throws OrtException {
+        float[][][][] tensor = boardToTensor(board);
+        OnnxTensor input = OnnxTensor.createTensor(env, tensor);
+        try (OrtSession.Result result = session.run(Map.of("input", input))) {
+            float[][] output = (float[][]) result.get(0).getValue();
+            return output[0][0];
+        }
+    }
+
+    private float[][][][] boardToTensor(ChessBoard board) {
+        float[][][][] tensor = new float[1][12][8][8];
+        for (int row = 1; row <= 8; row++) {
+            for (int col = 1; col <= 8; col++) {
+                ChessPiece piece = board.getPiece(new ChessPosition(row, col));
+                if (piece != null) {
+                    int offset = piece.getTeamColor() == TeamColor.WHITE ? 0 : 6;
+                    int plane = pieceIndex(piece.getPieceType()) + offset;
+                    tensor[0][plane][row - 1][col - 1] = 1.0f;
+                }
+            }
+        }
+        return tensor;
+    }
+
+    private int pieceIndex(ChessPiece.PieceType type) {
+        switch (type) {
+            case PAWN:   return 0;
+            case KNIGHT: return 1;
+            case BISHOP: return 2;
+            case ROOK:   return 3;
+            case QUEEN:  return 4;
+            default:     return 5; // KING
         }
     }
 
@@ -59,7 +206,7 @@ public class Agent {
 
             if (depth == 4) {
                 //boolean isCapture = game.getBoard().getPiece(move.getEndPosition()) != null;
-                //System.out.println(move + " -> " + expectedUtility + (isCapture ? " [CAPTURE]" : ""));
+                System.out.println(move + " -> " + expectedUtility);
             }
 
             if (maximizingPlayer) {

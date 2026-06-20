@@ -28,6 +28,7 @@ public class ChessClient implements ServerMessageObserver {
     private volatile boolean suppressNextMainPrompt = false;
     private static final String RESET_COLORS = "[39;49m";
     private boolean aiMode = false;
+    private boolean mlMode = false;
 
     public ChessClient(String serverUrl) throws Exception {
         server = new ServerFacadeMain(serverUrl);
@@ -107,6 +108,10 @@ public class ChessClient implements ServerMessageObserver {
                         case "ai" -> {
                             aiMode = !aiMode;
                             yield "AI mode is now " + (aiMode ? "ON" : "OFF");
+                        }
+                        case "ml" -> {
+                            mlMode = !mlMode;
+                            yield "ML mode is now " + (mlMode? "ON" : "OFF");
                         }
                         case "legalmoves" -> legalMoves(params);
                         case "redraw" -> reDraw();
@@ -313,7 +318,7 @@ public class ChessClient implements ServerMessageObserver {
             gameplayState = GameplayState.NOGAMEPLAY;
         } else if (aiMode && this.teamColor == whoseTurn) {
             try {
-                ChessMove bestMove = new Agent(this.teamColor).getBestMove(this.game);
+                ChessMove bestMove = new Agent(this.teamColor).getBestMove(this.game, false);
                 if (bestMove == null) {
                     System.out.println("AI failed to calculate a move");
                     printPrompt();
@@ -325,6 +330,22 @@ public class ChessClient implements ServerMessageObserver {
                 System.out.println("AI has made its move: " + bestMove.toString());
             } catch (Exception e) {
                 System.out.println("AI failed to make a move");
+                printPrompt();
+            }
+        } else if (mlMode && this.teamColor == whoseTurn) {
+            try {
+                ChessMove bestMove = new Agent(this.teamColor).getBestMove(this.game, true);
+                if (bestMove == null) {
+                    System.out.println("ML failed to calculate a move");
+                    printPrompt();
+                    return;
+                }
+                websocketFacade.makeMove(server.getAuth().authToken(), this.currentId,
+                        server.getAuth().username(), teamColor.toString().toLowerCase(), bestMove);
+                suppressNextMainPrompt = true;
+                System.out.println("ML has made its move: " + bestMove.toString());
+            } catch (Exception e) {
+                System.out.println("ML failed to make a move");
                 printPrompt();
             }
         }

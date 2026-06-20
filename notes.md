@@ -7,10 +7,6 @@ Write a website that provides a GUI for the chess game
 deploy?
 
 
-Chess bot ideas
-make heuristic way better
-give it a small chance to do a random move - forces exploring. Might hurt though? Would prevent it from getting stuck
-
 ---
 
 ## Code Review (2026-04-01)

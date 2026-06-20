@@ -1,0 +1,6 @@
+venv/
+__pycache__/
+*.pyc
+.env
+output_labels.npy
+output_positions.npy

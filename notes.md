@@ -5,8 +5,6 @@ stress test it
 After:
 Write a website that provides a GUI for the chess game
 deploy?
-Write a chess bot????
-
 
 
 ---

@@ -48,6 +48,14 @@ public class ChessGame implements Cloneable {
         }
     }
 
+    public int getEnPassantColumn() {
+        return enPassantColumn;
+    }
+
+    public void setEnPassantColumn(int col) {
+        this.enPassantColumn = col;
+    }
+
     /**
      * Enum identifying the 2 possible teams in a chess game
      */
@@ -326,7 +334,7 @@ public class ChessGame implements Cloneable {
     }
 
     @Override
-    protected Object clone() throws CloneNotSupportedException {
+    public Object clone() throws CloneNotSupportedException {
         var clone = new ChessGame();
         clone.teamsTurn = this.teamsTurn;
         clone.enPassantColumn = this.enPassantColumn;
@@ -334,7 +342,9 @@ public class ChessGame implements Cloneable {
         for (int i = ChessBoard.BOARD_MIN; i <= ChessBoard.BOARD_MAX; i++ ) {
             for (int j = ChessBoard.BOARD_MIN; j <= ChessBoard.BOARD_MAX; j++) {
                 ChessPosition position = new ChessPosition(i,j);
-                clone.board.addPiece(position, this.board.getPiece(position));
+                ChessPiece piece = this.board.getPiece(position);
+                clone.board.addPiece(position, piece == null ? null 
+                    : new ChessPiece(piece.getTeamColor(), piece.getPieceType(), piece.getTotalMoves()));
             }
         }
 

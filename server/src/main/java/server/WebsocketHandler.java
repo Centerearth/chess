@@ -23,8 +23,14 @@ import websocket.messages.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import agent.Agent;
+
 import java.io.IOException;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static websocket.messages.ServerMessage.ServerMessageType.*;
 
@@ -35,6 +41,8 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
 
     private final ConnectionManager allConnections = new ConnectionManager();
     private final GameService gameService;
+    private final ExecutorService aiExecutor = Executors.newCachedThreadPool();
+    private final ConcurrentHashMap<Integer, AtomicBoolean> aiBusy = new ConcurrentHashMap<>();
 
     public WebsocketHandler(GameService gameService) throws DataAccessException {
         this.gameService = gameService;
@@ -117,6 +125,8 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         allConnections.broadcastOne(session, loadGameMessage, userGameCommand.getGameID());
         allConnections.broadcastSome(session, notificationMessage, userGameCommand.getGameID());
 
+        scheduleAiMoveIfNeeded(userGameCommand.getGameID());
+
         } catch (Exception e) {
             logger.error("Failed to connect to game", e);
             allConnections.broadcastError(session, new ErrorMessage(ERROR,"Error: failed to connect"));
@@ -163,21 +173,7 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                 }
                 gameService.updateBoard(gameID, game);
 
-                notificationMessage2 = null;
-                if (game.isInCheckmate(ChessGame.TeamColor.WHITE)) {
-                    notificationMessage2 = new NotificationMessage(NOTIFICATION, String.format("%s has checkmated white", username));
-                    gameService.updateGameWin(gameID);
-                } else if (game.isInCheckmate(ChessGame.TeamColor.BLACK)) {
-                    notificationMessage2 = new NotificationMessage(NOTIFICATION, String.format("%s has checkmated black", username));
-                    gameService.updateGameWin(gameID);
-                } else if (game.isInCheck(ChessGame.TeamColor.WHITE)) {
-                    notificationMessage2 = new NotificationMessage(NOTIFICATION, String.format("%s has put white in check", username));
-                } else if (game.isInCheck(ChessGame.TeamColor.BLACK)) {
-                    notificationMessage2 = new NotificationMessage(NOTIFICATION, String.format("%s has put black in check", username));
-                } else if (game.isInStalemate(ChessGame.TeamColor.WHITE) || game.isInStalemate(ChessGame.TeamColor.BLACK)) {
-                    notificationMessage2 = new NotificationMessage(NOTIFICATION, String.format("%s has put the game in stalemate", username));
-                    gameService.updateGameWin(gameID);
-                }
+                notificationMessage2 = endStateNotification(game, username, gameID);
 
                 gameData = gameService.getGame(gameID);
 
@@ -194,11 +190,129 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             }
             if (gameWon) {
                 allConnections.remove(gameID);
+            } else {
+                scheduleAiMoveIfNeeded(gameID);
             }
 
         } catch (Exception e) {
             logger.error("Failed to make move in game {}", gameID, e);
             allConnections.broadcastError(session, new ErrorMessage(ERROR, "Error: failed to make move"));
+        }
+    }
+
+    private NotificationMessage endStateNotification(ChessGame game, String username, int gameID) throws DataAccessException {
+        if (game.isInCheckmate(ChessGame.TeamColor.WHITE)) {
+            gameService.updateGameWin(gameID);
+            return new NotificationMessage(NOTIFICATION, String.format("%s has checkmated white", username));
+        } else if (game.isInCheckmate(ChessGame.TeamColor.BLACK)) {
+            gameService.updateGameWin(gameID);
+            return new NotificationMessage(NOTIFICATION, String.format("%s has checkmated black", username));
+        } else if (game.isInCheck(ChessGame.TeamColor.WHITE)) {
+            return new NotificationMessage(NOTIFICATION, String.format("%s has put white in check", username));
+        } else if (game.isInCheck(ChessGame.TeamColor.BLACK)) {
+            return new NotificationMessage(NOTIFICATION, String.format("%s has put black in check", username));
+        } else if (game.isInStalemate(ChessGame.TeamColor.WHITE) || game.isInStalemate(ChessGame.TeamColor.BLACK)) {
+            gameService.updateGameWin(gameID);
+            return new NotificationMessage(NOTIFICATION, String.format("%s has put the game in stalemate", username));
+        }
+        return null;
+    }
+
+    public void scheduleAiMoveIfNeeded(int gameID) {
+        AtomicBoolean busy = aiBusy.computeIfAbsent(gameID, id -> new AtomicBoolean(false));
+        if (!busy.compareAndSet(false, true)) {
+            return;
+        }
+        aiExecutor.submit(() -> {
+            try {
+                runAiTurns(gameID);
+            } catch (Throwable e) {
+                logger.error("AI move failed in game {}", gameID, e);
+            } finally {
+                busy.set(false);
+            }
+        });
+    }
+
+    private static String aiDisplayName(String aiUsername) {
+        return GameService.AI_ML_USERNAME.equals(aiUsername) ? "The AI (neural net)" : "The AI (alpha-beta)";
+    }
+
+    private void runAiTurns(int gameID) throws Exception {
+        while (true) {
+            ChessGame snapshot;
+            ChessGame.TeamColor turn;
+            String aiUsername;
+
+            synchronized (gameService.getLock(gameID)) {
+                if (gameService.isGameWon(gameID)) {
+                    return;
+                }
+                GameData gameData = gameService.getGame(gameID);
+                if (gameData == null) {
+                    return;
+                }
+                turn = gameData.game().getTeamTurn();
+                aiUsername = (turn == ChessGame.TeamColor.WHITE)
+                        ? gameData.whiteUsername() : gameData.blackUsername();
+                if (!GameService.isAiUsername(aiUsername)) {
+                    return;
+                }
+                snapshot = (ChessGame) gameData.game().clone();
+            }
+
+            boolean mlMode = GameService.AI_ML_USERNAME.equals(aiUsername);
+            logger.info("AI ({}) computing move for game {} as {}", aiUsername, gameID, turn);
+            ChessMove move = new Agent(turn).getBestMove(snapshot, mlMode);
+            logger.info("AI chose {} in game {}", move, gameID);
+            if (move == null) {
+                logger.error("AI could not find a move in game {}", gameID);
+                return;
+            }
+
+            LoadGameMessage loadGameMessage;
+            NotificationMessage moveNotification;
+            NotificationMessage endStateMessage;
+            boolean gameWon;
+
+            synchronized (gameService.getLock(gameID)) {
+                if (gameService.isGameWon(gameID)) {
+                    return;
+                }
+                GameData gameData = gameService.getGame(gameID);
+                if (gameData == null) {
+                    return;
+                }
+                ChessGame game = gameData.game();
+                if (game.getTeamTurn() != turn) {
+                    return;
+                }
+                try {
+                    game.makeMove(move);
+                } catch (InvalidMoveException e) {
+                    logger.error("AI produced an invalid move {} in game {}", move, gameID, e);
+                    return;
+                }
+                gameService.updateBoard(gameID, game);
+
+                endStateMessage = endStateNotification(game, aiDisplayName(aiUsername), gameID);
+
+                gameData = gameService.getGame(gameID);
+                loadGameMessage = new LoadGameMessage(LOAD_GAME, gameData.game(), gameData.gameOver());
+                moveNotification = new NotificationMessage(NOTIFICATION,
+                        String.format("%s has made the move %s", aiDisplayName(aiUsername), move));
+                gameWon = gameService.isGameWon(gameID);
+            }
+
+            allConnections.broadcastAll(loadGameMessage, gameID);
+            allConnections.broadcastAll(moveNotification, gameID);
+            if (endStateMessage != null) {
+                allConnections.broadcastAll(endStateMessage, gameID);
+            }
+            if (gameWon) {
+                allConnections.remove(gameID);
+                return;
+            }
         }
     }
     private void leave(UserGameCommand userGameCommand, Session session) throws IOException {

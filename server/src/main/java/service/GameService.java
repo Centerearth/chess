@@ -16,9 +16,16 @@ import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class GameService {
+    public static final String AI_ALPHABETA_USERNAME = "ai";
+    public static final String AI_ML_USERNAME = "ml";
+
     private final SQLGameDataAccess gameDataAccess = new SQLGameDataAccess();
     private final SQLAuthDataAccess authDataAccess = new SQLAuthDataAccess();
     private final ConcurrentHashMap<Integer, Object> gameLocks = new ConcurrentHashMap<>();
+
+    public static boolean isAiUsername(String username) {
+        return AI_ALPHABETA_USERNAME.equals(username) || AI_ML_USERNAME.equals(username);
+    }
 
     public Object getLock(int gameID) {
         return gameLocks.computeIfAbsent(gameID, id -> new Object());
@@ -111,6 +118,28 @@ public class GameService {
                 String username = authDataAccess.getAuth(joinGameRequest.authToken()).username();
                 gameDataAccess.updateGame(joinGameRequest.teamColor(), joinGameRequest.gameID(), username);
             }
+        }
+    }
+
+    public void addAiPlayer(String authToken, int gameID, ChessGame.TeamColor teamColor, String aiType)
+            throws FailedLoginException, DataAccessException {
+        if (!isAiUsername(aiType)) {
+            throw new BadRequestException("Error: unknown AI type, use \"ai\" or \"ml\"");
+        }
+        if (gameDataAccess.getGame(gameID) == null) {
+            throw new BadRequestException("Error: game does not exist");
+        }
+        if (authDataAccess.getAuth(authToken) == null) {
+            throw new FailedLoginException("Error: unauthorized");
+        }
+        synchronized (getLock(gameID)) {
+            GameData gameData = gameDataAccess.getGame(gameID);
+            String existing = (teamColor == ChessGame.TeamColor.WHITE)
+                    ? gameData.whiteUsername() : gameData.blackUsername();
+            if (existing != null) {
+                throw new AlreadyTakenException("Error: that color is already taken");
+            }
+            gameDataAccess.updateGame(teamColor, gameID, aiType);
         }
     }
 

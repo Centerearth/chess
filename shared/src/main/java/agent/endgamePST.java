@@ -1,4 +1,4 @@
-package client;
+package agent;
 
 public class endgamePST {
     public static final int[][] PAWN_PST = {

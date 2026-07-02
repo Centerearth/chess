@@ -35,6 +35,7 @@ public class Server {
                     .post("/game", this::createNewGame)
                     .put("/game", this::joinGame)
                     .get("/game", this::listGames)
+                    .get("/moves", this::validMoves)
                     .exception(Exception.class, this::httpExceptionHandler)
                     .ws("/ws", ws -> {
                         ws.onConnect(websocketHandler);
@@ -102,7 +103,7 @@ public class Server {
     }
 
     private record CreateGameBody(String gameName) {}
-    private record JoinGameBody(String playerColor, int gameID) {}
+    private record JoinGameBody(String playerColor, int gameID, String ai) {}
 
     private void createNewGame(Context context) {
         try {
@@ -135,7 +136,36 @@ public class Server {
                 default -> throw new BadRequestException("Error: bad request");
             };
 
-            gameService.joinGame(new JoinGameRequest(authToken, teamColor, body.gameID()));
+            if (body.ai() != null) {
+                gameService.addAiPlayer(authToken, body.gameID(), teamColor, body.ai());
+                websocketHandler.scheduleAiMoveIfNeeded(body.gameID());
+            } else {
+                gameService.joinGame(new JoinGameRequest(authToken, teamColor, body.gameID()));
+            }
+        } catch (Exception e) {
+            exceptionHandler(context, e);
+        }
+    }
+
+    private void validMoves(Context context) {
+        try {
+            String authToken = getAuthToken(context);
+            if (authToken == null || !gameService.authDataExists(authToken)) {
+                throw new FailedLoginException("Error: unauthorized");
+            }
+            int gameID = Integer.parseInt(context.queryParam("gameID"));
+            int row = Integer.parseInt(context.queryParam("row"));
+            int col = Integer.parseInt(context.queryParam("col"));
+
+            var gameData = gameService.getGame(gameID);
+            if (gameData == null) {
+                throw new BadRequestException("Error: game does not exist");
+            }
+            var moves = gameData.game().validMoves(new chess.ChessPosition(row, col));
+
+            context.json(new Gson().toJson(Map.of("moves", moves == null ? java.util.List.of() : moves)));
+        } catch (NumberFormatException e) {
+            exceptionHandler(context, new BadRequestException("Error: bad request"));
         } catch (Exception e) {
             exceptionHandler(context, e);
         }

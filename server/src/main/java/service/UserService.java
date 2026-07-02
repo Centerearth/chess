@@ -43,6 +43,10 @@ public class UserService {
             throw new BadRequestException("Error: The fields cannot be left blank");
         }
 
+        if (GameService.isAiUsername(registerRequest.username())) {
+            throw new AlreadyTakenException("Error: This username is reserved for the AI.");
+        }
+
         if (userDataExists(registerRequest.username())) {
             throw new AlreadyTakenException("Error: This username is already taken.");
         } else {

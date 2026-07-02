@@ -1,5 +1,6 @@
 package client;
 
+import agent.Agent;
 import chess.*;
 import serverfacade.ServerFacadeMain;
 import serverfacade.WebsocketFacade;

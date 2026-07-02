@@ -1,4 +1,4 @@
-package client;
+package agent;
 
 import chess.*;
 import java.util.ArrayList;
@@ -18,12 +18,30 @@ public class Agent {
         OrtSession tmpSession = null;
         try {
             tmpEnv = OrtEnvironment.getEnvironment();
-            tmpSession = tmpEnv.createSession("python-agent/chess_eval.onnx");
+            tmpSession = tmpEnv.createSession(resolveModelPath());
         } catch (OrtException e) {
             e.printStackTrace();
         }
         env = tmpEnv;
         session = tmpSession;
+    }
+
+    private static String resolveModelPath() {
+        String override = System.getenv("CHESS_ONNX_PATH");
+        if (override != null && !override.isBlank()) {
+            return override;
+        }
+        // depending on the module, the working directory may be the repo root or a module dir
+        for (String candidate : new String[]{"python-agent/chess_eval.onnx", "../python-agent/chess_eval.onnx"}) {
+            if (new java.io.File(candidate).exists()) {
+                return candidate;
+            }
+        }
+        return "python-agent/chess_eval.onnx";
+    }
+
+    public static boolean mlAvailable() {
+        return session != null;
     }
 
     public Agent(ChessGame.TeamColor color) {

@@ -52,7 +52,7 @@ public class StandardAPITests {
     @Order(1)
     @DisplayName("Static Files")
     public void staticFilesSuccess() {
-        String htmlFromServer = serverFacade.file("/").replaceAll("\r", "");
+        String htmlFromServer = serverFacade.file("/api-test.html").replaceAll("\r", "");
         Assertions.assertEquals(HttpURLConnection.HTTP_OK, serverFacade.getStatusCode(),
                 "Server response code was not 200 OK");
         Assertions.assertNotNull(htmlFromServer, "Server returned an empty file");

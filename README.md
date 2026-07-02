@@ -13,13 +13,54 @@ The application implements a multiplayer chess server and a command line chess c
 
 ## Modules
 
-- **Client**: Command line program used to play chess over the network. Includes the AI agent.
-- **Server**: Listens for network requests, manages users and games.
-- **Shared**: Chess rules and game state shared between client and server.
+- **Client**: Command line program used to play chess over the network.
+- **Server**: Listens for network requests, manages users and games, and plays the AI's moves.
+- **Shared**: Chess rules, game state, and the AI agent — shared between client and server.
+- **Web**: React + Vite web client for playing in the browser.
+
+## Web Client
+
+The website lets you register/login, create games, join as white or black, observe, and play
+against another player or either AI — all in the browser.
+
+**Play (production build served by the server):**
+
+```sh
+mvn install -DskipTests        # build the Java modules
+mvn -pl server exec:java       # start the server (needs MySQL running)
+# then open http://localhost:8080
+```
+
+**Develop the web client (hot reload):**
+
+```sh
+cd web
+npm install
+npm run dev                    # Vite dev server on :5173, proxies API + websocket to :8080
+```
+
+**Ship a new web build into the server:**
+
+```sh
+cd web && npm run deploy       # builds and copies into server/src/main/resources/web
+```
+
+The old HTTP endpoint test page is still available at `/api-test.html`.
+
+### How AI games work now
+
+The AI runs on the server. Joining a game with the reserved username slots `ai`
+(alpha-beta) or `ml` (neural net) — via the web UI's "New game → Opponent" picker, or
+`PUT /game` with `{"gameID": …, "playerColor": "BLACK", "ai": "ai"}` — makes the server
+compute and play that color's moves automatically after each of your moves. The server
+also exposes `GET /moves?gameID=…&row=…&col=…` for legal-move highlighting.
+
+The ONNX model is loaded from `python-agent/chess_eval.onnx` (override with the
+`CHESS_ONNX_PATH` environment variable).
 
 ## AI Agent
 
-The chess AI supports two modes, switchable at runtime:
+The chess AI supports two modes, selectable per game (web) or switchable at runtime (CLI):
 
 ### Alpha-Beta (adversarial search)
 - Depth-4 minimax with alpha-beta pruning

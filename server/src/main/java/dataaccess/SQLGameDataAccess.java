@@ -115,33 +115,24 @@ public class SQLGameDataAccess implements GameDataAccess{
     }
 
     public void updateGame(ChessGame.TeamColor teamColor, int gameID, String username) throws DataAccessException {
-        GameData oldGame = getGame(gameID);
-        GameData newGame;
-        if (teamColor == ChessGame.TeamColor.BLACK) {
-            newGame = new GameData(gameID,
-                    oldGame.whiteUsername(), username, oldGame.gameName(), oldGame.game(),
-                    oldGame.gameOver());
-        } else {
-            newGame = new GameData(gameID,
-                    username, oldGame.blackUsername(), oldGame.gameName(), oldGame.game(),
-                    oldGame.gameOver());
-        }
-        executeUpdate(gameID, newGame);
+        executeUpdate(gameID, getGame(gameID).withUsername(teamColor, username));
     }
 
     public void updateBoard(int gameID, ChessGame game) throws DataAccessException {
-        GameData oldGame = getGame(gameID);
-        GameData newGame = new GameData(gameID, oldGame.whiteUsername(), oldGame.blackUsername(), oldGame.gameName(),
-                game, oldGame.gameOver());
-        executeUpdate(gameID, newGame);
+        executeUpdate(gameID, getGame(gameID).withBoard(game));
     }
 
+    /** Persist a full GameData snapshot (histories, clocks, etc.). */
+    public void putGame(GameData gameData) throws DataAccessException {
+        executeUpdate(gameData.gameID(), gameData);
+    }
 
     public void updateGameWin(int gameID) throws DataAccessException {
-        GameData oldGame = getGame(gameID);
-        GameData newGame = new GameData(gameID, oldGame.whiteUsername(), oldGame.blackUsername(), oldGame.gameName(),
-                oldGame.game(), true);
-        executeUpdate(gameID, newGame);
+        updateGameWin(gameID, null);
+    }
+
+    public void updateGameWin(int gameID, String result) throws DataAccessException {
+        executeUpdate(gameID, getGame(gameID).withGameOver(result));
     }
 
     public boolean isGameWon(int gameID) throws DataAccessException {

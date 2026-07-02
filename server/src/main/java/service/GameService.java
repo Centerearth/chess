@@ -76,9 +76,23 @@ public class GameService {
                     throw new AlreadyTakenException("Error: a game with that name already exists");
                 }
             }
-            GameData newGameData = new GameData(generateID(), null, null,
-                    createGameRequest.gameName(),
-                    new ChessGame(), false);
+            Integer minutes = createGameRequest.timeControlMinutes();
+            if (minutes != null && (minutes < 1 || minutes > 180)) {
+                throw new BadRequestException("Error: time control must be between 1 and 180 minutes");
+            }
+            Long timeMs = minutes == null ? null : minutes * 60_000L;
+
+            int gameID = generateID();
+            while (gameDataAccess.getGame(gameID) != null) {
+                gameID = generateID();
+            }
+
+            ChessGame game = new ChessGame();
+            ArrayList<String> positionHistory = new ArrayList<>();
+            positionHistory.add(chess.FenSerializer.toFen(game));
+            GameData newGameData = new GameData(gameID, null, null,
+                    createGameRequest.gameName(), game, false,
+                    new ArrayList<>(), null, positionHistory, null, timeMs, timeMs, null, null);
             gameDataAccess.addGameData(newGameData);
             return new CreateGameResult(newGameData.gameID());
         }
@@ -92,7 +106,8 @@ public class GameService {
             ArrayList<GameData> allGameData = gameDataAccess.getAllGameData();
             for (GameData game : allGameData) {
                 allGameMetaData.add(new GameMetaData(
-                        game.gameID(), game.whiteUsername(), game.blackUsername(), game.gameName()));
+                        game.gameID(), game.whiteUsername(), game.blackUsername(), game.gameName(),
+                        game.gameOver()));
             }
             return new ListGameResult(allGameMetaData);
         }
@@ -121,10 +136,13 @@ public class GameService {
         }
     }
 
-    public void addAiPlayer(String authToken, int gameID, ChessGame.TeamColor teamColor, String aiType)
+    public void addAiPlayer(String authToken, int gameID, ChessGame.TeamColor teamColor, String aiType, Integer difficulty)
             throws FailedLoginException, DataAccessException {
         if (!isAiUsername(aiType)) {
             throw new BadRequestException("Error: unknown AI type, use \"ai\" or \"ml\"");
+        }
+        if (difficulty != null && (difficulty < 1 || difficulty > 3)) {
+            throw new BadRequestException("Error: difficulty must be 1 (easy), 2 (medium), or 3 (hard)");
         }
         if (gameDataAccess.getGame(gameID) == null) {
             throw new BadRequestException("Error: game does not exist");
@@ -139,8 +157,16 @@ public class GameService {
             if (existing != null) {
                 throw new AlreadyTakenException("Error: that color is already taken");
             }
-            gameDataAccess.updateGame(teamColor, gameID, aiType);
+            GameData updated = gameData.withUsername(teamColor, aiType);
+            if (difficulty != null) {
+                updated = updated.withAiDifficulty(difficulty);
+            }
+            gameDataAccess.putGame(updated);
         }
+    }
+
+    public void putGame(GameData gameData) throws DataAccessException {
+        gameDataAccess.putGame(gameData);
     }
 
     public void updateGame(ChessGame.TeamColor teamColor, int gameID, String username) throws DataAccessException {
@@ -153,6 +179,10 @@ public class GameService {
 
     public void updateGameWin(int gameID) throws DataAccessException {
         gameDataAccess.updateGameWin(gameID);
+    }
+
+    public void updateGameWin(int gameID, String result) throws DataAccessException {
+        gameDataAccess.updateGameWin(gameID, result);
     }
 
     public boolean isGameWon(int gameID) throws DataAccessException {

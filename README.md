@@ -23,6 +23,17 @@ The application implements a multiplayer chess server and a command line chess c
 The website lets you register/login, create games, join as white or black, observe, and play
 against another player or either AI — all in the browser.
 
+Features:
+- Click-to-move or drag-and-drop, with server-computed legal-move highlights and a
+  last-move highlight
+- Move history in algebraic notation and PGN export (`GET /pgn?gameID=…`)
+- Optional chess clocks (pick a time control at game creation; running out of time loses)
+- AI difficulty levels (easy/medium/hard) and AI-vs-AI spectator games — the bots only
+  play while someone is watching
+- Automatic draw detection: stalemate, threefold repetition, the fifty-move rule, and
+  insufficient material
+- Auto-reconnecting websocket, finished-games filter in the lobby, mobile-friendly layout
+
 **Play (production build served by the server):**
 
 ```sh
@@ -51,9 +62,12 @@ The old HTTP endpoint test page is still available at `/api-test.html`.
 
 The AI runs on the server. Joining a game with the reserved username slots `ai`
 (alpha-beta) or `ml` (neural net) — via the web UI's "New game → Opponent" picker, or
-`PUT /game` with `{"gameID": …, "playerColor": "BLACK", "ai": "ai"}` — makes the server
-compute and play that color's moves automatically after each of your moves. The server
-also exposes `GET /moves?gameID=…&row=…&col=…` for legal-move highlighting.
+`PUT /game` with `{"gameID": …, "playerColor": "BLACK", "ai": "ai", "aiDifficulty": 3}` —
+makes the server compute and play that color's moves automatically after each of your
+moves. Difficulty 1–3 maps to search depth (and a larger random-move chance on lower
+difficulties). The server also exposes `GET /moves?gameID=…&row=…&col=…` for legal-move
+highlighting. The neural-net agent evaluates quiescence positions in batched ONNX
+inference calls.
 
 The ONNX model is loaded from `python-agent/chess_eval.onnx` (override with the
 `CHESS_ONNX_PATH` environment variable).

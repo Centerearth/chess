@@ -16,12 +16,61 @@ public class ChessGame implements Cloneable {
         private ChessBoard board;
         private TeamColor teamsTurn;
         private int enPassantColumn;
+        private int halfmoveClock;
 
     public ChessGame() {
         board = new ChessBoard();
         this.board.resetBoard();
         teamsTurn = TeamColor.WHITE;
         enPassantColumn = -1;
+        halfmoveClock = 0;
+    }
+
+    /**
+     * @return plies since the last capture or pawn move (for the 50-move rule)
+     */
+    public int getHalfmoveClock() {
+        return halfmoveClock;
+    }
+
+    public boolean isFiftyMoveDraw() {
+        return halfmoveClock >= 100;
+    }
+
+    /**
+     * Dead positions where checkmate is impossible: K vs K, K+minor vs K,
+     * and K+B vs K+B with both bishops on the same square color.
+     */
+    public boolean isInsufficientMaterial() {
+        ArrayList<ChessPosition> bishops = new ArrayList<>();
+        int knights = 0;
+        for (int row = ChessBoard.BOARD_MIN; row <= ChessBoard.BOARD_MAX; row++) {
+            for (int col = ChessBoard.BOARD_MIN; col <= ChessBoard.BOARD_MAX; col++) {
+                ChessPosition position = new ChessPosition(row, col);
+                ChessPiece piece = board.getPiece(position);
+                if (piece == null || piece.getPieceType() == PieceType.KING) {
+                    continue;
+                }
+                switch (piece.getPieceType()) {
+                    case PAWN, ROOK, QUEEN -> {
+                        return false;
+                    }
+                    case KNIGHT -> knights++;
+                    case BISHOP -> bishops.add(position);
+                    default -> { }
+                }
+            }
+        }
+        int minors = knights + bishops.size();
+        if (minors <= 1) {
+            return true;
+        }
+        if (knights == 0) {
+            // all bishops: dead if they all live on the same square color
+            int firstColor = (bishops.get(0).getRow() + bishops.get(0).getColumn()) % 2;
+            return bishops.stream().allMatch(p -> (p.getRow() + p.getColumn()) % 2 == firstColor);
+        }
+        return false;
     }
 
     /**
@@ -141,6 +190,7 @@ public class ChessGame implements Cloneable {
             throw new InvalidMoveException("There is no piece there");
         }
         TeamColor color = piece.getTeamColor();
+        boolean captureMade = board.getPiece(endPosition) != null;
 
         ArrayList<ChessMove> validMoves;
         if (testing) {
@@ -155,6 +205,7 @@ public class ChessGame implements Cloneable {
         if (validMoves.contains(move)) {
             int moveIndex = validMoves.indexOf(move);
             if (validMoves.get(moveIndex).getEnPassant()) { //it's because the user's move doesn't have en passant
+                captureMade = true;
                 ChessPosition toBeErased = validMoves.get(moveIndex).getEnPassantAdjacent();
                 board.addPiece(startPosition, null);
                 board.addPiece(toBeErased, null);
@@ -203,6 +254,11 @@ public class ChessGame implements Cloneable {
                 enPassantColumn = endPosition.getColumn();
             } else {
                 enPassantColumn = -1;
+            }
+            if (piece.getPieceType() == PieceType.PAWN || captureMade) {
+                halfmoveClock = 0;
+            } else {
+                halfmoveClock++;
             }
             this.updateTeamTurn();
             piece.updateTotalMoves();
@@ -338,6 +394,7 @@ public class ChessGame implements Cloneable {
         var clone = new ChessGame();
         clone.teamsTurn = this.teamsTurn;
         clone.enPassantColumn = this.enPassantColumn;
+        clone.halfmoveClock = this.halfmoveClock;
 
         for (int i = ChessBoard.BOARD_MIN; i <= ChessBoard.BOARD_MAX; i++ ) {
             for (int j = ChessBoard.BOARD_MIN; j <= ChessBoard.BOARD_MAX; j++) {

@@ -1,29 +1,52 @@
-export function connectToGame({ authToken, gameID, username, color, onMessage, onClose }) {
-  const protocol = window.location.protocol === "https:" ? "wss" : "ws";
-  const socket = new WebSocket(`${protocol}://${window.location.host}/ws`);
+const MAX_RECONNECT_ATTEMPTS = 6;
+
+export function connectToGame({ authToken, gameID, username, color, onMessage, onStatus }) {
+  let socket = null;
   let closedByUs = false;
+  let attempts = 0;
+
+  const base = { authToken, gameID, username, color: color ?? "OBSERVER" };
 
   const send = (payload) => {
-    if (socket.readyState === WebSocket.OPEN) {
+    if (socket && socket.readyState === WebSocket.OPEN) {
       socket.send(JSON.stringify(payload));
     }
   };
 
-  const base = { authToken, gameID, username, color: color ?? "OBSERVER" };
+  const open = () => {
+    const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+    socket = new WebSocket(`${protocol}://${window.location.host}/ws`);
 
-  socket.onopen = () => send({ commandType: "CONNECT", ...base });
+    socket.onopen = () => {
+      attempts = 0;
+      onStatus?.("connected");
+      send({ commandType: "CONNECT", ...base });
+    };
 
-  socket.onmessage = (event) => {
-    try {
-      onMessage(JSON.parse(event.data));
-    } catch (e) {
-      console.error("Bad server message", event.data, e);
-    }
+    socket.onmessage = (event) => {
+      try {
+        onMessage(JSON.parse(event.data));
+      } catch (e) {
+        console.error("Bad server message", event.data, e);
+      }
+    };
+
+    socket.onclose = () => {
+      if (closedByUs) return;
+      if (attempts < MAX_RECONNECT_ATTEMPTS) {
+        onStatus?.("reconnecting");
+        const delay = Math.min(1000 * 2 ** attempts, 8000);
+        attempts += 1;
+        setTimeout(() => {
+          if (!closedByUs) open();
+        }, delay);
+      } else {
+        onStatus?.("disconnected");
+      }
+    };
   };
 
-  socket.onclose = () => {
-    if (!closedByUs && onClose) onClose();
-  };
+  open();
 
   return {
     makeMove(move) {
@@ -35,11 +58,11 @@ export function connectToGame({ authToken, gameID, username, color, onMessage, o
     leave() {
       closedByUs = true;
       send({ commandType: "LEAVE", ...base });
-      socket.close();
+      socket?.close();
     },
     close() {
       closedByUs = true;
-      socket.close();
+      socket?.close();
     },
   };
 }

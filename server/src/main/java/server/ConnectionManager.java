@@ -22,12 +22,30 @@ public class ConnectionManager {
     }
 
     public void removeSession(int gameID, Session session) {
-        allConnections.get(gameID).remove(session);
+        Set<Session> connections = allConnections.get(gameID);
+        if (connections != null) {
+            connections.remove(session);
+        }
+    }
+
+    public boolean hasOpenConnections(int gameID) {
+        Set<Session> connections = allConnections.get(gameID);
+        if (connections == null) {
+            return false;
+        }
+        return connections.stream().anyMatch(Session::isOpen);
+    }
+
+    public Set<Integer> activeGameIDs() {
+        return allConnections.keySet();
     }
 
     public void broadcastAll(ServerMessage serverMessage, int gameID) throws IOException {
         String messageJson = new Gson().toJson(serverMessage);
         Set<Session> connections = allConnections.get(gameID);
+        if (connections == null) {
+            return;
+        }
         for (Session s : connections) {
             if (s.isOpen()) {
                 s.getRemote().sendString(messageJson);
@@ -38,6 +56,9 @@ public class ConnectionManager {
     public void broadcastSome(Session excludeSession, ServerMessage serverMessage, int gameID) throws IOException {
         String messageJson = new Gson().toJson(serverMessage);
         Set<Session> connections = allConnections.get(gameID);
+        if (connections == null) {
+            return;
+        }
         for (Session s : connections) {
             if (s.isOpen()) {
                 if (!s.equals(excludeSession)) {
@@ -50,6 +71,9 @@ public class ConnectionManager {
     public void broadcastOne(Session session, ServerMessage serverMessage, int gameID) throws IOException {
         String messageJson = new Gson().toJson(serverMessage);
         Set<Session> connections = allConnections.get(gameID);
+        if (connections == null) {
+            return;
+        }
         for (Session s : connections) {
             if (s.isOpen()) {
                 if (s.equals(session)) {
@@ -62,7 +86,6 @@ public class ConnectionManager {
     public void broadcastError(Session session, ErrorMessage errorMessage) throws IOException {
         String errorJson = new Gson().toJson(errorMessage);
         if (session.isOpen()) {
-            System.out.println(errorJson);
             session.getRemote().sendString(errorJson);
         }
     }

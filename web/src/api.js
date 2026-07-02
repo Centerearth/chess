@@ -14,8 +14,6 @@ async function request(method, path, { authToken, body } = {}) {
   if (text) {
     try {
       data = JSON.parse(text);
-      // the server double-encodes some responses as JSON strings
-      if (typeof data === "string") data = JSON.parse(data);
     } catch {
       data = null;
     }
@@ -43,18 +41,21 @@ export function listGames(authToken) {
   return request("GET", "/game", { authToken });
 }
 
-export function createGame(authToken, gameName) {
-  return request("POST", "/game", { authToken, body: { gameName } });
+export function createGame(authToken, gameName, timeControlMinutes) {
+  return request("POST", "/game", {
+    authToken,
+    body: { gameName, timeControlMinutes: timeControlMinutes ?? null },
+  });
 }
 
 export function joinGame(authToken, gameID, playerColor) {
   return request("PUT", "/game", { authToken, body: { gameID, playerColor } });
 }
 
-export function addAiOpponent(authToken, gameID, playerColor, aiType) {
+export function addAiOpponent(authToken, gameID, playerColor, aiType, difficulty) {
   return request("PUT", "/game", {
     authToken,
-    body: { gameID, playerColor, ai: aiType },
+    body: { gameID, playerColor, ai: aiType, aiDifficulty: difficulty ?? null },
   });
 }
 
@@ -64,4 +65,18 @@ export function getValidMoves(authToken, gameID, row, col) {
     `/moves?gameID=${gameID}&row=${row}&col=${col}`,
     { authToken },
   );
+}
+
+export async function downloadPgn(authToken, gameID) {
+  const response = await fetch(`/pgn?gameID=${gameID}`, {
+    headers: { authorization: authToken },
+  });
+  if (!response.ok) throw new Error("Could not export PGN");
+  const blob = await response.blob();
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `game-${gameID}.pgn`;
+  link.click();
+  URL.revokeObjectURL(url);
 }

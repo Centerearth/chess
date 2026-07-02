@@ -6,6 +6,8 @@ import model.AuthData;
 import static dataaccess.DatabaseManager.*;
 
 public class SQLAuthDataAccess implements AuthDataAccess {
+    private static final long TOKEN_LIFETIME_MS = 7L * 24 * 60 * 60 * 1000; // 7 days
+
     public SQLAuthDataAccess() throws DataAccessException {
         createDatabase();
     }
@@ -37,7 +39,12 @@ public class SQLAuthDataAccess implements AuthDataAccess {
                 try (var rs = preparedStatement.executeQuery()) {
                     if (rs.next()) {
                         var authDataString = rs.getString("authData");
-                        return new Gson().fromJson(authDataString, AuthData.class);
+                        AuthData authData = new Gson().fromJson(authDataString, AuthData.class);
+                        if (isExpired(authData)) {
+                            deleteAuth(authToken);
+                            return null;
+                        }
+                        return authData;
                     }
                     return null;
                 }
@@ -53,6 +60,12 @@ public class SQLAuthDataAccess implements AuthDataAccess {
 
 
 
+
+    private static boolean isExpired(AuthData authData) {
+        // tokens issued before expiry existed have no createdAt; treat them as expired
+        return authData.createdAt() == null
+                || System.currentTimeMillis() - authData.createdAt() > TOKEN_LIFETIME_MS;
+    }
 
     public void deleteAuth(String authToken) throws DataAccessException {
         try (var conn = DatabaseManager.getConnection()) {

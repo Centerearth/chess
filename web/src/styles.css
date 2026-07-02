@@ -209,6 +209,17 @@ select {
   border-radius: 4px;
   display: inline-block;
   user-select: none;
+  touch-action: none;
+  position: relative;
+}
+
+.drag-ghost {
+  position: fixed;
+  transform: translate(-50%, -50%);
+  font-size: min(8.5vw, 46px);
+  line-height: 1;
+  pointer-events: none;
+  z-index: 10;
 }
 
 .board-row {
@@ -250,6 +261,14 @@ select {
 
 .square.capture-target {
   box-shadow: inset 0 0 0 4px var(--highlight);
+}
+
+.square.last-move::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(246, 214, 84, 0.35);
+  pointer-events: none;
 }
 
 .piece-white {
@@ -300,12 +319,144 @@ select {
   gap: 0.4rem;
 }
 
-.log-panel {
+.side-panels {
   flex: 1 1 260px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 240px;
+}
+
+.moves-panel {
   background: var(--card);
   border-radius: 10px;
   padding: 1rem 1.25rem;
-  max-height: 560px;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.move-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  columns: 2;
+  font-size: 0.92rem;
+}
+
+.move-list li {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.15rem 0;
+  break-inside: avoid;
+}
+
+.move-number {
+  color: var(--muted);
+  min-width: 1.6rem;
+}
+
+.move {
+  min-width: 2.8rem;
+}
+
+.status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.6rem;
+}
+
+.status-row .status {
+  margin: 0;
+}
+
+.clocks {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.clock {
+  background: var(--card);
+  border-radius: 8px;
+  padding: 0.3rem 0.7rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 4.2rem;
+  opacity: 0.55;
+}
+
+.clock.active {
+  opacity: 1;
+  outline: 2px solid var(--accent);
+}
+
+.clock.low .clock-time {
+  color: var(--danger);
+}
+
+.clock-label {
+  font-size: 0.65rem;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+
+.clock-time {
+  font-size: 1.15rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.conn-status {
+  margin-right: 0.6rem;
+  font-size: 0.85rem;
+  color: #e0b34f;
+}
+
+.conn-status.disconnected {
+  color: var(--danger);
+}
+
+.badge {
+  display: inline-block;
+  margin-left: 0.5rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: 10px;
+  background: #4a5058;
+  color: var(--text);
+  font-size: 0.68rem;
+  font-weight: normal;
+  text-transform: uppercase;
+}
+
+.badge.ai {
+  background: var(--accent);
+}
+
+tr.finished .game-name,
+tr.finished .seat {
+  opacity: 0.6;
+}
+
+.games-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.log-panel {
+  background: var(--card);
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  max-height: 300px;
   overflow-y: auto;
 }
 
@@ -323,4 +474,43 @@ select {
 
 .log-panel li.error {
   color: #e08983;
+}
+
+@media (max-width: 720px) {
+  .lobby-page,
+  .game-page {
+    padding: 0.6rem 0.6rem 2rem;
+  }
+
+  .topbar {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .game-layout {
+    flex-direction: column;
+  }
+
+  .side-panels {
+    width: 100%;
+  }
+
+  .square {
+    width: 11.5vw;
+    height: 11.5vw;
+    font-size: 8.5vw;
+  }
+
+  .create-card form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .actions {
+    white-space: normal;
+  }
+
+  .actions button {
+    margin: 0.15rem 0.2rem;
+  }
 }

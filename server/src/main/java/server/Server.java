@@ -36,6 +36,7 @@ public class Server {
                     .put("/game", this::joinGame)
                     .get("/game", this::listGames)
                     .get("/moves", this::validMoves)
+                    .get("/pgn", this::exportPgn)
                     .exception(Exception.class, this::httpExceptionHandler)
                     .ws("/ws", ws -> {
                         ws.onConnect(websocketHandler);
@@ -66,8 +67,7 @@ public class Server {
 
             RegisterResult registerResult = userService.register(body);
 
-            String json = new Gson().toJson(registerResult);
-            context.json(json);
+            sendJson(context, registerResult);
         } catch (Exception e) {
             exceptionHandler(context, e);
         }
@@ -83,8 +83,7 @@ public class Server {
 
             LoginResult loginResult = userService.login(body);
 
-            String json = new Gson().toJson(loginResult);
-            context.json(json);
+            sendJson(context, loginResult);
         } catch (Exception e) {
             exceptionHandler(context, e);
         }
@@ -102,8 +101,8 @@ public class Server {
         }
     }
 
-    private record CreateGameBody(String gameName) {}
-    private record JoinGameBody(String playerColor, int gameID, String ai) {}
+    private record CreateGameBody(String gameName, Integer timeControlMinutes) {}
+    private record JoinGameBody(String playerColor, int gameID, String ai, Integer aiDifficulty) {}
 
     private void createNewGame(Context context) {
         try {
@@ -112,10 +111,10 @@ public class Server {
             if (authToken == null || body.gameName() == null) {
                 throw new BadRequestException("Error: bad request");
             }
-            CreateGameResult createGameResult = gameService.createGame(new CreateGameRequest(authToken, body.gameName()));
+            CreateGameResult createGameResult = gameService.createGame(
+                    new CreateGameRequest(authToken, body.gameName(), body.timeControlMinutes()));
 
-            String json = new Gson().toJson(createGameResult);
-            context.json(json);
+            sendJson(context, createGameResult);
         } catch (Exception e) {
             exceptionHandler(context, e);
         }
@@ -137,7 +136,7 @@ public class Server {
             };
 
             if (body.ai() != null) {
-                gameService.addAiPlayer(authToken, body.gameID(), teamColor, body.ai());
+                gameService.addAiPlayer(authToken, body.gameID(), teamColor, body.ai(), body.aiDifficulty());
                 websocketHandler.scheduleAiMoveIfNeeded(body.gameID());
             } else {
                 gameService.joinGame(new JoinGameRequest(authToken, teamColor, body.gameID()));
@@ -163,7 +162,7 @@ public class Server {
             }
             var moves = gameData.game().validMoves(new chess.ChessPosition(row, col));
 
-            context.json(new Gson().toJson(Map.of("moves", moves == null ? java.util.List.of() : moves)));
+            sendJson(context, Map.of("moves", moves == null ? java.util.List.of() : moves));
         } catch (NumberFormatException e) {
             exceptionHandler(context, new BadRequestException("Error: bad request"));
         } catch (Exception e) {
@@ -179,8 +178,28 @@ public class Server {
             }
             ListGameResult listGameResult = gameService.listAllGameMetaData(new ListGameRequest(authToken));
 
-            String json = new Gson().toJson(listGameResult);
-            context.json(json);
+            sendJson(context, listGameResult);
+        } catch (Exception e) {
+            exceptionHandler(context, e);
+        }
+    }
+
+    private void exportPgn(Context context) {
+        try {
+            String authToken = getAuthToken(context);
+            if (authToken == null || !gameService.authDataExists(authToken)) {
+                throw new FailedLoginException("Error: unauthorized");
+            }
+            int gameID = Integer.parseInt(context.queryParam("gameID"));
+            var gameData = gameService.getGame(gameID);
+            if (gameData == null) {
+                throw new BadRequestException("Error: game does not exist");
+            }
+            context.contentType("application/x-chess-pgn");
+            context.header("Content-Disposition", "attachment; filename=\"game-" + gameID + ".pgn\"");
+            context.result(PgnBuilder.build(gameData));
+        } catch (NumberFormatException e) {
+            exceptionHandler(context, new BadRequestException("Error: bad request"));
         } catch (Exception e) {
             exceptionHandler(context, e);
         }
@@ -188,6 +207,11 @@ public class Server {
 
     private String getAuthToken (Context context) {
         return context.header("authorization");
+    }
+
+    private static void sendJson(Context context, Object body) {
+        context.contentType("application/json");
+        context.result(new Gson().toJson(body));
     }
 
     private static <T> T getBodyObject(Context context, Class<T> classType) {
